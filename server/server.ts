@@ -193,9 +193,20 @@ setInterval(() => {
         b.y += overlapV.y;
       } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Wall) {
         game.physics.remove(a);
-        const idx = game.bullets.findIndex((bullet) => bullet.body === a);
-        if (idx >= 0) {
-          game.bullets.splice(idx, 1);
+        const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);
+        if (bulletIdx >= 0) {
+          game.bullets.splice(bulletIdx, 1);
+        }
+      } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Player) {
+        game.physics.remove(a);
+        const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);
+        if (bulletIdx >= 0) {
+          game.bullets.splice(bulletIdx, 1);
+        }
+        game.physics.remove(b);
+        const playerIdx = game.players.findIndex((player) => player.body === b);
+        if (playerIdx >= 0) {
+          game.players.splice(playerIdx, 1);
         }
       }
     });
