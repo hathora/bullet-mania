@@ -1,17 +1,15 @@
 import Phaser from "phaser";
 import { HathoraClient } from "@hathora/client-sdk";
-import { ClientMessageType, ServerMessage } from "../../common/messages";
-import { HathoraTransport } from "@hathora/client-sdk/lib/transport";
+import { ClientMessageType } from "../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
+import { RoomConnection } from "./connection";
 
 const client = new HathoraClient(import.meta.env.APP_ID);
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
 
 class GameScene extends Phaser.Scene {
   private userId!: string;
-  private connection!: HathoraTransport;
+  private connection!: RoomConnection;
 
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
@@ -32,16 +30,15 @@ class GameScene extends Phaser.Scene {
     getToken().then((token) => {
       this.userId = HathoraClient.getUserFromToken(token).id;
       getRoomId(token).then((roomId) => {
-        client
-          .connect(
-            token,
-            roomId,
-            (msg) => this.onMessage(msg),
-            (e) => this.onClose(e)
-          )
-          .then((connection) => {
-            this.connection = connection;
-          });
+        this.connection = new RoomConnection(client, token, roomId);
+        this.connection.connect();
+        this.connection.addListener(({ state, ts }) => {
+          if (this.stateBuffer === undefined) {
+            this.stateBuffer = new InterpolationBuffer(state, 50, lerp);
+          } else {
+            this.stateBuffer.enqueue(state, [], ts);
+          }
+        });
       });
     });
 
@@ -64,8 +61,7 @@ class GameScene extends Phaser.Scene {
 
       if (prevDirection !== direction) {
         prevDirection = direction;
-        const msg = { type: ClientMessageType.SetDirection, direction };
-        this.connection.write(encoder.encode(JSON.stringify(msg)));
+        this.connection.sendMessage({ type: ClientMessageType.SetDirection, direction });
       }
     };
     this.input.keyboard.on("keydown", handleKeyEvt);
@@ -73,8 +69,7 @@ class GameScene extends Phaser.Scene {
 
     // mouse input
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
-      const msg = { type: ClientMessageType.Shoot };
-      this.connection.write(encoder.encode(JSON.stringify(msg)));
+      this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
   }
 
@@ -112,8 +107,7 @@ class GameScene extends Phaser.Scene {
       const angle = Math.atan2(pointer.y - player.y, pointer.x - player.x);
       if (angle !== this.prevAngle) {
         this.prevAngle = angle;
-        const msg = { type: ClientMessageType.SetAimAngle, aimAngle: angle };
-        this.connection.write(encoder.encode(JSON.stringify(msg)));
+        this.connection.sendMessage({ type: ClientMessageType.SetAimAngle, aimAngle: angle });
       }
     }
   }
@@ -136,19 +130,6 @@ class GameScene extends Phaser.Scene {
         oldSprites.delete(id);
       }
     });
-  }
-
-  private onMessage(data: ArrayBuffer) {
-    const msg: ServerMessage = JSON.parse(decoder.decode(data));
-    if (this.stateBuffer === undefined) {
-      this.stateBuffer = new InterpolationBuffer(msg.state, 50, lerp);
-    } else {
-      this.stateBuffer.enqueue(msg.state, [], msg.ts);
-    }
-  }
-
-  private onClose(e: { code: number; reason: string }) {
-    console.error("Connection closed", e.reason);
   }
 }
 
