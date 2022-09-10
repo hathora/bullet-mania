@@ -9,9 +9,13 @@ const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
 class GameScene extends Phaser.Scene {
-  private connection: HathoraTransport | undefined;
+  private userId!: string;
+  private connection!: HathoraTransport;
+
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
+
+  private prevAngle = 0;
 
   constructor() {
     super("game");
@@ -24,6 +28,7 @@ class GameScene extends Phaser.Scene {
   create() {
     const client = new HathoraClient(import.meta.env.APP_ID);
     client.loginAnonymous().then((token) => {
+      this.userId = HathoraClient.getUserFromToken(token).id;
       client.create(token, new Uint8Array()).then((roomId) => {
         client
           .connect(
@@ -38,6 +43,7 @@ class GameScene extends Phaser.Scene {
       });
     });
 
+    // keyboard input
     const keys = this.input.keyboard.createCursorKeys();
     let prevDirection = Direction.None;
     const handleKeyEvt = () => {
@@ -57,8 +63,7 @@ class GameScene extends Phaser.Scene {
       if (prevDirection !== direction) {
         prevDirection = direction;
         const msg = { type: ClientMessageType.SetDirection, direction };
-        console.log("sending msg", msg);
-        this.connection?.write(encoder.encode(JSON.stringify(msg)));
+        this.connection.write(encoder.encode(JSON.stringify(msg)));
       }
     };
     this.input.keyboard.on("keydown", handleKeyEvt);
@@ -79,10 +84,21 @@ class GameScene extends Phaser.Scene {
         this.updatePlayer(player);
       }
     });
+
+    const pointer = this.input.activePointer;
+    const player = this.players.get(this.userId);
+    if (player !== undefined) {
+      const angle = Math.atan2(pointer.y - player.y, pointer.x - player.x);
+      if (angle !== this.prevAngle) {
+        this.prevAngle = angle;
+        const msg = { type: ClientMessageType.SetAimAngle, aimAngle: angle };
+        this.connection.write(encoder.encode(JSON.stringify(msg)));
+      }
+    }
   }
 
   private addPlayer({ id, position, aimAngle }: Player) {
-    const sprite = this.add.sprite(position.x, position.y, "player").setOrigin(0, 0).setAngle(aimAngle);
+    const sprite = this.add.sprite(position.x, position.y, "player").setAngle(aimAngle);
     this.players.set(id, sprite);
   }
 
@@ -90,12 +106,12 @@ class GameScene extends Phaser.Scene {
     const sprite = this.players.get(id)!;
     sprite.x = position.x;
     sprite.y = position.y;
-    sprite.angle = aimAngle;
+    sprite.rotation = aimAngle;
+    console.log(aimAngle);
   }
 
   private onMessage(data: ArrayBuffer) {
     const msg: ServerMessage = JSON.parse(decoder.decode(data));
-    console.log("Message received", msg);
     if (this.stateBuffer === undefined) {
       this.stateBuffer = new InterpolationBuffer(msg.state, 50, lerp);
     } else {

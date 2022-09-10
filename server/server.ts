@@ -7,7 +7,7 @@ import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } fr
 const TICK_INTERVAL_MS = 50;
 
 const PLAYER_RADIUS = 20;
-const PLAYER_SPEED = 50;
+const PLAYER_SPEED = 200;
 
 type InternalPlayer = {
   id: UserId;
