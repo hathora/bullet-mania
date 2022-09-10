@@ -6,8 +6,7 @@ export default defineConfig(({ mode }) => {
   const appSecret = process.env.APP_SECRET ?? env.APP_SECRET;
   process.env.APP_ID = hash.sha256().update(appSecret).digest("hex");
   return {
-    build: { target: "esnext", assetsInlineLimit: 0 },
-    base: "",
+    build: { target: "esnext" },
     envDir: "../",
     envPrefix: "APP_ID",
     publicDir: "src/assets",
