@@ -85,21 +85,26 @@ class GameScene extends Phaser.Scene {
 
     const { state } = this.stateBuffer.getInterpolatedState(Date.now());
 
-    state.players.forEach((player) => {
-      if (!this.players.has(player.id)) {
-        this.addPlayer(player);
-      } else {
-        this.updatePlayer(player);
-      }
-    });
-    state.bullets.forEach((bullet) => {
-      if (!this.bullets.has(bullet.id)) {
-        console.log("addBullet", state);
-        this.addBullet(bullet);
-      } else {
-        this.updateBullet(bullet);
-      }
-    });
+    this.syncSprites(
+      this.players,
+      new Map(
+        state.players.map((player) => [
+          player.id,
+          new Phaser.GameObjects.Sprite(this, player.position.x, player.position.y, "player").setRotation(
+            player.aimAngle
+          ),
+        ])
+      )
+    );
+    this.syncSprites(
+      this.bullets,
+      new Map(
+        state.bullets.map((bullet) => [
+          bullet.id,
+          new Phaser.GameObjects.Sprite(this, bullet.position.x, bullet.position.y, "bullet"),
+        ])
+      )
+    );
 
     const pointer = this.input.activePointer;
     const player = this.players.get(this.userId);
@@ -113,27 +118,24 @@ class GameScene extends Phaser.Scene {
     }
   }
 
-  private addPlayer({ id, position, aimAngle }: Player) {
-    const sprite = this.add.sprite(position.x, position.y, "player").setAngle(aimAngle);
-    this.players.set(id, sprite);
-  }
-
-  private updatePlayer({ id, position, aimAngle }: Player) {
-    const sprite = this.players.get(id)!;
-    sprite.x = position.x;
-    sprite.y = position.y;
-    sprite.rotation = aimAngle;
-  }
-
-  private addBullet({ id, position }: Bullet) {
-    const sprite = this.add.sprite(position.x, position.y, "bullet");
-    this.bullets.set(id, sprite);
-  }
-
-  private updateBullet({ id, position }: Bullet) {
-    const sprite = this.bullets.get(id)!;
-    sprite.x = position.x;
-    sprite.y = position.y;
+  private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {
+    newSprites.forEach((sprite, id) => {
+      if (oldSprites.has(id)) {
+        const oldSprite = oldSprites.get(id)!;
+        oldSprite.x = sprite.x;
+        oldSprite.y = sprite.y;
+        oldSprite.rotation = sprite.rotation;
+      } else {
+        this.add.existing(sprite);
+        oldSprites.set(id, sprite);
+      }
+    });
+    oldSprites.forEach((sprite, id) => {
+      if (!newSprites.has(id)) {
+        sprite.destroy();
+        oldSprites.delete(id);
+      }
+    });
   }
 
   private onMessage(data: ArrayBuffer) {

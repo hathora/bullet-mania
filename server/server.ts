@@ -1,6 +1,6 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
-import { Box, System } from "detect-collisions";
+import { Box, System, Body } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 
@@ -18,7 +18,7 @@ enum BodyType {
   Bullet,
   Wall,
 }
-type PhysicsBody = { x: number; y: number; oType: BodyType };
+type PhysicsBody = Body & { oType: BodyType };
 
 type InternalPlayer = {
   id: UserId;
@@ -188,12 +188,15 @@ setInterval(() => {
       if (a.oType === BodyType.Player && b.oType === BodyType.Wall) {
         a.x -= overlapV.x;
         a.y -= overlapV.y;
-      } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Wall) {
-        a.x -= overlapV.x;
-        a.y -= overlapV.y;
       } else if (a.oType === BodyType.Player && b.oType === BodyType.Player) {
         b.x += overlapV.x;
         b.y += overlapV.y;
+      } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Wall) {
+        game.physics.remove(a);
+        const idx = game.bullets.findIndex((bullet) => bullet.body === a);
+        if (idx >= 0) {
+          game.bullets.splice(idx, 1);
+        }
       }
     });
 
