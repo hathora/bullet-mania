@@ -2,6 +2,8 @@
 
 Made using [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts).
 
+Play it at: https://hathora-topdown-shooter.surge.sh
+
 To run locally:
 
 - Have node installed
