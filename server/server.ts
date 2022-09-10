@@ -1,6 +1,6 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
-import { Circle, System } from "detect-collisions";
+import { Box, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 
@@ -13,16 +13,23 @@ const PLAYER_SPEED = 200;
 const BULLET_RADIUS = 9;
 const BULLET_SPEED = 800;
 
+enum BodyType {
+  Player,
+  Bullet,
+  Wall,
+}
+type PhysicsBody = { x: number; y: number; oType: BodyType };
+
 type InternalPlayer = {
   id: UserId;
-  body: Circle;
+  body: PhysicsBody;
   aimAngle: number;
   direction: Direction;
 };
 
 type InternalBullet = {
   id: number;
-  body: Circle;
+  body: PhysicsBody;
   angle: number;
 };
 
@@ -36,9 +43,17 @@ const rooms: Map<RoomId, { game: InternalState; subscribers: Set<UserId> }> = ne
 
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
+    const physics = new System();
+
+    // world bounds
+    addWall(physics, 0, -100, 800, 100);
+    addWall(physics, 800, 0, 100, 600);
+    addWall(physics, 0, 600, 800, 100);
+    addWall(physics, -100, 0, 100, 600);
+
     rooms.set(roomId, {
       game: {
-        physics: new System(),
+        physics,
         players: [],
         bullets: [],
       },
@@ -52,10 +67,10 @@ const store: Store = {
     const { game, subscribers } = rooms.get(roomId)!;
     subscribers.add(userId);
     if (!game.players.some((player) => player.id === userId)) {
-      const body = game.physics.createCircle({ x: 0, y: 0 }, PLAYER_RADIUS);
+      const body = game.physics.createCircle({ x: 50, y: 50 }, PLAYER_RADIUS);
       game.players.push({
         id: userId,
-        body,
+        body: Object.assign(body, { oType: BodyType.Player }),
         aimAngle: 0,
         direction: Direction.None,
       });
@@ -95,7 +110,7 @@ const store: Store = {
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
-        body,
+        body: Object.assign(body, { oType: BodyType.Bullet }),
         angle: player.aimAngle,
       });
     }
@@ -114,6 +129,11 @@ const coordinator = await register({
 
 const { host, appId, storeId } = coordinator;
 console.log(`Connected to coordinator at ${host} with appId ${appId} and storeId ${storeId}`);
+
+function addWall(physics: System, x: number, y: number, width: number, height: number) {
+  const body = new Box({ x, y }, width, height, { isStatic: true });
+  physics.insert(Object.assign(body, { oType: BodyType.Wall }));
+}
 
 function broadcastStateUpdate(roomId: RoomId) {
   const { subscribers, game } = rooms.get(roomId)!;
@@ -158,6 +178,14 @@ setInterval(() => {
     game.bullets.forEach((bullet) => {
       bullet.body.x += Math.cos(bullet.angle) * BULLET_SPEED * TICK_INTERVAL_SEC;
       bullet.body.y += Math.sin(bullet.angle) * BULLET_SPEED * TICK_INTERVAL_SEC;
+    });
+
+    // handle collisionss
+    game.physics.checkAll(({ a, b, overlapV }: { a: PhysicsBody; b: PhysicsBody; overlapV: SAT.Vector }) => {
+      if (a.oType === BodyType.Player && b.oType === BodyType.Wall) {
+        a.x -= overlapV.x;
+        a.y -= overlapV.y;
+      }
     });
 
     broadcastStateUpdate(roomId);
