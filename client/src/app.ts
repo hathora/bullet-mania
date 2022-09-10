@@ -5,6 +5,7 @@ import { HathoraTransport } from "@hathora/client-sdk/lib/transport";
 import { Bullet, Direction, GameState, Player } from "../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 
+const client = new HathoraClient(import.meta.env.APP_ID);
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
@@ -28,10 +29,9 @@ class GameScene extends Phaser.Scene {
   }
 
   create() {
-    const client = new HathoraClient(import.meta.env.APP_ID);
-    client.loginAnonymous().then((token) => {
+    getToken().then((token) => {
       this.userId = HathoraClient.getUserFromToken(token).id;
-      client.create(token, new Uint8Array()).then((roomId) => {
+      getRoomId(token).then((roomId) => {
         client
           .connect(
             token,
@@ -147,6 +147,26 @@ class GameScene extends Phaser.Scene {
 
   private onClose(e: { code: number; reason: string }) {
     console.error("Connection closed", e.reason);
+  }
+}
+
+async function getToken(): Promise<string> {
+  const maybeToken = sessionStorage.getItem("topdown-shooter-token");
+  if (maybeToken !== null) {
+    return maybeToken;
+  }
+  const token = await client.loginAnonymous();
+  sessionStorage.setItem("topdown-shooter-token", token);
+  return token;
+}
+
+async function getRoomId(token: string): Promise<string> {
+  if (location.pathname.length > 1) {
+    return location.pathname.split("/").pop()!;
+  } else {
+    const roomId = await client.create(token, new Uint8Array());
+    history.pushState({}, "", `/${roomId}`);
+    return roomId;
   }
 }
 
