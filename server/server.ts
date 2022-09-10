@@ -46,10 +46,13 @@ const store: Store = {
     const physics = new System();
 
     // world bounds
-    addWall(physics, 0, -100, 800, 100);
-    addWall(physics, 800, 0, 100, 600);
-    addWall(physics, 0, 600, 800, 100);
-    addWall(physics, -100, 0, 100, 600);
+    const WIDTH = 800;
+    const HEIGHT = 600;
+    const BORDER = 100;
+    addWall(physics, -BORDER, -BORDER, WIDTH + 2 * BORDER, BORDER);
+    addWall(physics, WIDTH, -BORDER, BORDER, HEIGHT + 2 * BORDER);
+    addWall(physics, -BORDER, HEIGHT, WIDTH + 2 * BORDER, BORDER);
+    addWall(physics, -BORDER, -BORDER, BORDER, HEIGHT + 2 * BORDER);
 
     rooms.set(roomId, {
       game: {
@@ -183,6 +186,9 @@ setInterval(() => {
     // handle collisionss
     game.physics.checkAll(({ a, b, overlapV }: { a: PhysicsBody; b: PhysicsBody; overlapV: SAT.Vector }) => {
       if (a.oType === BodyType.Player && b.oType === BodyType.Wall) {
+        a.x -= overlapV.x;
+        a.y -= overlapV.y;
+      } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Wall) {
         a.x -= overlapV.x;
         a.y -= overlapV.y;
       }
