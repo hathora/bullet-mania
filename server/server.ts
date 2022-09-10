@@ -191,6 +191,9 @@ setInterval(() => {
       } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Wall) {
         a.x -= overlapV.x;
         a.y -= overlapV.y;
+      } else if (a.oType === BodyType.Player && b.oType === BodyType.Player) {
+        b.x += overlapV.x;
+        b.y += overlapV.y;
       }
     });
 
