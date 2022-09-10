@@ -5,7 +5,8 @@
   },
   "dependencies": {
     "@hathora/server-sdk": "^0.2.0",
-    "detect-collisions": "^6.4.2"
+    "detect-collisions": "^6.4.2",
+    "dotenv": "^16.0.2"
   },
   "devDependencies": {
     "ts-node": "^10.9.1",

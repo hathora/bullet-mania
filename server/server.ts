@@ -1,7 +1,10 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
-import { Direction, GameState } from "../common/types";
+import dotenv from "dotenv";
 import { Circle, System } from "detect-collisions";
+import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
+
+const TICK_INTERVAL_MS = 50;
 
 const PLAYER_RADIUS = 20;
 const PLAYER_SPEED = 50;
@@ -80,12 +83,12 @@ const store: Store = {
   },
 };
 
-const appSecret = process.env.APP_SECRET;
-if (appSecret === undefined) {
+dotenv.config({ path: "../.env" });
+if (process.env.APP_SECRET === undefined) {
   throw new Error("APP_SECRET not set");
 }
 const coordinator = await register({
-  appSecret,
+  appSecret: process.env.APP_SECRET,
   authInfo: { anonymous: { separator: "-" } },
   store,
 });
@@ -116,6 +119,18 @@ function broadcastStateUpdate(roomId: RoomId) {
 setInterval(() => {
   rooms.forEach(({ game }, roomId) => {
     // update players
+    game.players.forEach((player) => {
+      if (player.direction === Direction.Up) {
+        player.body.y -= PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+      } else if (player.direction === Direction.Down) {
+        player.body.y += PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+      } else if (player.direction === Direction.Left) {
+        player.body.x -= PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+      } else if (player.direction === Direction.Right) {
+        player.body.x += PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+      }
+    });
+
     broadcastStateUpdate(roomId);
   });
-}, 50);
+}, TICK_INTERVAL_MS);
