@@ -8,14 +8,11 @@ import { RoomConnection } from "./connection";
 const client = new HathoraClient(import.meta.env.APP_ID);
 
 class GameScene extends Phaser.Scene {
-  private userId!: string;
   private connection!: RoomConnection;
 
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
-
-  private prevAngle = 0;
 
   constructor() {
     super("game");
@@ -28,7 +25,6 @@ class GameScene extends Phaser.Scene {
 
   create() {
     getToken().then((token) => {
-      this.userId = HathoraClient.getUserFromToken(token).id;
       getRoomId(token).then((roomId) => {
         this.connection = new RoomConnection(client, token, roomId);
         this.connection.connect();
@@ -68,6 +64,10 @@ class GameScene extends Phaser.Scene {
     this.input.keyboard.on("keyup", handleKeyEvt);
 
     // mouse input
+    this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
+      console.log({ x: pointer.x, y: pointer.y });
+      this.connection.sendMessage({ type: ClientMessageType.SetTarget, taget: { x: pointer.x, y: pointer.y } });
+    });
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
       this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
@@ -100,16 +100,6 @@ class GameScene extends Phaser.Scene {
         ])
       )
     );
-
-    const pointer = this.input.activePointer;
-    const player = this.players.get(this.userId);
-    if (player !== undefined) {
-      const angle = Math.atan2(pointer.y - player.y, pointer.x - player.x);
-      if (angle !== this.prevAngle) {
-        this.prevAngle = angle;
-        this.connection.sendMessage({ type: ClientMessageType.SetAimAngle, aimAngle: angle });
-      }
-    }
   }
 
   private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {

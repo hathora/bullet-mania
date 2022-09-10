@@ -1,9 +1,9 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
 import { System } from "detect-collisions";
-import { Direction, GameState } from "../common/types";
+import { Direction, GameState, Position } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { BodyType, PhysicsBody, setupWorldBounds } from "./utils";
+import { angleBetween, BodyType, PhysicsBody, setupWorldBounds } from "./utils";
 
 const TICK_INTERVAL_MS = 50;
 
@@ -16,8 +16,8 @@ const BULLET_SPEED = 800;
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
-  aimAngle: number;
   direction: Direction;
+  target: Position;
 };
 
 type InternalBullet = {
@@ -58,8 +58,8 @@ const store: Store = {
       game.players.push({
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
-        aimAngle: 0,
         direction: Direction.None,
+        target: { x: 0, y: 0 },
       });
     }
   },
@@ -91,14 +91,14 @@ const store: Store = {
     const message: ClientMessage = JSON.parse(dataStr);
     if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
-    } else if (message.type === ClientMessageType.SetAimAngle) {
-      player.aimAngle = message.aimAngle;
+    } else if (message.type === ClientMessageType.SetTarget) {
+      player.target = message.taget;
     } else if (message.type === ClientMessageType.Shoot) {
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
         body: Object.assign(body, { oType: BodyType.Bullet }),
-        angle: player.aimAngle,
+        angle: angleBetween(player.body, player.target),
       });
     }
   },
@@ -180,7 +180,7 @@ function broadcastStateUpdate(roomId: RoomId) {
     players: game.players.map((player) => ({
       id: player.id,
       position: { x: player.body.x, y: player.body.y },
-      aimAngle: player.aimAngle,
+      aimAngle: angleBetween(player.body, player.target),
     })),
     bullets: game.bullets.map((bullet) => ({
       id: bullet.id,

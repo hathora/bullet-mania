@@ -1,4 +1,5 @@
 import { Box, System, Body } from "detect-collisions";
+import { Position } from "../common/types";
 
 const WIDTH = 800;
 const HEIGHT = 600;
@@ -21,4 +22,8 @@ export function setupWorldBounds(physics: System) {
   addWall(physics, WIDTH, -BORDER, BORDER, HEIGHT + 2 * BORDER);
   addWall(physics, -BORDER, HEIGHT, WIDTH + 2 * BORDER, BORDER);
   addWall(physics, -BORDER, -BORDER, BORDER, HEIGHT + 2 * BORDER);
+}
+
+export function angleBetween(a: Position, b: Position) {
+  return Math.atan2(b.y - a.y, b.x - a.x);
 }

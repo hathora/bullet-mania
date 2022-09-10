@@ -1,8 +1,8 @@
-import { Direction, GameState } from "./types";
+import { Direction, GameState, Position } from "./types";
 
 export enum ClientMessageType {
   SetDirection,
-  SetAimAngle,
+  SetTarget,
   Shoot,
 }
 
@@ -10,16 +10,16 @@ export enum ServerMessageType {
   StateUpdate,
 }
 
-export type ClientMessage = SetDirectionMessage | SetAimAngleMessage | ShootMessage;
+export type ClientMessage = SetDirectionMessage | SetTargetMessage | ShootMessage;
 
 export type SetDirectionMessage = {
   type: ClientMessageType.SetDirection;
   direction: Direction;
 };
 
-export type SetAimAngleMessage = {
-  type: ClientMessageType.SetAimAngle;
-  aimAngle: number;
+export type SetTargetMessage = {
+  type: ClientMessageType.SetTarget;
+  taget: Position;
 };
 
 export type ShootMessage = {
