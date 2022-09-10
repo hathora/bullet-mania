@@ -5,9 +5,13 @@ import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 
 const TICK_INTERVAL_MS = 50;
+const TICK_INTERVAL_SEC = TICK_INTERVAL_MS / 1000;
 
 const PLAYER_RADIUS = 20;
 const PLAYER_SPEED = 200;
+
+const BULLET_RADIUS = 9;
+const BULLET_SPEED = 800;
 
 type InternalPlayer = {
   id: UserId;
@@ -16,9 +20,16 @@ type InternalPlayer = {
   direction: Direction;
 };
 
+type InternalBullet = {
+  id: number;
+  body: Circle;
+  angle: number;
+};
+
 type InternalState = {
   physics: System;
   players: InternalPlayer[];
+  bullets: InternalBullet[];
 };
 
 const rooms: Map<RoomId, { game: InternalState; subscribers: Set<UserId> }> = new Map();
@@ -29,6 +40,7 @@ const store: Store = {
       game: {
         physics: new System(),
         players: [],
+        bullets: [],
       },
       subscribers: new Set(),
     });
@@ -79,6 +91,13 @@ const store: Store = {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAimAngle) {
       player.aimAngle = message.aimAngle;
+    } else if (message.type === ClientMessageType.Shoot) {
+      const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
+      game.bullets.push({
+        id: Math.floor(Math.random() * 1e6),
+        body,
+        angle: player.aimAngle,
+      });
     }
   },
 };
@@ -105,6 +124,10 @@ function broadcastStateUpdate(roomId: RoomId) {
       position: { x: player.body.x, y: player.body.y },
       aimAngle: player.aimAngle,
     })),
+    bullets: game.bullets.map((bullet) => ({
+      id: bullet.id,
+      position: { x: bullet.body.x, y: bullet.body.y },
+    })),
   };
   subscribers.forEach((userId) => {
     const msg: ServerMessage = {
@@ -121,14 +144,20 @@ setInterval(() => {
     // update players
     game.players.forEach((player) => {
       if (player.direction === Direction.Up) {
-        player.body.y -= PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+        player.body.y -= PLAYER_SPEED * TICK_INTERVAL_SEC;
       } else if (player.direction === Direction.Down) {
-        player.body.y += PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+        player.body.y += PLAYER_SPEED * TICK_INTERVAL_SEC;
       } else if (player.direction === Direction.Left) {
-        player.body.x -= PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+        player.body.x -= PLAYER_SPEED * TICK_INTERVAL_SEC;
       } else if (player.direction === Direction.Right) {
-        player.body.x += PLAYER_SPEED * (TICK_INTERVAL_MS / 1000);
+        player.body.x += PLAYER_SPEED * TICK_INTERVAL_SEC;
       }
+    });
+
+    // update bullets
+    game.bullets.forEach((bullet) => {
+      bullet.body.x += Math.cos(bullet.angle) * BULLET_SPEED * TICK_INTERVAL_SEC;
+      bullet.body.y += Math.sin(bullet.angle) * BULLET_SPEED * TICK_INTERVAL_SEC;
     });
 
     broadcastStateUpdate(roomId);

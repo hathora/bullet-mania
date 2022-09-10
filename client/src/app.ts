@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { HathoraClient } from "@hathora/client-sdk";
 import { ClientMessageType, ServerMessage } from "../../common/messages";
 import { HathoraTransport } from "@hathora/client-sdk/lib/transport";
-import { Direction, GameState, Player } from "../../common/types";
+import { Bullet, Direction, GameState, Player } from "../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 
 const encoder = new TextEncoder();
@@ -14,6 +14,7 @@ class GameScene extends Phaser.Scene {
 
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
 
   private prevAngle = 0;
 
@@ -23,6 +24,7 @@ class GameScene extends Phaser.Scene {
 
   preload() {
     this.load.image("player", "player.png");
+    this.load.image("bullet", "bullet.png");
   }
 
   create() {
@@ -68,6 +70,12 @@ class GameScene extends Phaser.Scene {
     };
     this.input.keyboard.on("keydown", handleKeyEvt);
     this.input.keyboard.on("keyup", handleKeyEvt);
+
+    // mouse input
+    this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
+      const msg = { type: ClientMessageType.Shoot };
+      this.connection.write(encoder.encode(JSON.stringify(msg)));
+    });
   }
 
   update() {
@@ -82,6 +90,14 @@ class GameScene extends Phaser.Scene {
         this.addPlayer(player);
       } else {
         this.updatePlayer(player);
+      }
+    });
+    state.bullets.forEach((bullet) => {
+      if (!this.bullets.has(bullet.id)) {
+        console.log("addBullet", state);
+        this.addBullet(bullet);
+      } else {
+        this.updateBullet(bullet);
       }
     });
 
@@ -107,7 +123,17 @@ class GameScene extends Phaser.Scene {
     sprite.x = position.x;
     sprite.y = position.y;
     sprite.rotation = aimAngle;
-    console.log(aimAngle);
+  }
+
+  private addBullet({ id, position }: Bullet) {
+    const sprite = this.add.sprite(position.x, position.y, "bullet");
+    this.bullets.set(id, sprite);
+  }
+
+  private updateBullet({ id, position }: Bullet) {
+    const sprite = this.bullets.get(id)!;
+    sprite.x = position.x;
+    sprite.y = position.y;
   }
 
   private onMessage(data: ArrayBuffer) {
@@ -130,6 +156,10 @@ function lerp(from: GameState, to: GameState, pctElapsed: number): GameState {
       const fromPlayer = from.players.find((p) => p.id === toPlayer.id);
       return fromPlayer !== undefined ? lerpPlayer(fromPlayer, toPlayer, pctElapsed) : toPlayer;
     }),
+    bullets: to.bullets.map((toBullet) => {
+      const fromBullet = from.bullets.find((p) => p.id === toBullet.id);
+      return fromBullet !== undefined ? lerpBullet(fromBullet, toBullet, pctElapsed) : toBullet;
+    }),
   };
 }
 
@@ -141,6 +171,16 @@ function lerpPlayer(from: Player, to: Player, pctElapsed: number): Player {
       y: from.position.y + (to.position.y - from.position.y) * pctElapsed,
     },
     aimAngle: to.aimAngle,
+  };
+}
+
+function lerpBullet(from: Bullet, to: Bullet, pctElapsed: number): Bullet {
+  return {
+    id: to.id,
+    position: {
+      x: from.position.x + (to.position.x - from.position.x) * pctElapsed,
+      y: from.position.y + (to.position.y - from.position.y) * pctElapsed,
+    },
   };
 }
 

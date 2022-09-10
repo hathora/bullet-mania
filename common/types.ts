@@ -17,6 +17,12 @@ export type Player = {
   aimAngle: number;
 };
 
+export type Bullet = {
+  id: number;
+  position: Position;
+}
+
 export type GameState = {
   players: Player[];
+  bullets: Bullet[];
 };
