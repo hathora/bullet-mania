@@ -109,6 +109,7 @@ if (process.env.APP_SECRET === undefined) {
   throw new Error("APP_SECRET not set");
 }
 const coordinator = await register({
+  coordinatorHost: process.env.COORDINATOR_HOST,
   appSecret: process.env.APP_SECRET,
   authInfo: { anonymous: { separator: "-" } },
   store,
