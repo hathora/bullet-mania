@@ -65,7 +65,6 @@ class GameScene extends Phaser.Scene {
 
     // mouse input
     this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
-      console.log({ x: pointer.x, y: pointer.y });
       this.connection.sendMessage({ type: ClientMessageType.SetTarget, taget: { x: pointer.x, y: pointer.y } });
     });
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
