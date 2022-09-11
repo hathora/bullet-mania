@@ -13,12 +13,15 @@ jobs:
       - run: hathora cloud deploy --appName hathora-topdown-shooter --token ${{ secrets.HATHORA_TOKEN }}
   frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
     steps:
       - uses: actions/checkout@v2
-      - run: npm install -g hathora surge
-      - run: cd client && APP_SECRET=${{ secrets.HATHORA_APP_SECRET }} npm run build
-      - run: cp client/dist/index.html client/dist/200.html
-      - run: surge client/dist hathora-topdown-shooter.surge.sh
+      - run: npm install -g surge
+      - run: APP_SECRET=${{ secrets.HATHORA_APP_SECRET }} npm run build
+      - run: cp dist/index.html dist/200.html
+      - run: surge dist hathora-topdown-shooter.surge.sh
         env:
           SURGE_LOGIN: ${{ secrets.SURGE_LOGIN }}
           SURGE_TOKEN: ${{ secrets.SURGE_TOKEN }}
