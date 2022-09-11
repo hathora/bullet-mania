@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: npm ci
       - run: npm install hathora surge -g
       - run: APP_SECRET=${{ secrets.HATHORA_APP_SECRET }} hathora build --only client
       - run: cp client/dist/index.html client/dist/200.html
