@@ -19,6 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: npm install -g surge
+      - run: npm ci
       - run: APP_SECRET=${{ secrets.HATHORA_APP_SECRET }} npm run build
       - run: cp dist/index.html dist/200.html
       - run: surge dist hathora-topdown-shooter.surge.sh
