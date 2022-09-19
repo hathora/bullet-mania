@@ -13,6 +13,7 @@ class GameScene extends Phaser.Scene {
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
+  private isConnectionOpen: boolean = false;
 
   constructor() {
     super("game");
@@ -29,6 +30,12 @@ class GameScene extends Phaser.Scene {
         this.connection = new RoomConnection(client, token, roomId);
         this.connection.connect();
         this.connection.addListener(({ state, ts }) => {
+          // Flag connection as open, to enable input to be sent
+          if (!this.isConnectionOpen) {
+            this.isConnectionOpen = true;
+          }
+
+          // Start enqueuing state updates
           if (this.stateBuffer === undefined) {
             this.stateBuffer = new InterpolationBuffer(state, 50, lerp);
           } else {
@@ -38,9 +45,10 @@ class GameScene extends Phaser.Scene {
       });
     });
 
-    // keyboard input
+    // Handle keyboard input
     const keys = this.input.keyboard.createCursorKeys();
     let prevDirection = Direction.None;
+
     const handleKeyEvt = () => {
       let direction: Direction;
       if (keys.up.isDown) {
@@ -55,25 +63,34 @@ class GameScene extends Phaser.Scene {
         direction = Direction.None;
       }
 
-      if (prevDirection !== direction) {
+      if (this.isConnectionOpen && prevDirection !== direction) {
+        // If connection is open and direction has changed, send updated direction
         prevDirection = direction;
         this.connection.sendMessage({ type: ClientMessageType.SetDirection, direction });
       }
     };
+
     this.input.keyboard.on("keydown", handleKeyEvt);
     this.input.keyboard.on("keyup", handleKeyEvt);
 
-    // mouse input
+    // Handle mouse input
     this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
-      this.connection.sendMessage({ type: ClientMessageType.SetTarget, taget: { x: pointer.x, y: pointer.y } });
+      if (this.isConnectionOpen) {
+        // If the connection is open, send through the updated mouse coordinates
+        this.connection.sendMessage({ type: ClientMessageType.SetTarget, taget: { x: pointer.x, y: pointer.y } });
+      }
     });
+
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
-      this.connection.sendMessage({ type: ClientMessageType.Shoot });
+      if (this.isConnectionOpen) {
+        // If the connection is open, send through click events
+        this.connection.sendMessage({ type: ClientMessageType.Shoot });
+      }
     });
   }
 
   update() {
-    if (this.stateBuffer === undefined) {
+    if (!this.isConnectionOpen || this.stateBuffer === undefined) {
       return;
     }
 
