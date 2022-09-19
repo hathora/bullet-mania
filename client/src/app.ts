@@ -4,7 +4,7 @@ import { ClientMessageType } from "../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "./connection";
-import MAP from '../../common/map';
+import { MAP, BG_COLOR } from '../../common/map';
 
 const client = new HathoraClient(process.env.APP_ID as string, process.env.COORDINATOR_HOST);
 
@@ -106,23 +106,24 @@ class GameScene extends Phaser.Scene {
     this.mapGfx = this.add.graphics();
     
     // Loop through each object in the map array...
-    MAP.forEach(({ type, x, y, width, height, color }) => {
+    MAP.forEach(({ x, y, width, height, color }) => {
       // Typescript sanity check 🤣
       if (!this.mapGfx) {
         return;
       }
 
-      // And draw it's shape according to it's 'type' property
-      if (type === 'rect') {
-        this.mapGfx.fillStyle(color, 1);
-        this.mapGfx.fillRect(
-          (x - (width / 2)), // Offset by 1/2 width / height to draw object with origin (0.5, 0.5)
-          (y - (height / 2)),
-          width,
-          height
-        );
-      }
+      // And draw the box according to it's properties
+      this.mapGfx.fillStyle(color, 1);
+      this.mapGfx.fillRect(
+        x,
+        y,
+        width,
+        height
+      );
     });
+
+    // Set the main camera's background colour
+    this.cameras.main.setBackgroundColor(BG_COLOR);
   }
 
   update() {

@@ -1,9 +1,10 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
-import { System } from "detect-collisions";
-import { Direction, GameState, Position } from "../common/types";
+import { Box, SATVector, System } from "detect-collisions";
+import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { angleBetween, BodyType, PhysicsBody, setupWorldBounds } from "./utils";
+import { BodyType, PhysicsBody } from "./utils";
+import { MAP, SPAWN_POSITION } from '../common/map';
 
 const TICK_INTERVAL_MS = 50;
 
@@ -37,7 +38,20 @@ const rooms: Map<RoomId, { game: InternalState; subscribers: Set<UserId> }> = ne
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
-    setupWorldBounds(physics);
+    
+    // Create map box bodies
+    MAP.forEach(({ x, y, width, height }) => {
+      const body = Object.assign(
+        new Box({ x, y }, width as number, height as number, { isStatic: true }),
+        { oType: BodyType.Wall }
+      );
+
+      body.setOffset(new SATVector(0, 0));
+
+      physics.insert(body);
+      physics.updateBody(body);
+    });
+
     rooms.set(roomId, {
       game: {
         physics,
@@ -54,7 +68,7 @@ const store: Store = {
     const { game, subscribers } = rooms.get(roomId)!;
     subscribers.add(userId);
     if (!game.players.some((player) => player.id === userId)) {
-      const body = game.physics.createCircle({ x: 50, y: 50 }, PLAYER_RADIUS);
+      const body = game.physics.createCircle(SPAWN_POSITION, PLAYER_RADIUS);
       game.players.push({
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
