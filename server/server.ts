@@ -17,7 +17,7 @@ type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
   direction: Direction;
-  target: Position;
+  angle: number;
 };
 
 type InternalBullet = {
@@ -59,7 +59,7 @@ const store: Store = {
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
         direction: Direction.None,
-        target: { x: 0, y: 0 },
+        angle: 0
       });
     }
   },
@@ -91,14 +91,14 @@ const store: Store = {
     const message: ClientMessage = JSON.parse(dataStr);
     if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
-    } else if (message.type === ClientMessageType.SetTarget) {
-      player.target = message.taget;
+    } else if (message.type === ClientMessageType.SetAngle) {
+      player.angle = message.angle;
     } else if (message.type === ClientMessageType.Shoot) {
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
         body: Object.assign(body, { oType: BodyType.Bullet }),
-        angle: angleBetween(player.body, player.target),
+        angle: player.angle,
       });
     }
   },
@@ -181,7 +181,7 @@ function broadcastStateUpdate(roomId: RoomId) {
     players: game.players.map((player) => ({
       id: player.id,
       position: { x: player.body.x, y: player.body.y },
-      aimAngle: angleBetween(player.body, player.target),
+      aimAngle: player.angle,
     })),
     bullets: game.bullets.map((bullet) => ({
       id: bullet.id,

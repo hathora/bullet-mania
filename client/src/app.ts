@@ -1,19 +1,32 @@
-import Phaser from "phaser";
+import Phaser, { Math as pMath } from "phaser";
 import { HathoraClient } from "@hathora/client-sdk";
 import { ClientMessageType } from "../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "./connection";
+import MAP from '../../common/map';
 
 const client = new HathoraClient(process.env.APP_ID as string, process.env.COORDINATOR_HOST);
 
 class GameScene extends Phaser.Scene {
   private connection!: RoomConnection;
 
+  // The buffer which holds state snapshots
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
+  // A map of player sprites currently connected
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  // A map of bullet sprites currently in-air
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
+  // A flag to determine if a connection to server has been established
   private isConnectionOpen: boolean = false;
+  // The graphics representation of the map objects
+  private mapGfx: Phaser.GameObjects.Graphics | undefined;
+  // The Hathora user for the current client's connected player
+  private hathoraUser: object & { id: string } | undefined;
+  // The current client's connected player's sprite object
+  private playerSprite: Phaser.GameObjects.Sprite | undefined;
+  // The previous tick's aim radians (used to check if aim has changed, before sending an update)
+  private prevAimRad: number = 0;
 
   constructor() {
     super("game");
@@ -41,23 +54,31 @@ class GameScene extends Phaser.Scene {
           } else {
             this.stateBuffer.enqueue(state, [], ts);
           }
+
+          // Store the player's ID so we can differentiate them later
+          this.hathoraUser = HathoraClient.getUserFromToken(token);
         });
       });
     });
 
     // Handle keyboard input
-    const keys = this.input.keyboard.createCursorKeys();
+    const keys = this.input.keyboard.addKeys('W,S,A,D') as {
+      W: Phaser.Input.Keyboard.Key,
+      S: Phaser.Input.Keyboard.Key,
+      A: Phaser.Input.Keyboard.Key,
+      D: Phaser.Input.Keyboard.Key
+    };
     let prevDirection = Direction.None;
 
     const handleKeyEvt = () => {
       let direction: Direction;
-      if (keys.up.isDown) {
+      if (keys.W.isDown) {
         direction = Direction.Up;
-      } else if (keys.down.isDown) {
+      } else if (keys.S.isDown) {
         direction = Direction.Down;
-      } else if (keys.right.isDown) {
+      } else if (keys.D.isDown) {
         direction = Direction.Right;
-      } else if (keys.left.isDown) {
+      } else if (keys.A.isDown) {
         direction = Direction.Left;
       } else {
         direction = Direction.None;
@@ -73,18 +94,33 @@ class GameScene extends Phaser.Scene {
     this.input.keyboard.on("keydown", handleKeyEvt);
     this.input.keyboard.on("keyup", handleKeyEvt);
 
-    // Handle mouse input
-    this.input.on(Phaser.Input.Events.POINTER_MOVE, (pointer: Phaser.Input.Pointer) => {
-      if (this.isConnectionOpen) {
-        // If the connection is open, send through the updated mouse coordinates
-        this.connection.sendMessage({ type: ClientMessageType.SetTarget, taget: { x: pointer.x, y: pointer.y } });
-      }
-    });
-
+    // Handle mouse-click input
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
       if (this.isConnectionOpen) {
         // If the connection is open, send through click events
         this.connection.sendMessage({ type: ClientMessageType.Shoot });
+      }
+    });
+
+    // Render map objects
+    this.mapGfx = this.add.graphics();
+    
+    // Loop through each object in the map array...
+    MAP.forEach(({ type, x, y, width, height, color }) => {
+      // Typescript sanity check 🤣
+      if (!this.mapGfx) {
+        return;
+      }
+
+      // And draw it's shape according to it's 'type' property
+      if (type === 'rect') {
+        this.mapGfx.fillStyle(color, 1);
+        this.mapGfx.fillRect(
+          (x - (width / 2)), // Offset by 1/2 width / height to draw object with origin (0.5, 0.5)
+          (y - (height / 2)),
+          width,
+          height
+        );
       }
     });
   }
@@ -94,6 +130,7 @@ class GameScene extends Phaser.Scene {
       return;
     }
 
+    const {mousePointer} = this.input;
     const { state } = this.stateBuffer.getInterpolatedState(Date.now());
 
     this.syncSprites(
@@ -107,6 +144,7 @@ class GameScene extends Phaser.Scene {
         ])
       )
     );
+
     this.syncSprites(
       this.bullets,
       new Map(
@@ -116,6 +154,29 @@ class GameScene extends Phaser.Scene {
         ])
       )
     );
+
+    if (this.playerSprite) {
+      this.sendMousePosition(mousePointer, this.playerSprite);
+    }
+  }
+
+  private sendMousePosition(mousePointer: Phaser.Input.Pointer, playerSprite: Phaser.GameObjects.Sprite) {
+    const {x: mouseX, y: mouseY} = mousePointer;
+    const {x: playerX, y: playerY} = playerSprite;
+    const {zoom, worldView} = this.cameras.main;
+
+    // Establish the angle between the player's camera-relative position and the mouse
+    const relX = ((playerX - worldView.x) * zoom);
+    const relY = ((playerY - worldView.y) * zoom);
+    const aimRad = pMath.Angle.Between(relX + zoom, relY + zoom, mouseX, mouseY);
+    const aimMoved = (this.prevAimRad !== aimRad);
+
+    // Only if the aim has updated, send the update
+    if (aimMoved) {
+      this.connection.sendMessage({ type: ClientMessageType.SetAngle,
+        angle: aimRad
+      });
+    }
   }
 
   private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {
@@ -128,6 +189,12 @@ class GameScene extends Phaser.Scene {
       } else {
         this.add.existing(sprite);
         oldSprites.set(id, sprite);
+
+        // Follow this client's player-controlled sprite
+        if (this.hathoraUser && id === this.hathoraUser.id) {
+          this.cameras.main.startFollow(sprite);
+          this.playerSprite = sprite;
+        }
       }
     });
     oldSprites.forEach((sprite, id) => {
