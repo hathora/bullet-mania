@@ -5,7 +5,7 @@ import { Bullet, Direction, GameState, Player } from "../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "./connection";
 
-const client = new HathoraClient(process.env.APP_ID as string, process.env.COORDINATOR_HOST);
+const client = new HathoraClient(process.env.APP_ID!, process.env.COORDINATOR_HOST);
 
 class GameScene extends Phaser.Scene {
   private connection!: RoomConnection;
