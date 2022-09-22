@@ -4,7 +4,7 @@ import { RoomConnection } from "../connection";
 
 const client = new HathoraClient(process.env.APP_ID as string, process.env.COORDINATOR_HOST);
 
-class BootScene extends Scene {
+export class BootScene extends Scene {
   constructor() {
     super("scene-boot");
   }
@@ -16,14 +16,13 @@ class BootScene extends Scene {
 
   create() {
     getToken().then((token) => {
-      getRoomId(token).then((roomId) => {
+      getRoomId(token).then(async (roomId) => {
         const connection = new RoomConnection(client, token, roomId);
-        connection.connect();
-        const hathoraUser = HathoraClient.getUserFromToken(token);
+        await connection.connect();
 
         this.scene.start('scene-game', {
           connection,
-          hathoraUser
+          token
         });
       });
     });
@@ -49,5 +48,3 @@ async function getRoomId(token: string): Promise<string> {
     return roomId;
   }
 }
-
-export default BootScene;

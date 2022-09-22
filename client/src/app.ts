@@ -1,8 +1,8 @@
 import { Game, AUTO } from "phaser";
 
 // Scenes
-import GameScene from "./scenes/GameScene";
-import BootScene from "./scenes/BootScene";
+import { GameScene } from "./scenes/GameScene";
+import { BootScene } from "./scenes/BootScene";
 
 new Game({
   type: AUTO,

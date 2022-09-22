@@ -4,8 +4,9 @@ import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "../connection";
 import { MAP, BG_COLOR } from '../../../common/map';
+import { HathoraClient } from "@hathora/client-sdk";
 
-class GameScene extends Scene {
+export class GameScene extends Scene {
   private connection!: RoomConnection;
 
   // The buffer which holds state snapshots
@@ -14,10 +15,8 @@ class GameScene extends Scene {
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
   // A map of bullet sprites currently in-air
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
-  // The graphics representation of the map objects
-  private mapGfx: Phaser.GameObjects.Graphics | undefined;
   // The Hathora user for the current client's connected player
-  private hathoraUser: object & { id: string } | undefined;
+  private currentUserID: string | undefined;
   // The current client's connected player's sprite object
   private playerSprite: Phaser.GameObjects.Sprite | undefined;
   // The previous tick's aim radians (used to check if aim has changed, before sending an update)
@@ -27,10 +26,12 @@ class GameScene extends Scene {
     super("scene-game");
   }
 
-  init(data: Record<string, any>) {
+  init({ connection, token }: { connection: RoomConnection, token: string }) {
     // Receive connection and user data from BootScene
-    this.connection = data.connection;
-    this.hathoraUser = data.hathoraUser;
+    this.connection = connection;
+    
+    const currentUser = HathoraClient.getUserFromToken(token);
+    this.currentUserID = currentUser.id;
   }
 
   create() {
@@ -83,18 +84,13 @@ class GameScene extends Scene {
     });
 
     // Render map objects
-    this.mapGfx = this.add.graphics();
+    const mapGfx = this.add.graphics();
     
     // Loop through each object in the map array...
     MAP.forEach(({ x, y, width, height, color }) => {
-      // Typescript sanity check 🤣
-      if (!this.mapGfx) {
-        return;
-      }
-
       // And draw the box according to it's properties
-      this.mapGfx.fillStyle(color, 1);
-      this.mapGfx.fillRect(
+      mapGfx.fillStyle(color, 1);
+      mapGfx.fillRect(
         x,
         y,
         width,
@@ -172,7 +168,7 @@ class GameScene extends Scene {
         oldSprites.set(id, sprite);
 
         // Follow this client's player-controlled sprite
-        if (this.hathoraUser && id === this.hathoraUser.id) {
+        if (this.currentUserID && id === this.currentUserID) {
           this.cameras.main.startFollow(sprite);
           this.playerSprite = sprite;
         }
@@ -220,5 +216,3 @@ function lerpBullet(from: Bullet, to: Bullet, pctElapsed: number): Bullet {
     },
   };
 }
-
-export default GameScene;
