@@ -8,10 +8,6 @@ new Game({
   type: AUTO,
   width: 800,
   height: 600,
-  scene: [
-    BootScene,
-    GameScene
-  ],
+  scene: [BootScene, GameScene],
   parent: "root",
-  dom: { createContainer: true },
 });

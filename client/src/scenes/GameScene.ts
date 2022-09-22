@@ -3,7 +3,7 @@ import { ClientMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "../connection";
-import { MAP, BG_COLOR } from '../../../common/map';
+import { MAP, BG_COLOR } from "../../../common/map";
 import { HathoraClient } from "@hathora/client-sdk";
 
 export class GameScene extends Scene {
@@ -26,10 +26,10 @@ export class GameScene extends Scene {
     super("scene-game");
   }
 
-  init({ connection, token }: { connection: RoomConnection, token: string }) {
+  init({ connection, token }: { connection: RoomConnection; token: string }) {
     // Receive connection and user data from BootScene
     this.connection = connection;
-    
+
     const currentUser = HathoraClient.getUserFromToken(token);
     this.currentUserID = currentUser.id;
   }
@@ -45,11 +45,11 @@ export class GameScene extends Scene {
     });
 
     // Handle keyboard input
-    const keys = this.input.keyboard.addKeys('W,S,A,D') as {
-      W: Phaser.Input.Keyboard.Key,
-      S: Phaser.Input.Keyboard.Key,
-      A: Phaser.Input.Keyboard.Key,
-      D: Phaser.Input.Keyboard.Key
+    const keys = this.input.keyboard.addKeys("W,S,A,D") as {
+      W: Phaser.Input.Keyboard.Key;
+      S: Phaser.Input.Keyboard.Key;
+      A: Phaser.Input.Keyboard.Key;
+      D: Phaser.Input.Keyboard.Key;
     };
     let prevDirection = Direction.None;
 
@@ -85,17 +85,12 @@ export class GameScene extends Scene {
 
     // Render map objects
     const mapGfx = this.add.graphics();
-    
+
     // Loop through each object in the map array...
     MAP.forEach(({ x, y, width, height, color }) => {
       // And draw the box according to it's properties
       mapGfx.fillStyle(color, 1);
-      mapGfx.fillRect(
-        x,
-        y,
-        width,
-        height
-      );
+      mapGfx.fillRect(x, y, width, height);
     });
 
     // Set the main camera's background colour
@@ -107,7 +102,7 @@ export class GameScene extends Scene {
       return;
     }
 
-    const {mousePointer} = this.input;
+    const { mousePointer } = this.input;
     const { state } = this.stateBuffer.getInterpolatedState(Date.now());
 
     this.syncSprites(
@@ -138,21 +133,19 @@ export class GameScene extends Scene {
   }
 
   private sendMousePosition(mousePointer: Phaser.Input.Pointer, playerSprite: Phaser.GameObjects.Sprite) {
-    const {x: mouseX, y: mouseY} = mousePointer;
-    const {x: playerX, y: playerY} = playerSprite;
-    const {zoom, worldView} = this.cameras.main;
+    const { x: mouseX, y: mouseY } = mousePointer;
+    const { x: playerX, y: playerY } = playerSprite;
+    const { zoom, worldView } = this.cameras.main;
 
     // Establish the angle between the player's camera-relative position and the mouse
-    const relX = ((playerX - worldView.x) * zoom);
-    const relY = ((playerY - worldView.y) * zoom);
+    const relX = (playerX - worldView.x) * zoom;
+    const relY = (playerY - worldView.y) * zoom;
     const aimRad = pMath.Angle.Between(relX + zoom, relY + zoom, mouseX, mouseY);
-    const aimMoved = (this.prevAimRad !== aimRad);
+    const aimMoved = this.prevAimRad !== aimRad;
 
     // Only if the aim has updated, send the update
     if (aimMoved) {
-      this.connection.sendMessage({ type: ClientMessageType.SetAngle,
-        angle: aimRad
-      });
+      this.connection.sendMessage({ type: ClientMessageType.SetAngle, angle: aimRad });
     }
   }
 

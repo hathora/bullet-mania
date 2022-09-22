@@ -4,7 +4,7 @@ import { Box, SATVector, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import { BodyType, PhysicsBody } from "./utils";
-import { MAP, SPAWN_POSITION } from '../common/map';
+import { MAP, SPAWN_POSITION } from "../common/map";
 
 const TICK_INTERVAL_MS = 50;
 
@@ -38,13 +38,12 @@ const rooms: Map<RoomId, { game: InternalState; subscribers: Set<UserId> }> = ne
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
-    
+
     // Create map box bodies
     MAP.forEach(({ x, y, width, height }) => {
-      const body = Object.assign(
-        new Box({ x, y }, width as number, height as number, { isStatic: true }),
-        { oType: BodyType.Wall }
-      );
+      const body = Object.assign(new Box({ x, y }, width as number, height as number, { isStatic: true }), {
+        oType: BodyType.Wall,
+      });
 
       body.setOffset(new SATVector(0, 0));
 
@@ -73,7 +72,7 @@ const store: Store = {
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
         direction: Direction.None,
-        angle: 0
+        angle: 0,
       });
     }
   },

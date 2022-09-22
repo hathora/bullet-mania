@@ -15,16 +15,11 @@ export class BootScene extends Scene {
   }
 
   create() {
-    getToken().then((token) => {
-      getRoomId(token).then(async (roomId) => {
-        const connection = new RoomConnection(client, token, roomId);
-        await connection.connect();
-
-        this.scene.start('scene-game', {
-          connection,
-          token
-        });
-      });
+    getToken().then(async (token) => {
+      const roomId = await getRoomId(token);
+      const connection = new RoomConnection(client, token, roomId);
+      await connection.connect();
+      this.scene.start("scene-game", { connection, token });
     });
   }
 }
