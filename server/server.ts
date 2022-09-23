@@ -39,7 +39,7 @@ type InternalState = {
   bullets: InternalBullet[];
 };
 
-const rooms: Map<RoomId, { game: InternalState; subscribers: Set<UserId> }> = new Map();
+const rooms: Map<RoomId, InternalState> = new Map();
 
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
@@ -58,20 +58,16 @@ const store: Store = {
     });
 
     rooms.set(roomId, {
-      game: {
-        physics,
-        players: [],
-        bullets: [],
-      },
-      subscribers: new Set(),
+      physics,
+      players: [],
+      bullets: [],
     });
   },
   subscribeUser(roomId: bigint, userId: string): void {
     if (!rooms.has(roomId)) {
       return;
     }
-    const { game, subscribers } = rooms.get(roomId)!;
-    subscribers.add(userId);
+    const game = rooms.get(roomId)!;
     if (!game.players.some((player) => player.id === userId)) {
       const body = game.physics.createCircle(SPAWN_POSITION, PLAYER_RADIUS);
       game.players.push({
@@ -86,21 +82,17 @@ const store: Store = {
     if (!rooms.has(roomId)) {
       return;
     }
-    const { game, subscribers } = rooms.get(roomId)!;
-    subscribers.delete(userId);
+    const game = rooms.get(roomId)!;
     const idx = game.players.findIndex((player) => player.id === userId);
     if (idx >= 0) {
       game.players.splice(idx, 1);
     }
   },
-  unsubscribeAll(): void {
-    console.error("unsubscribeAll() not implemented");
-  },
   onMessage(roomId: bigint, userId: string, data: ArrayBufferView): void {
     if (!rooms.has(roomId)) {
       return;
     }
-    const { game } = rooms.get(roomId)!;
+    const game = rooms.get(roomId)!;
     const player = game.players.find((player) => player.id === userId);
     if (player === undefined) {
       return;
@@ -138,7 +130,7 @@ const { host, appId, storeId } = coordinator;
 console.log(`Connected to coordinator at ${host} with appId ${appId} and storeId ${storeId}`);
 
 setInterval(() => {
-  rooms.forEach(({ game }, roomId) => {
+  rooms.forEach((game, roomId) => {
     tick(game, TICK_INTERVAL_MS / 1000);
     broadcastStateUpdate(roomId);
   });
@@ -194,7 +186,8 @@ function tick(game: InternalState, deltaMs: number) {
 }
 
 function broadcastStateUpdate(roomId: RoomId) {
-  const { subscribers, game } = rooms.get(roomId)!;
+  const game = rooms.get(roomId)!;
+  const subscribers = coordinator.getSubscribers(roomId);
   const now = Date.now();
   const state: GameState = {
     players: game.players.map((player) => ({
@@ -213,6 +206,6 @@ function broadcastStateUpdate(roomId: RoomId) {
       state,
       ts: now,
     };
-    coordinator.stateUpdate(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
+    coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
   });
 }
