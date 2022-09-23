@@ -3,7 +3,7 @@ import { ClientMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "../connection";
-import { MAP, BG_COLOR } from "../../../common/map";
+import { MAP } from "../../../common/map";
 import { HathoraClient } from "@hathora/client-sdk";
 
 export class GameScene extends Scene {
@@ -94,7 +94,7 @@ export class GameScene extends Scene {
     });
 
     // Set the main camera's background colour
-    this.cameras.main.setBackgroundColor(BG_COLOR);
+    this.cameras.main.setBackgroundColor(0x22aa77);
   }
 
   update() {
@@ -141,12 +141,14 @@ export class GameScene extends Scene {
     const relX = (playerX - worldView.x) * zoom;
     const relY = (playerY - worldView.y) * zoom;
     const aimRad = pMath.Angle.Between(relX + zoom, relY + zoom, mouseX, mouseY);
-    const aimMoved = this.prevAimRad !== aimRad;
+    const aimMoved = (this.prevAimRad !== aimRad);
 
     // Only if the aim has updated, send the update
     if (aimMoved) {
       this.connection.sendMessage({ type: ClientMessageType.SetAngle, angle: aimRad });
     }
+
+    this.prevAimRad = aimRad;
   }
 
   private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {

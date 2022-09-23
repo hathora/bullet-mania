@@ -4,7 +4,7 @@ import { Box, SATVector, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import { BodyType, PhysicsBody } from "./utils";
-import { MAP, SPAWN_POSITION } from "../common/map";
+import { MAP } from "../common/map";
 
 const TICK_INTERVAL_MS = 50;
 
@@ -13,6 +13,12 @@ const PLAYER_SPEED = 200;
 
 const BULLET_RADIUS = 9;
 const BULLET_SPEED = 800;
+
+const SPAWN_POSITION = {
+  x: 100,
+  y: 150,
+};
+
 
 type InternalPlayer = {
   id: UserId;

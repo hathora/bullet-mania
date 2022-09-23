@@ -1,10 +1,3 @@
-export const SPAWN_POSITION = {
-  x: 100,
-  y: 150,
-};
-
-export const BG_COLOR = 0x22aa77;
-
 export const MAP = [
   // Red base
   {
