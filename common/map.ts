@@ -1,3 +1,10 @@
+export const MAP_BOUNDARIES = {
+  top: -400,
+  left: -450,
+  bottom: 1750,
+  right: 550
+};
+
 export const MAP = [
   // Red base
   {

@@ -3,7 +3,7 @@ import { ClientMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "../connection";
-import { MAP } from "../../../common/map";
+import { MAP, MAP_BOUNDARIES } from "../../../common/map";
 import { HathoraClient } from "@hathora/client-sdk";
 
 export class GameScene extends Scene {
@@ -93,7 +93,12 @@ export class GameScene extends Scene {
       mapGfx.fillRect(x, y, width, height);
     });
 
-    // Set the main camera's background colour
+    // Set the main camera's background colour and bounding box
+    const {top, left, bottom, right} = MAP_BOUNDARIES;
+    const mapWidth = (Math.abs(left) + Math.abs(right));
+    const mapHeight = (Math.abs(top) + Math.abs(bottom));
+
+    this.cameras.main.setBounds(left, top, mapWidth, mapHeight);
     this.cameras.main.setBackgroundColor(0x22aa77);
   }
 

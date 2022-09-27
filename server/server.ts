@@ -4,22 +4,29 @@ import { Box, SATVector, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import { BodyType, PhysicsBody } from "./utils";
-import { MAP } from "../common/map";
+import { MAP, MAP_BOUNDARIES } from "../common/map";
 
+// The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
 
-const PLAYER_RADIUS = 20;
-const PLAYER_SPEED = 200;
+// Player configuration
+const PLAYER_RADIUS = 20; // The player's circular radius, used for collision detection
+const PLAYER_SPEED = 200; // The player's movement speed
 
-const BULLET_RADIUS = 9;
-const BULLET_SPEED = 800;
+// Bullet configuration
+const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision detection
+const BULLET_SPEED = 800; // The bullet's movement speed when shot
 
+// An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITION = {
   x: 100,
   y: 150,
 };
 
+// The width of the map boundary rectangles
+const BOUNDARY_WIDTH = 50;
 
+// A type which defines the properties of a player used internally on the server (not sent to client)
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
@@ -27,18 +34,24 @@ type InternalPlayer = {
   angle: number;
 };
 
+// A type which defines the properties of a bullet used internally on the server (not sent to client)
 type InternalBullet = {
   id: number;
   body: PhysicsBody;
   angle: number;
 };
 
+// A type which represents the internal state of the server, containing:
+//   - physics: our "physics" engine (detect-collisions library)
+//   - players: an array containing all connected players to a room
+//   - bullets: an array containing all bullets currently in the air for a given room
 type InternalState = {
   physics: System;
   players: InternalPlayer[];
   bullets: InternalBullet[];
 };
 
+// A map which the server uses to contain all room's InternalState instances
 const rooms: Map<RoomId, InternalState> = new Map();
 
 const store: Store = {
@@ -56,6 +69,51 @@ const store: Store = {
       physics.insert(body);
       physics.updateBody(body);
     });
+
+    // Create map boundary boxes
+    const {top, left, bottom, right} = MAP_BOUNDARIES;
+    const mapWidth = (Math.abs(left) + Math.abs(right));
+    const mapHeight = (Math.abs(top) + Math.abs(bottom));
+
+    // Top boundary
+    const topBoundBody = Object.assign(new Box({ x: left, y: top - BOUNDARY_WIDTH }, mapWidth, BOUNDARY_WIDTH , { isStatic: true }), {
+      oType: BodyType.Wall,
+    });
+
+    topBoundBody.setOffset(new SATVector(0, 0));
+
+    physics.insert(topBoundBody);
+    physics.updateBody(topBoundBody);
+
+    // Left boundary
+    const leftBoundBody = Object.assign(new Box({ x: left - BOUNDARY_WIDTH, y: top }, BOUNDARY_WIDTH, mapHeight, { isStatic: true }), {
+      oType: BodyType.Wall,
+    });
+
+    leftBoundBody.setOffset(new SATVector(0, 0));
+    
+    physics.insert(leftBoundBody);
+    physics.updateBody(leftBoundBody);
+
+    // Bottom boundary
+    const bottomBoundBody = Object.assign(new Box({ x: left, y: bottom }, mapWidth, BOUNDARY_WIDTH, { isStatic: true }), {
+      oType: BodyType.Wall,
+    });
+
+    bottomBoundBody.setOffset(new SATVector(0, 0));
+    
+    physics.insert(bottomBoundBody);
+    physics.updateBody(bottomBoundBody);
+
+    // Right boundary
+    const rightBoundBody = Object.assign(new Box({ x: right, y: top }, BOUNDARY_WIDTH, mapHeight, { isStatic: true }), {
+      oType: BodyType.Wall,
+    });
+
+    rightBoundBody.setOffset(new SATVector(0, 0));
+    
+    physics.insert(rightBoundBody);
+    physics.updateBody(rightBoundBody);
 
     rooms.set(roomId, {
       physics,
