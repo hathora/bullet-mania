@@ -47,14 +47,10 @@ const store: Store = {
 
     // Create map box bodies
     MAP.forEach(({ x, y, width, height }) => {
-      const body = Object.assign(new Box({ x, y }, width as number, height as number, { isStatic: true }), {
+      const body = Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
         oType: BodyType.Wall,
       });
-
-      body.setOffset(new SATVector(0, 0));
-
       physics.insert(body);
-      physics.updateBody(body);
     });
 
     rooms.set(roomId, {
