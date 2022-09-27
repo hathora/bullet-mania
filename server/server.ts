@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { BodyType, PhysicsBody } from "./utils";
 import { MAP, MAP_BOUNDARIES } from "../common/map";
 
 // The millisecond tick rate
@@ -69,56 +68,18 @@ const store: Store = {
 
     // Create map box bodies
     MAP.forEach(({ x, y, width, height }) => {
-      const body = Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
-        oType: BodyType.Wall,
-      });
-      physics.insert(body);
+      physics.insert(wallBody(x, y, width, height));
     });
 
     // Create map boundary boxes
-    const {top, left, bottom, right} = MAP_BOUNDARIES;
-    const mapWidth = (Math.abs(left) + Math.abs(right));
-    const mapHeight = (Math.abs(top) + Math.abs(bottom));
+    const { top, left, bottom, right } = MAP_BOUNDARIES;
+    const mapWidth = right - left;
+    const mapHeight = bottom - top;
 
-    // Top boundary
-    const topBoundBody = Object.assign(new Box({ x: left, y: top - BOUNDARY_WIDTH }, mapWidth, BOUNDARY_WIDTH , { isStatic: true }), {
-      oType: BodyType.Wall,
-    });
-
-    topBoundBody.setOffset(new SATVector(0, 0));
-
-    physics.insert(topBoundBody);
-    physics.updateBody(topBoundBody);
-
-    // Left boundary
-    const leftBoundBody = Object.assign(new Box({ x: left - BOUNDARY_WIDTH, y: top }, BOUNDARY_WIDTH, mapHeight, { isStatic: true }), {
-      oType: BodyType.Wall,
-    });
-
-    leftBoundBody.setOffset(new SATVector(0, 0));
-    
-    physics.insert(leftBoundBody);
-    physics.updateBody(leftBoundBody);
-
-    // Bottom boundary
-    const bottomBoundBody = Object.assign(new Box({ x: left, y: bottom }, mapWidth, BOUNDARY_WIDTH, { isStatic: true }), {
-      oType: BodyType.Wall,
-    });
-
-    bottomBoundBody.setOffset(new SATVector(0, 0));
-    
-    physics.insert(bottomBoundBody);
-    physics.updateBody(bottomBoundBody);
-
-    // Right boundary
-    const rightBoundBody = Object.assign(new Box({ x: right, y: top }, BOUNDARY_WIDTH, mapHeight, { isStatic: true }), {
-      oType: BodyType.Wall,
-    });
-
-    rightBoundBody.setOffset(new SATVector(0, 0));
-    
-    physics.insert(rightBoundBody);
-    physics.updateBody(rightBoundBody);
+    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, mapWidth, BOUNDARY_WIDTH)); // top
+    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, mapHeight)); // left
+    physics.insert(wallBody(left, bottom, mapWidth, BOUNDARY_WIDTH)); // bottom
+    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, mapHeight)); // right
 
     rooms.set(roomId, {
       physics,
@@ -270,5 +231,11 @@ function broadcastStateUpdate(roomId: RoomId) {
       ts: now,
     };
     coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
+  });
+}
+
+function wallBody(x: number, y: number, width: number, height: number): PhysicsBody {
+  return Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
+    oType: BodyType.Wall,
   });
 }
