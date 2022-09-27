@@ -82,15 +82,14 @@ export class GameScene extends Scene {
       // If the connection is open, send through click events
       this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
-    
+
     // Render grass
-    this.add.tileSprite(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT, 'grass').setOrigin(0, 0);
+    this.add.tileSprite(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT, "grass").setOrigin(0, 0);
 
     // Render map objects
     MAP.forEach(({ x, y, width, height }) => {
-      this.add.tileSprite(x, y, width, height, 'wall').setOrigin(0, 0);
+      this.add.tileSprite(x, y, width, height, "wall").setOrigin(0, 0);
     });
-
 
     // Set the main camera's background colour and bounding box
     this.cameras.main.setBounds(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT);

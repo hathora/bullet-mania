@@ -20,7 +20,7 @@ export type Player = {
 export type Bullet = {
   id: number;
   position: Position;
-}
+};
 
 export type GameState = {
   players: Player[];

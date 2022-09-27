@@ -15,19 +15,19 @@ export const MAP = [
     x: -156,
     y: -156,
     width: 52,
-    height: 312
+    height: 312,
   },
   {
     x: -156,
     y: -156,
     width: 468,
-    height: 52
+    height: 52,
   },
   {
     x: 260,
     y: -156,
     width: 52,
-    height: 312
+    height: 312,
   },
 
   // Blockades
@@ -35,25 +35,25 @@ export const MAP = [
     x: -104,
     y: 780,
     width: 104,
-    height: 52
+    height: 52,
   },
   {
     x: 104,
     y: 624,
     width: 104,
-    height: 52
+    height: 52,
   },
   {
     x: -104,
     y: 468,
     width: 104,
-    height: 52
+    height: 52,
   },
   {
     x: 104,
     y: 312,
     width: 104,
-    height: 52
+    height: 52,
   },
 
   // Bottom base
@@ -61,18 +61,18 @@ export const MAP = [
     x: -156,
     y: 936,
     width: 52,
-    height: 312
+    height: 312,
   },
   {
     x: -156,
     y: 1196,
     width: 468,
-    height: 52
+    height: 52,
   },
   {
     x: 260,
     y: 936,
     width: 52,
-    height: 312
+    height: 312,
   },
 ];
