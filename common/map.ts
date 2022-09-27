@@ -2,8 +2,11 @@ export const MAP_BOUNDARIES = {
   top: -400,
   left: -450,
   bottom: 1750,
-  right: 550
+  right: 550,
 };
+
+export const MAP_WIDTH = MAP_BOUNDARIES.right - MAP_BOUNDARIES.left;
+export const MAP_HEIGHT = MAP_BOUNDARIES.bottom - MAP_BOUNDARIES.top;
 
 export const MAP = [
   // Red base

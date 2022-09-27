@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { MAP, MAP_BOUNDARIES } from "../common/map";
+import { MAP, MAP_BOUNDARIES, MAP_HEIGHT, MAP_WIDTH } from "../common/map";
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -73,13 +73,11 @@ const store: Store = {
 
     // Create map boundary boxes
     const { top, left, bottom, right } = MAP_BOUNDARIES;
-    const mapWidth = right - left;
-    const mapHeight = bottom - top;
 
-    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, mapWidth, BOUNDARY_WIDTH)); // top
-    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, mapHeight)); // left
-    physics.insert(wallBody(left, bottom, mapWidth, BOUNDARY_WIDTH)); // bottom
-    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, mapHeight)); // right
+    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, MAP_WIDTH, BOUNDARY_WIDTH)); // top
+    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, MAP_HEIGHT)); // left
+    physics.insert(wallBody(left, bottom, MAP_WIDTH, BOUNDARY_WIDTH)); // bottom
+    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, MAP_HEIGHT)); // right
 
     rooms.set(roomId, {
       physics,
