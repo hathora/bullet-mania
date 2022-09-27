@@ -1,6 +1,6 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
-import { Box, SATVector, System } from "detect-collisions";
+import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import { BodyType, PhysicsBody } from "./utils";
@@ -27,6 +27,14 @@ const SPAWN_POSITION = {
 const BOUNDARY_WIDTH = 50;
 
 // A type which defines the properties of a player used internally on the server (not sent to client)
+enum BodyType {
+  Player,
+  Bullet,
+  Wall,
+}
+
+type PhysicsBody = Body & { oType: BodyType };
+
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
@@ -54,20 +62,17 @@ type InternalState = {
 // A map which the server uses to contain all room's InternalState instances
 const rooms: Map<RoomId, InternalState> = new Map();
 
+// LOGIC
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
 
     // Create map box bodies
     MAP.forEach(({ x, y, width, height }) => {
-      const body = Object.assign(new Box({ x, y }, width as number, height as number, { isStatic: true }), {
+      const body = Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
         oType: BodyType.Wall,
       });
-
-      body.setOffset(new SATVector(0, 0));
-
       physics.insert(body);
-      physics.updateBody(body);
     });
 
     // Create map boundary boxes
