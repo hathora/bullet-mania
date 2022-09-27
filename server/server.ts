@@ -1,10 +1,11 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
-import { System } from "detect-collisions";
-import { Direction, GameState, Position } from "../common/types";
+import { Box, Body, System } from "detect-collisions";
+import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { angleBetween, BodyType, PhysicsBody, setupWorldBounds } from "./utils";
+import { MAP } from "../common/map";
 
+// CONSTANTS
 const TICK_INTERVAL_MS = 50;
 
 const PLAYER_RADIUS = 20;
@@ -13,53 +14,68 @@ const PLAYER_SPEED = 200;
 const BULLET_RADIUS = 9;
 const BULLET_SPEED = 800;
 
+const SPAWN_POSITION = {
+  x: 100,
+  y: 150,
+};
+
+// STATE
+enum BodyType {
+  Player,
+  Bullet,
+  Wall,
+}
+type PhysicsBody = Body & { oType: BodyType };
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
   direction: Direction;
-  target: Position;
+  angle: number;
 };
-
 type InternalBullet = {
   id: number;
   body: PhysicsBody;
   angle: number;
 };
-
 type InternalState = {
   physics: System;
   players: InternalPlayer[];
   bullets: InternalBullet[];
 };
 
-const rooms: Map<RoomId, { game: InternalState; subscribers: Set<UserId> }> = new Map();
+const rooms: Map<RoomId, InternalState> = new Map();
 
+// LOGIC
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
-    setupWorldBounds(physics);
+
+    // Create map box bodies
+    MAP.forEach(({ x, y, width, height }) => {
+      const body = Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
+        oType: BodyType.Wall,
+      });
+      physics.insert(body);
+    });
+
     rooms.set(roomId, {
-      game: {
-        physics,
-        players: [],
-        bullets: [],
-      },
-      subscribers: new Set(),
+      physics,
+      players: [],
+      bullets: [],
     });
   },
   subscribeUser(roomId: bigint, userId: string): void {
     if (!rooms.has(roomId)) {
       return;
     }
-    const { game, subscribers } = rooms.get(roomId)!;
-    subscribers.add(userId);
+    const game = rooms.get(roomId)!;
     if (!game.players.some((player) => player.id === userId)) {
-      const body = game.physics.createCircle({ x: 50, y: 50 }, PLAYER_RADIUS);
+      const body = game.physics.createCircle(SPAWN_POSITION, PLAYER_RADIUS);
       game.players.push({
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
         direction: Direction.None,
-        target: { x: 0, y: 0 },
+        angle: 0,
       });
     }
   },
@@ -67,21 +83,17 @@ const store: Store = {
     if (!rooms.has(roomId)) {
       return;
     }
-    const { game, subscribers } = rooms.get(roomId)!;
-    subscribers.delete(userId);
+    const game = rooms.get(roomId)!;
     const idx = game.players.findIndex((player) => player.id === userId);
     if (idx >= 0) {
       game.players.splice(idx, 1);
     }
   },
-  unsubscribeAll(): void {
-    console.error("unsubscribeAll() not implemented");
-  },
   onMessage(roomId: bigint, userId: string, data: ArrayBufferView): void {
     if (!rooms.has(roomId)) {
       return;
     }
-    const { game } = rooms.get(roomId)!;
+    const game = rooms.get(roomId)!;
     const player = game.players.find((player) => player.id === userId);
     if (player === undefined) {
       return;
@@ -91,14 +103,14 @@ const store: Store = {
     const message: ClientMessage = JSON.parse(dataStr);
     if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
-    } else if (message.type === ClientMessageType.SetTarget) {
-      player.target = message.taget;
+    } else if (message.type === ClientMessageType.SetAngle) {
+      player.angle = message.angle;
     } else if (message.type === ClientMessageType.Shoot) {
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
         body: Object.assign(body, { oType: BodyType.Bullet }),
-        angle: angleBetween(player.body, player.target),
+        angle: player.angle,
       });
     }
   },
@@ -119,7 +131,7 @@ const { host, appId, storeId } = coordinator;
 console.log(`Connected to coordinator at ${host} with appId ${appId} and storeId ${storeId}`);
 
 setInterval(() => {
-  rooms.forEach(({ game }, roomId) => {
+  rooms.forEach((game, roomId) => {
     tick(game, TICK_INTERVAL_MS / 1000);
     broadcastStateUpdate(roomId);
   });
@@ -175,13 +187,14 @@ function tick(game: InternalState, deltaMs: number) {
 }
 
 function broadcastStateUpdate(roomId: RoomId) {
-  const { subscribers, game } = rooms.get(roomId)!;
+  const game = rooms.get(roomId)!;
+  const subscribers = coordinator.getSubscribers(roomId);
   const now = Date.now();
   const state: GameState = {
     players: game.players.map((player) => ({
       id: player.id,
       position: { x: player.body.x, y: player.body.y },
-      aimAngle: angleBetween(player.body, player.target),
+      aimAngle: player.angle,
     })),
     bullets: game.bullets.map((bullet) => ({
       id: bullet.id,
@@ -194,6 +207,6 @@ function broadcastStateUpdate(roomId: RoomId) {
       state,
       ts: now,
     };
-    coordinator.stateUpdate(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
+    coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
   });
 }

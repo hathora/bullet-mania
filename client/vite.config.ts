@@ -2,7 +2,7 @@ import hash from "hash.js";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, "../");
+  const env = loadEnv(mode, "../", "");
   const appSecret = process.env.APP_SECRET ?? env.APP_SECRET;
 
   return {
