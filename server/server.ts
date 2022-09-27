@@ -1,11 +1,11 @@
 import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
 import dotenv from "dotenv";
-import { Box, SATVector, System } from "detect-collisions";
+import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { BodyType, PhysicsBody } from "./utils";
 import { MAP } from "../common/map";
 
+// CONSTANTS
 const TICK_INTERVAL_MS = 50;
 
 const PLAYER_RADIUS = 20;
@@ -19,20 +19,24 @@ const SPAWN_POSITION = {
   y: 150,
 };
 
-
+// STATE
+enum BodyType {
+  Player,
+  Bullet,
+  Wall,
+}
+type PhysicsBody = Body & { oType: BodyType };
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
   direction: Direction;
   angle: number;
 };
-
 type InternalBullet = {
   id: number;
   body: PhysicsBody;
   angle: number;
 };
-
 type InternalState = {
   physics: System;
   players: InternalPlayer[];
@@ -41,6 +45,7 @@ type InternalState = {
 
 const rooms: Map<RoomId, InternalState> = new Map();
 
+// LOGIC
 const store: Store = {
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
