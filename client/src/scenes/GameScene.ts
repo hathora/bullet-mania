@@ -83,19 +83,16 @@ export class GameScene extends Scene {
       this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
 
-    // Render map objects
-    const mapGfx = this.add.graphics();
+    // Render grass
+    this.add.tileSprite(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT, "grass").setOrigin(0, 0);
 
-    // Loop through each object in the map array...
-    MAP.forEach(({ x, y, width, height, color }) => {
-      // And draw the box according to it's properties
-      mapGfx.fillStyle(color, 1);
-      mapGfx.fillRect(x, y, width, height);
+    // Render map objects
+    MAP.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x, y, width, height, "wall").setOrigin(0, 0);
     });
 
     // Set the main camera's background colour and bounding box
     this.cameras.main.setBounds(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT);
-    this.cameras.main.setBackgroundColor(0x22aa77);
   }
 
   update() {

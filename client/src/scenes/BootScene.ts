@@ -12,6 +12,8 @@ export class BootScene extends Scene {
   preload() {
     this.load.image("player", "player.png");
     this.load.image("bullet", "bullet.png");
+    this.load.image("wall", "wall.png");
+    this.load.image("grass", "grass.png");
   }
 
   create() {
