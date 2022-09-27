@@ -3,46 +3,62 @@ import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { MAP } from "../common/map";
+import { MAP, MAP_BOUNDARIES, MAP_HEIGHT, MAP_WIDTH } from "../common/map";
 
-// CONSTANTS
+// The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
 
-const PLAYER_RADIUS = 20;
-const PLAYER_SPEED = 200;
+// Player configuration
+const PLAYER_RADIUS = 20; // The player's circular radius, used for collision detection
+const PLAYER_SPEED = 200; // The player's movement speed
 
-const BULLET_RADIUS = 9;
-const BULLET_SPEED = 800;
+// Bullet configuration
+const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision detection
+const BULLET_SPEED = 800; // The bullet's movement speed when shot
 
+// An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITION = {
   x: 100,
   y: 150,
 };
 
-// STATE
+// The width of the map boundary rectangles
+const BOUNDARY_WIDTH = 50;
+
+// A type which defines the properties of a player used internally on the server (not sent to client)
 enum BodyType {
   Player,
   Bullet,
   Wall,
 }
+
 type PhysicsBody = Body & { oType: BodyType };
+
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
   direction: Direction;
   angle: number;
 };
+
+// A type which defines the properties of a bullet used internally on the server (not sent to client)
 type InternalBullet = {
   id: number;
   body: PhysicsBody;
   angle: number;
 };
+
+// A type which represents the internal state of the server, containing:
+//   - physics: our "physics" engine (detect-collisions library)
+//   - players: an array containing all connected players to a room
+//   - bullets: an array containing all bullets currently in the air for a given room
 type InternalState = {
   physics: System;
   players: InternalPlayer[];
   bullets: InternalBullet[];
 };
 
+// A map which the server uses to contain all room's InternalState instances
 const rooms: Map<RoomId, InternalState> = new Map();
 
 // LOGIC
@@ -52,11 +68,16 @@ const store: Store = {
 
     // Create map box bodies
     MAP.forEach(({ x, y, width, height }) => {
-      const body = Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
-        oType: BodyType.Wall,
-      });
-      physics.insert(body);
+      physics.insert(wallBody(x, y, width, height));
     });
+
+    // Create map boundary boxes
+    const { top, left, bottom, right } = MAP_BOUNDARIES;
+
+    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, MAP_WIDTH, BOUNDARY_WIDTH)); // top
+    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, MAP_HEIGHT)); // left
+    physics.insert(wallBody(left, bottom, MAP_WIDTH, BOUNDARY_WIDTH)); // bottom
+    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, MAP_HEIGHT)); // right
 
     rooms.set(roomId, {
       physics,
@@ -208,5 +229,11 @@ function broadcastStateUpdate(roomId: RoomId) {
       ts: now,
     };
     coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
+  });
+}
+
+function wallBody(x: number, y: number, width: number, height: number): PhysicsBody {
+  return Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
+    oType: BodyType.Wall,
   });
 }

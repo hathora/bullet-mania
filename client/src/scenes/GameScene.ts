@@ -3,7 +3,7 @@ import { ClientMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { RoomConnection } from "../connection";
-import { MAP } from "../../../common/map";
+import { MAP, MAP_BOUNDARIES, MAP_HEIGHT, MAP_WIDTH } from "../../../common/map";
 import { HathoraClient } from "@hathora/client-sdk";
 
 export class GameScene extends Scene {
@@ -93,7 +93,8 @@ export class GameScene extends Scene {
       mapGfx.fillRect(x, y, width, height);
     });
 
-    // Set the main camera's background colour
+    // Set the main camera's background colour and bounding box
+    this.cameras.main.setBounds(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT);
     this.cameras.main.setBackgroundColor(0x22aa77);
   }
 
@@ -141,7 +142,7 @@ export class GameScene extends Scene {
     const relX = (playerX - worldView.x) * zoom;
     const relY = (playerY - worldView.y) * zoom;
     const aimRad = pMath.Angle.Between(relX + zoom, relY + zoom, mouseX, mouseY);
-    const aimMoved = (this.prevAimRad !== aimRad);
+    const aimMoved = this.prevAimRad !== aimRad;
 
     // Only if the aim has updated, send the update
     if (aimMoved) {
