@@ -109,14 +109,14 @@ const store: Store = {
       });
     }
   },
-  
+
   // unsubscribeUser is called when a user disconnects from a room, and is the place where you'd want to do any player-cleanup
   unsubscribeUser(roomId: bigint, userId: string): void {
     // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
     }
-    
+
     // Remove the player from the room's state
     const game = rooms.get(roomId)!;
     const idx = game.players.findIndex((player) => player.id === userId);
@@ -124,13 +124,13 @@ const store: Store = {
       game.players.splice(idx, 1);
     }
   },
-  
+
   // onMessage is an integral part of your game's server. It is responsible for reading messages sent from the clients and handling them accordingly, this is where your game's event-based logic should live
   onMessage(roomId: bigint, userId: string, data: ArrayBufferView): void {
     if (!rooms.has(roomId)) {
       return;
     }
-    
+
     // Get the player, or return out of the function if they don't exist
     const game = rooms.get(roomId)!;
     const player = game.players.find((player) => player.id === userId);
@@ -141,15 +141,13 @@ const store: Store = {
     // Parse out the data string being sent from the client
     const dataStr = Buffer.from(data.buffer, data.byteOffset, data.byteLength).toString("utf8");
     const message: ClientMessage = JSON.parse(dataStr);
-    
+
     // Handle the various message types, specific to this game
     if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
-    }
-    else if (message.type === ClientMessageType.SetAngle) {
+    } else if (message.type === ClientMessageType.SetAngle) {
       player.angle = message.angle;
-    }
-    else if (message.type === ClientMessageType.Shoot) {
+    } else if (message.type === ClientMessageType.Shoot) {
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
@@ -182,7 +180,7 @@ setInterval(() => {
   rooms.forEach((game, roomId) => {
     // Tick each room's game
     tick(game, TICK_INTERVAL_MS / 1000);
-    
+
     // Send the state updates to each client connected to that room
     broadcastStateUpdate(roomId);
   });
@@ -254,7 +252,7 @@ function broadcastStateUpdate(roomId: RoomId) {
       position: { x: bullet.body.x, y: bullet.body.y },
     })),
   };
-  
+
   // Send the state update to each connected client
   subscribers.forEach((userId) => {
     const msg: ServerMessage = {
