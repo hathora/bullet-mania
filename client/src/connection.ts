@@ -5,6 +5,7 @@ import { ClientMessage, ServerMessage } from "../../common/messages";
 
 export type UpdateListener = (update: ServerMessage) => void;
 
+// A class representing a connection to our server room
 export class RoomConnection {
   private encoder = new TextEncoder();
   private decoder = new TextDecoder();

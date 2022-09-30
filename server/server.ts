@@ -25,15 +25,17 @@ const SPAWN_POSITION = {
 // The width of the map boundary rectangles
 const BOUNDARY_WIDTH = 50;
 
-// A type which defines the properties of a player used internally on the server (not sent to client)
+// An enum which represents the type of body for a given object
 enum BodyType {
   Player,
   Bullet,
   Wall,
 }
 
+// A type to represent a physics body with a type (uses BodyType above)
 type PhysicsBody = Body & { oType: BodyType };
 
+// A type which defines the properties of a player used internally on the server (not sent to client)
 type InternalPlayer = {
   id: UserId;
   body: PhysicsBody;
@@ -61,8 +63,9 @@ type InternalState = {
 // A map which the server uses to contain all room's InternalState instances
 const rooms: Map<RoomId, InternalState> = new Map();
 
-// LOGIC
+// Create an object to represent our Store
 const store: Store = {
+  // newState is called when a user requests a new room, this is a good place to handle any world initialization
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
     const { top, left, bottom, right, walls } = map;
@@ -78,18 +81,25 @@ const store: Store = {
     physics.insert(wallBody(left, bottom, right - left, BOUNDARY_WIDTH)); // bottom
     physics.insert(wallBody(right, top, BOUNDARY_WIDTH, bottom - top)); // right
 
+    // Finally, associate our roomId to our game state
     rooms.set(roomId, {
       physics,
       players: [],
       bullets: [],
     });
   },
+
+  // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
   subscribeUser(roomId: bigint, userId: string): void {
+    // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
     }
     const game = rooms.get(roomId)!;
+
+    // Make sure the player hasn't already spawned
     if (!game.players.some((player) => player.id === userId)) {
+      // Then create a physics body for the player
       const body = game.physics.createCircle(SPAWN_POSITION, PLAYER_RADIUS);
       game.players.push({
         id: userId,
@@ -99,28 +109,40 @@ const store: Store = {
       });
     }
   },
+
+  // unsubscribeUser is called when a user disconnects from a room, and is the place where you'd want to do any player-cleanup
   unsubscribeUser(roomId: bigint, userId: string): void {
+    // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
     }
+
+    // Remove the player from the room's state
     const game = rooms.get(roomId)!;
     const idx = game.players.findIndex((player) => player.id === userId);
     if (idx >= 0) {
       game.players.splice(idx, 1);
     }
   },
+
+  // onMessage is an integral part of your game's server. It is responsible for reading messages sent from the clients and handling them accordingly, this is where your game's event-based logic should live
   onMessage(roomId: bigint, userId: string, data: ArrayBufferView): void {
     if (!rooms.has(roomId)) {
       return;
     }
+
+    // Get the player, or return out of the function if they don't exist
     const game = rooms.get(roomId)!;
     const player = game.players.find((player) => player.id === userId);
     if (player === undefined) {
       return;
     }
 
+    // Parse out the data string being sent from the client
     const dataStr = Buffer.from(data.buffer, data.byteOffset, data.byteLength).toString("utf8");
     const message: ClientMessage = JSON.parse(dataStr);
+
+    // Handle the various message types, specific to this game
     if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAngle) {
@@ -136,10 +158,13 @@ const store: Store = {
   },
 };
 
+// Load our environment variables into process.env
 dotenv.config({ path: "../.env" });
 if (process.env.APP_SECRET === undefined) {
   throw new Error("APP_SECRET not set");
 }
+
+// Connect to the Hathora coordinator
 const coordinator = await register({
   coordinatorHost: process.env.COORDINATOR_HOST,
   appSecret: process.env.APP_SECRET,
@@ -150,15 +175,20 @@ const coordinator = await register({
 const { host, appId, storeId } = coordinator;
 console.log(`Connected to coordinator at ${host} with appId ${appId} and storeId ${storeId}`);
 
+// Start the game's update loop
 setInterval(() => {
   rooms.forEach((game, roomId) => {
+    // Tick each room's game
     tick(game, TICK_INTERVAL_MS / 1000);
+
+    // Send the state updates to each client connected to that room
     broadcastStateUpdate(roomId);
   });
 }, TICK_INTERVAL_MS);
 
+// The frame-by-frame logic of your game should live in it's server's tick function. This is often a place to check for collisions, compute score, and so forth
 function tick(game: InternalState, deltaMs: number) {
-  // update players
+  // Move each player with a direction set
   game.players.forEach((player) => {
     if (player.direction === Direction.Up) {
       player.body.y -= PLAYER_SPEED * deltaMs;
@@ -171,13 +201,13 @@ function tick(game: InternalState, deltaMs: number) {
     }
   });
 
-  // update bullets
+  // Move all active bullets along a path based on their radian angle
   game.bullets.forEach((bullet) => {
     bullet.body.x += Math.cos(bullet.angle) * BULLET_SPEED * deltaMs;
     bullet.body.y += Math.sin(bullet.angle) * BULLET_SPEED * deltaMs;
   });
 
-  // handle collisionss
+  // Handle collision detections between the various types of PhysicsBody's
   game.physics.checkAll(({ a, b, overlapV }: { a: PhysicsBody; b: PhysicsBody; overlapV: SAT.Vector }) => {
     if (a.oType === BodyType.Player && b.oType === BodyType.Wall) {
       a.x -= overlapV.x;
@@ -210,6 +240,7 @@ function broadcastStateUpdate(roomId: RoomId) {
   const game = rooms.get(roomId)!;
   const subscribers = coordinator.getSubscribers(roomId);
   const now = Date.now();
+  // Map properties in the game's state which the clients need to know about to render the game
   const state: GameState = {
     players: game.players.map((player) => ({
       id: player.id,
@@ -221,6 +252,8 @@ function broadcastStateUpdate(roomId: RoomId) {
       position: { x: bullet.body.x, y: bullet.body.y },
     })),
   };
+
+  // Send the state update to each connected client
   subscribers.forEach((userId) => {
     const msg: ServerMessage = {
       type: ServerMessageType.StateUpdate,
