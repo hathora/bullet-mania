@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { MAP, MAP_BOUNDARIES, MAP_HEIGHT, MAP_WIDTH } from "../common/map";
+import map from "../common/map.json" assert { type: "json" };
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -68,19 +68,18 @@ const store: Store = {
   // newState is called when a user requests a new room, this is a good place to handle any world initialization
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
+    const { top, left, bottom, right, walls } = map;
 
-    // Create map box bodies
-    MAP.forEach(({ x, y, width, height }) => {
+    // Create map wall bodies
+    walls.forEach(({ x, y, width, height }) => {
       physics.insert(wallBody(x, y, width, height));
     });
 
     // Create map boundary boxes
-    const { top, left, bottom, right } = MAP_BOUNDARIES;
-
-    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, MAP_WIDTH, BOUNDARY_WIDTH)); // top
-    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, MAP_HEIGHT)); // left
-    physics.insert(wallBody(left, bottom, MAP_WIDTH, BOUNDARY_WIDTH)); // bottom
-    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, MAP_HEIGHT)); // right
+    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, right - left, BOUNDARY_WIDTH)); // top
+    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, bottom - top)); // left
+    physics.insert(wallBody(left, bottom, right - left, BOUNDARY_WIDTH)); // bottom
+    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, bottom - top)); // right
 
     // Finally, associate our roomId to our game state
     rooms.set(roomId, {
