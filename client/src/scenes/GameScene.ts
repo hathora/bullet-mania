@@ -1,10 +1,10 @@
 import Phaser, { Math as pMath, Scene } from "phaser";
+import { HathoraClient } from "@hathora/client-sdk";
+import { InterpolationBuffer } from "interpolation-buffer";
 import { ClientMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
-import { InterpolationBuffer } from "interpolation-buffer";
+import map from "../../../common/map.json";
 import { RoomConnection } from "../connection";
-import { MAP, MAP_BOUNDARIES, MAP_HEIGHT, MAP_WIDTH } from "../../../common/map";
-import { HathoraClient } from "@hathora/client-sdk";
 
 export class GameScene extends Scene {
   private connection!: RoomConnection;
@@ -83,16 +83,18 @@ export class GameScene extends Scene {
       this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
 
+    const { top, left, bottom, right, walls } = map;
+
     // Render grass
-    this.add.tileSprite(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT, "grass").setOrigin(0, 0);
+    this.add.tileSprite(left, top, right - left, bottom - top, "grass").setOrigin(0, 0);
 
     // Render map objects
-    MAP.forEach(({ x, y, width, height }) => {
+    walls.forEach(({ x, y, width, height }) => {
       this.add.tileSprite(x, y, width, height, "wall").setOrigin(0, 0);
     });
 
     // Set the main camera's background colour and bounding box
-    this.cameras.main.setBounds(MAP_BOUNDARIES.left, MAP_BOUNDARIES.top, MAP_WIDTH, MAP_HEIGHT);
+    this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
   }
 
   update() {
