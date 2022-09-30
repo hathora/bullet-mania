@@ -8,7 +8,7 @@ export const MAP_BOUNDARIES = {
 export const MAP_WIDTH = MAP_BOUNDARIES.right - MAP_BOUNDARIES.left;
 export const MAP_HEIGHT = MAP_BOUNDARIES.bottom - MAP_BOUNDARIES.top;
 
-// Tile is 104x105
+// Wall tile is 52x52
 export const MAP = [
   // Top base
   {

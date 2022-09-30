@@ -7,6 +7,7 @@ import { MAP, MAP_BOUNDARIES, MAP_HEIGHT, MAP_WIDTH } from "../../../common/map"
 import { HathoraClient } from "@hathora/client-sdk";
 
 export class GameScene extends Scene {
+  // A variable to represent our RoomConnection instance
   private connection!: RoomConnection;
 
   // The buffer which holds state snapshots
@@ -96,13 +97,16 @@ export class GameScene extends Scene {
   }
 
   update() {
+    // If the stateBuffer hasn't been defined, skip this update tick
     if (this.stateBuffer === undefined) {
       return;
     }
 
+    // Get the mousePointer and current interpolated state from the buffer
     const { mousePointer } = this.input;
     const { state } = this.stateBuffer.getInterpolatedState(Date.now());
 
+    // Synchronize the players in our game's state with sprites to represent them graphically
     this.syncSprites(
       this.players,
       new Map(
@@ -115,6 +119,7 @@ export class GameScene extends Scene {
       )
     );
 
+    // Do the same with bullets
     this.syncSprites(
       this.bullets,
       new Map(
@@ -125,12 +130,14 @@ export class GameScene extends Scene {
       )
     );
 
+    // If this.playerSprite has been defined (a ref to our own sprite), send our mouse position to the server
     if (this.playerSprite) {
       this.sendMousePosition(mousePointer, this.playerSprite);
     }
   }
 
   private sendMousePosition(mousePointer: Phaser.Input.Pointer, playerSprite: Phaser.GameObjects.Sprite) {
+    // Extract the mouse's coordinates, player's coordinates, and zoom + worldView properties of scene's the main camera
     const { x: mouseX, y: mouseY } = mousePointer;
     const { x: playerX, y: playerY } = playerSprite;
     const { zoom, worldView } = this.cameras.main;
