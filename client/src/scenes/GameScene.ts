@@ -51,23 +51,38 @@ export class GameScene extends Scene {
       A: Phaser.Input.Keyboard.Key;
       D: Phaser.Input.Keyboard.Key;
     };
-    let prevDirection = Direction.None;
+    let prevDirection = {
+      x: 0,
+      y: 0
+    };
 
     const handleKeyEvt = () => {
-      let direction: Direction;
+      let direction = {
+        x: 0,
+        y: 0
+      };
+
       if (keys.W.isDown) {
-        direction = Direction.Up;
-      } else if (keys.S.isDown) {
-        direction = Direction.Down;
-      } else if (keys.D.isDown) {
-        direction = Direction.Right;
-      } else if (keys.A.isDown) {
-        direction = Direction.Left;
-      } else {
-        direction = Direction.None;
+        direction.y = -1;
+      }
+      else if (keys.S.isDown) {
+        direction.y = 1;
+      }
+      else {
+        direction.y = 0;
       }
 
-      if (prevDirection !== direction) {
+      if (keys.D.isDown) {
+        direction.x = 1;
+      }
+      else if (keys.A.isDown) {
+        direction.x = -1;
+      }
+      else {
+        direction.x = 0;
+      }
+
+      if (prevDirection.x !== direction.x || prevDirection.y !== direction.y) {
         // If connection is open and direction has changed, send updated direction
         prevDirection = direction;
         this.connection.sendMessage({ type: ClientMessageType.SetDirection, direction });

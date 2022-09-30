@@ -1,10 +1,7 @@
-export enum Direction {
-  None,
-  Up,
-  Down,
-  Left,
-  Right,
-}
+export type Direction = {
+  x: number;
+  y: number;
+};
 
 export type Position = {
   x: number;
