@@ -172,8 +172,8 @@ const coordinator = await register({
   store,
 });
 
-const { host, appId, storeId } = coordinator;
-console.log(`Connected to coordinator at ${host} with appId ${appId} and storeId ${storeId}`);
+const { host, storeId } = coordinator;
+console.log(`Connected to coordinator at ${host} with storeId ${storeId}`);
 
 // Start the game's update loop
 setInterval(() => {
