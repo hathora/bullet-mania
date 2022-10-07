@@ -1,10 +1,7 @@
-import hash from "hash.js";
 import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "../", "");
-  const appSecret = process.env.APP_SECRET ?? env.APP_SECRET;
-
   return {
     build: { target: "esnext" },
     publicDir: "src/assets",
@@ -12,7 +9,7 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     define: {
       "process.env": {
-        APP_ID: hash.sha256().update(appSecret).digest("hex"),
+        APP_ID: process.env.APP_ID ?? env.APP_ID,
         COORDINATOR_HOST: process.env.COORDINATOR_HOST ?? env.COORDINATOR_HOST,
       },
     },
