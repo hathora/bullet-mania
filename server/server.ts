@@ -18,8 +18,8 @@ const BULLET_SPEED = 800; // The bullet's movement speed when shot
 
 // An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITION = {
-  x: 100,
-  y: 150,
+  x: 512,
+  y: 512,
 };
 
 // The width of the map boundary rectangles
@@ -68,11 +68,15 @@ const store: Store = {
   // newState is called when a user requests a new room, this is a good place to handle any world initialization
   newState(roomId: bigint, userId: string): void {
     const physics = new System();
-    const { top, left, bottom, right, walls } = map;
+    const tileSize = map.tileSize;
+    const top = map.top * tileSize;
+    const left = map.left * tileSize;
+    const bottom = map.bottom * tileSize;
+    const right = map.right * tileSize;
 
     // Create map wall bodies
-    walls.forEach(({ x, y, width, height }) => {
-      physics.insert(wallBody(x, y, width, height));
+    map.walls.forEach(({ x, y, width, height }) => {
+      physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
     });
 
     // Create map boundary boxes
