@@ -14,6 +14,8 @@ The game is playable at https://hathora-topdown-shooter.surge.sh
 
 ![A screenshot of the completed top-down shooter game in action.](https://user-images.githubusercontent.com/5400947/192792673-3c6c5496-3c52-4d0d-87d6-b04f5ef59ea9.png)
 
+Instructions:
+
   - WASD to move
   - Mouse to aim and shoot
   - Once you are in a game, share the URL to allow others to join
