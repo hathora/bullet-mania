@@ -84,14 +84,18 @@ export class GameScene extends Scene {
       this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
 
-    const { top, left, bottom, right, walls } = map;
+    const tileSize = map.tileSize;
+    const top = map.top * tileSize;
+    const left = map.left * tileSize;
+    const bottom = map.bottom * tileSize;
+    const right = map.right * tileSize;
 
     // Render grass
     this.add.tileSprite(left, top, right - left, bottom - top, "grass").setOrigin(0, 0);
 
     // Render map objects
-    walls.forEach(({ x, y, width, height }) => {
-      this.add.tileSprite(x, y, width, height, "wall").setOrigin(0, 0);
+    map.walls.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall").setOrigin(0, 0);
     });
 
     // Set the main camera's background colour and bounding box
