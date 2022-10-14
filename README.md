@@ -4,6 +4,8 @@
 
 Multiplayer 2D shooter made using Hathora [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts) + [Phaser](http://phaser.io/)
 
+Unity client available [here](https://github.com/hathora/topdown-shooter-unity-client)
+
 Assets from [Kenney](https://kenney.nl/assets/topdown-shooter)
 
 Step by step tutorial: https://docs.hathora.dev/#/buildkit/tutorial_top_down_shooter
