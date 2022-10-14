@@ -1,6 +1,6 @@
 # Topdown Shooter
 
-# Overiew 
+## Overiew 
 
 Multiplayer 2D shooter made using Hathora [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts) + [Phaser](http://phaser.io/)
 
