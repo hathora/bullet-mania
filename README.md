@@ -1,4 +1,4 @@
-# Hathora Topdown Shooter - Phaser
+# Hathora Topdown Shooter
 
 ## Overiew 
 
