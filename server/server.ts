@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import map from "../common/map.json" assert { type: "json" };
+import map from "../common/server-map";
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -18,8 +18,8 @@ const BULLET_SPEED = 800; // The bullet's movement speed when shot
 
 // An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITION = {
-  x: 100,
-  y: 150,
+  x: 512,
+  y: 512,
 };
 
 // The width of the map boundary rectangles

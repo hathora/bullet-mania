@@ -3,7 +3,7 @@ import { HathoraClient } from "@hathora/client-sdk";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { ClientMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
-import map from "../../../common/map.json";
+import map from "../../../common/client-map";
 import { RoomConnection } from "../connection";
 
 export class GameScene extends Scene {
