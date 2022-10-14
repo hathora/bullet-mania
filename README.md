@@ -2,7 +2,7 @@
 
 ## Overiew 
 
-Multiplayer 2D shooter made using Hathora [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts) + [Phaser](http://phaser.io/)
+Multiplayer 2D shooter demo made using Hathora [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts) + [Phaser](http://phaser.io/)
 
 Unity client available [here](https://github.com/hathora/topdown-shooter-unity-client)
 
