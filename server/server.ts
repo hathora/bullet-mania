@@ -125,6 +125,7 @@ const store: Store = {
     const game = rooms.get(roomId)!;
     const idx = game.players.findIndex((player) => player.id === userId);
     if (idx >= 0) {
+      game.physics.remove(game.players[idx].body);
       game.players.splice(idx, 1);
     }
   },
