@@ -159,6 +159,12 @@ const store: Store = {
         body: Object.assign(body, { oType: BodyType.Bullet }),
         angle: player.angle,
       });
+    } else if (message.type === ClientMessageType.Ping) {
+      const msg: ServerMessage = {
+        type: ServerMessageType.PingResponse,
+        id: message.id,
+      };
+      coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
     }
   },
 };

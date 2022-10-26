@@ -1,7 +1,7 @@
 import Phaser, { Math as pMath, Scene } from "phaser";
 import { HathoraClient } from "@hathora/client-sdk";
 import { InterpolationBuffer } from "interpolation-buffer";
-import { ClientMessageType } from "../../../common/messages";
+import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import map from "../../../common/map.json";
 import { RoomConnection } from "../connection";
@@ -36,14 +36,22 @@ export class GameScene extends Scene {
   }
 
   create() {
-    this.connection.addListener(({ state, ts }) => {
-      // Start enqueuing state updates
-      if (this.stateBuffer === undefined) {
-        this.stateBuffer = new InterpolationBuffer(state, 50, lerp);
-      } else {
-        this.stateBuffer.enqueue(state, [], ts);
+    this.connection.addListener((msg) => {
+      if (msg.type === ServerMessageType.StateUpdate) {
+        // Start enqueuing state updates
+        if (this.stateBuffer === undefined) {
+          this.stateBuffer = new InterpolationBuffer(msg.state, 50, lerp);
+        } else {
+          this.stateBuffer.enqueue(msg.state, [], msg.ts);
+        }
+      } else if (msg.type === ServerMessageType.PingResponse) {
+        console.log("Ping: " + (Date.now() - msg.id));
       }
     });
+
+    setInterval(() => {
+      this.connection.sendMessage({ type: ClientMessageType.Ping, id: Date.now() });
+    }, 1000);
 
     // Handle keyboard input
     const keys = this.input.keyboard.addKeys("W,S,A,D") as {
