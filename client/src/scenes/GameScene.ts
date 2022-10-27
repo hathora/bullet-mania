@@ -36,6 +36,27 @@ export class GameScene extends Scene {
   }
 
   create() {
+    const tileSize = map.tileSize;
+    const top = map.top * tileSize;
+    const left = map.left * tileSize;
+    const bottom = map.bottom * tileSize;
+    const right = map.right * tileSize;
+
+    // Render grass
+    this.add.tileSprite(left, top, right - left, bottom - top, "grass").setOrigin(0, 0);
+
+    // Render map objects
+    map.walls.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall").setOrigin(0, 0);
+    });
+
+    // Set the main camera's background colour and bounding box
+    this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
+
+    // Ping indicator
+    const pingText = this.add.text(0, 0, "Ping:", { color: "white" }).setScrollFactor(0);
+    const pings: number[] = [];
+
     this.connection.addListener((msg) => {
       if (msg.type === ServerMessageType.StateUpdate) {
         // Start enqueuing state updates
@@ -45,10 +66,17 @@ export class GameScene extends Scene {
           this.stateBuffer.enqueue(msg.state, [], msg.ts);
         }
       } else if (msg.type === ServerMessageType.PingResponse) {
-        console.log("Ping: " + (Date.now() - msg.id));
+        // Update ping text
+        pings.push(Date.now() - msg.id);
+        if (pings.length > 10) {
+          pings.shift();
+        }
+        const sortedPings = [...pings].sort((a, b) => a - b);
+        pingText.text = `Ping: ${sortedPings[Math.floor(pings.length / 2)]}`;
       }
     });
 
+    // Send pings every 500ms
     setInterval(() => {
       this.connection.sendMessage({ type: ClientMessageType.Ping, id: Date.now() });
     }, 1000);
@@ -91,23 +119,6 @@ export class GameScene extends Scene {
       // If the connection is open, send through click events
       this.connection.sendMessage({ type: ClientMessageType.Shoot });
     });
-
-    const tileSize = map.tileSize;
-    const top = map.top * tileSize;
-    const left = map.left * tileSize;
-    const bottom = map.bottom * tileSize;
-    const right = map.right * tileSize;
-
-    // Render grass
-    this.add.tileSprite(left, top, right - left, bottom - top, "grass").setOrigin(0, 0);
-
-    // Render map objects
-    map.walls.forEach(({ x, y, width, height }) => {
-      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall").setOrigin(0, 0);
-    });
-
-    // Set the main camera's background colour and bounding box
-    this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
   }
 
   update() {
