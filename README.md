@@ -4,7 +4,9 @@
 
 Multiplayer 2D shooter demo made using Hathora [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts) + [Phaser](http://phaser.io/)
 
-Unity client available [here](https://github.com/hathora/topdown-shooter-unity-client)
+Additional implementations of the game client are also available for the following engines:
+  - [Unity](https://github.com/hathora/topdown-shooter-unity-client)
+  - [Bevy](https://github.com/hathora/topdown-shooter-bevy-client)
 
 Assets from [Kenney](https://kenney.nl/assets/topdown-shooter)
 
