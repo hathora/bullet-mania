@@ -37,3 +37,17 @@ APP_SECRET=<appSecret>
 ```
 - Start server: inside `server` directory run `npm start` (remember to `npm install` first)
 - Start client: inside `client` directory run `npm start` (remember to `npm install` first)
+
+## Architecture
+
+Fully server authoritative game:
+- Client sends user inputs to server
+- Server processes the inputs and runs game simulation (at 20fps)
+- Server broadcasts state snapshots to clients (at 20fps)
+- Client interpolates the state snapshots and renders the game UI (at 60fps)
+- No prediction on the client side
+
+Room based architecture:
+- One player creates a game session and gets back a `roomId`
+- They send the `roomId` to others
+- Others can join the same session with this `roomId`
