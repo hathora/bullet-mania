@@ -10,7 +10,7 @@ const TICK_INTERVAL_MS = 50;
 
 // Player configuration
 const PLAYER_RADIUS = 20; // The player's circular radius, used for collision detection
-const PLAYER_SPEED = 1000; // The player's movement speed
+const PLAYER_SPEED = 200; // The player's movement speed
 
 // Bullet configuration
 const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision detection
