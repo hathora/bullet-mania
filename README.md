@@ -16,7 +16,7 @@ Additional implementations of the game client are also available for the followi
 
 The game is playable at https://hathora-topdown-shooter.surge.sh
 
-![A screenshot of the completed top-down shooter game in action.](https://user-images.githubusercontent.com/5400947/192792673-3c6c5496-3c52-4d0d-87d6-b04f5ef59ea9.png)
+![A screenshot of the completed top-down shooter game in action.](https://user-images.githubusercontent.com/5400947/199274234-ff3a66b4-3528-4be3-b6be-2240d3141846.png)
 
 Instructions:
 
