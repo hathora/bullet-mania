@@ -8,6 +8,6 @@ ENV APP_SECRET=${APP_SECRET}
 COPY . .
 RUN npm install -g typescript
 RUN cd server; npm install
-RUN cd server; tsc
+RUN cd server; npx tsc
 
 CMD ["node", "--experimental-specifier-resolution=node", "server/server.js"]
