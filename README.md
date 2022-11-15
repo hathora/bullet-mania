@@ -2,7 +2,7 @@
 
 ## Overiew 
 
-Multiplayer 2D shooter demo made using [Hathora](https://hathora.dev/) [client-sdk-ts](https://github.com/hathora/client-sdk-ts) and [server-sdk-ts](https://github.com/hathora/server-sdk-ts) + [Phaser](http://phaser.io/)
+Multiplayer 2D shooter demo made using [Hathora Buildkits](https://github.com/hathora/buildkits) + [Phaser](http://phaser.io/)
 
 Assets from [Kenney](https://kenney.nl/assets/topdown-shooter)
 
