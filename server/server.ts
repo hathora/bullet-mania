@@ -251,10 +251,12 @@ function initializeRoom() {
   const bottom = map.bottom * tileSize;
   const right = map.right * tileSize;
 
+  // Create map wall bodies
   map.walls.forEach(({ x, y, width, height }) => {
     physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
   });
 
+  // Create map boundary boxes
   physics.insert(wallBody(left, top - BOUNDARY_WIDTH, right - left, BOUNDARY_WIDTH)); // top
   physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, bottom - top)); // left
   physics.insert(wallBody(left, bottom, right - left, BOUNDARY_WIDTH)); // bottom
