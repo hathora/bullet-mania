@@ -152,7 +152,7 @@ if (process.env.APP_SECRET === undefined) {
   throw new Error("APP_SECRET not set");
 }
 
-// Connect to the server
+// Start the server
 const port = parseInt(process.env.PORT ?? "4000");
 const server = await startServer(store, port);
 console.log(`Server listening on port ${port}`);
@@ -218,7 +218,7 @@ function tick(game: InternalState, deltaMs: number) {
   });
 }
 
-function broadcastStateUpdate(roomId: string) {
+function broadcastStateUpdate(roomId: RoomId) {
   const game = rooms.get(roomId)!;
   const now = Date.now();
   // Map properties in the game's state which the clients need to know about to render the game
