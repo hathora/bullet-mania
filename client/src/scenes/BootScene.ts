@@ -3,7 +3,7 @@ import { HathoraClient } from "@hathora/client-sdk";
 import { RoomConnection } from "../connection";
 
 // Instantiate an object which represents our client
-const client = new HathoraClient(process.env.APP_ID!, process.env.COORDINATOR_HOST);
+const client = new HathoraClient(process.env.APP_ID!, { host: "localhost", port: 4000, tls: false });
 
 // Here we extend from Phaser's Scene class to create a game scene compatible with Phaser
 export class BootScene extends Scene {
@@ -53,7 +53,7 @@ async function getRoomId(token: string): Promise<string> {
   if (location.pathname.length > 1) {
     return location.pathname.split("/").pop()!;
   } else {
-    const roomId = await client.create(token, new Uint8Array());
+    const roomId = await client.createUnlistedLobby(token);
     history.pushState({}, "", `/${roomId}`);
     return roomId;
   }

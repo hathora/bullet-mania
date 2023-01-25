@@ -1,5 +1,5 @@
 import { HathoraClient } from "@hathora/client-sdk";
-import { HathoraTransport, TransportType } from "@hathora/client-sdk/lib/transport";
+import { HathoraConnection } from "@hathora/client-sdk/lib/connection";
 
 import { ClientMessage, ServerMessage } from "../../common/messages";
 
@@ -9,23 +9,23 @@ export type UpdateListener = (update: ServerMessage) => void;
 export class RoomConnection {
   private encoder = new TextEncoder();
   private decoder = new TextDecoder();
-  private connection: HathoraTransport | undefined;
-  private listeners: UpdateListener[] = [];
+  private connection: HathoraConnection | undefined;
 
   public constructor(private client: HathoraClient, public token: string, public roomId: string) {}
 
   public async connect() {
-    this.connection = await this.client.connect(
-      this.token,
-      this.roomId,
-      (msg) => this.handleMessage(msg),
-      (err) => this.handleClose(err),
-      TransportType.WebSocket
-    );
+    this.connection = await this.client.newConnection(this.roomId);
+    this.connection.onClose((err) => {
+      console.error("close", err);
+    });
+    this.connection.connect(this.token);
   }
 
   public addListener(listener: UpdateListener) {
-    this.listeners.push(listener);
+    this.connection?.onMessage((data) => {
+      const msg: ServerMessage = JSON.parse(this.decoder.decode(data));
+      listener(msg);
+    });
   }
 
   public sendMessage(msg: ClientMessage) {
@@ -34,15 +34,5 @@ export class RoomConnection {
 
   public disconnect() {
     this.connection?.disconnect();
-    this.listeners = [];
-  }
-
-  private handleMessage(data: ArrayBuffer) {
-    const msg: ServerMessage = JSON.parse(this.decoder.decode(data));
-    this.listeners.forEach((listener) => listener(msg));
-  }
-
-  private handleClose(err: { code: number; reason: string }) {
-    console.error("close", err);
   }
 }
