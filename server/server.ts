@@ -67,30 +67,8 @@ const rooms: Map<RoomId, InternalState> = new Map();
 const store: Store = {
   // newState is called when a user requests a new room, this is a good place to handle any world initialization
   newState(roomId: bigint, userId: string): void {
-    const physics = new System();
-    const tileSize = map.tileSize;
-    const top = map.top * tileSize;
-    const left = map.left * tileSize;
-    const bottom = map.bottom * tileSize;
-    const right = map.right * tileSize;
-
-    // Create map wall bodies
-    map.walls.forEach(({ x, y, width, height }) => {
-      physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
-    });
-
-    // Create map boundary boxes
-    physics.insert(wallBody(left, top - BOUNDARY_WIDTH, right - left, BOUNDARY_WIDTH)); // top
-    physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, bottom - top)); // left
-    physics.insert(wallBody(left, bottom, right - left, BOUNDARY_WIDTH)); // bottom
-    physics.insert(wallBody(right, top, BOUNDARY_WIDTH, bottom - top)); // right
-
-    // Finally, associate our roomId to our game state
-    rooms.set(roomId, {
-      physics,
-      players: [],
-      bullets: [],
-    });
+    // Associate our roomId to our game state
+    rooms.set(roomId, initializeRoom());
   },
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
@@ -273,6 +251,32 @@ function broadcastStateUpdate(roomId: RoomId) {
     };
     coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
   });
+}
+
+function initializeRoom() {
+  const physics = new System();
+  const tileSize = map.tileSize;
+  const top = map.top * tileSize;
+  const left = map.left * tileSize;
+  const bottom = map.bottom * tileSize;
+  const right = map.right * tileSize;
+
+  // Create map wall bodies
+  map.walls.forEach(({ x, y, width, height }) => {
+    physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
+  });
+
+  // Create map boundary boxes
+  physics.insert(wallBody(left, top - BOUNDARY_WIDTH, right - left, BOUNDARY_WIDTH)); // top
+  physics.insert(wallBody(left - BOUNDARY_WIDTH, top, BOUNDARY_WIDTH, bottom - top)); // left
+  physics.insert(wallBody(left, bottom, right - left, BOUNDARY_WIDTH)); // bottom
+  physics.insert(wallBody(right, top, BOUNDARY_WIDTH, bottom - top)); // right
+
+  return {
+    physics,
+    players: [],
+    bullets: [],
+  };
 }
 
 function wallBody(x: number, y: number, width: number, height: number): PhysicsBody {
