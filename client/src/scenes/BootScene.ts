@@ -53,7 +53,7 @@ async function getRoomId(token: string): Promise<string> {
   if (location.pathname.length > 1) {
     return location.pathname.split("/").pop()!;
   } else {
-    const roomId = await client.createUnlistedLobby(token);
+    const roomId = await client.createPrivateLobby(token);
     history.pushState({}, "", `/${roomId}`);
     return roomId;
   }
