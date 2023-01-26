@@ -1,5 +1,5 @@
 import { HathoraClient } from "@hathora/client-sdk";
-import { HathoraConnection } from "@hathora/client-sdk/lib/connection";
+import { HathoraConnection } from "@hathora/client-sdk";
 
 import { ClientMessage, ServerMessage } from "../../common/messages";
 
