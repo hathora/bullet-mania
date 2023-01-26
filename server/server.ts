@@ -1,4 +1,4 @@
-import { UserId, RoomId, Application, startServer, extractUserIdFromJwt } from "@hathora/server-sdk";
+import { UserId, RoomId, Application, startServer, verifyJwt } from "@hathora/server-sdk";
 import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
@@ -65,8 +65,8 @@ const rooms: Map<RoomId, InternalState> = new Map();
 
 // Create an object to represent our Store
 const store: Application = {
-  getUserIdFromToken(token: string): UserId | undefined {
-    return extractUserIdFromJwt(token, process.env.APP_SECRET!);
+  verifyToken(token: string): UserId | undefined {
+    return verifyJwt(token, process.env.APP_SECRET!);
   },
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
