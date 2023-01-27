@@ -1,3 +1,6 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
 import { UserId, RoomId, Application, startServer, verifyJwt } from "@hathora/server-sdk";
 import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
@@ -66,7 +69,11 @@ const rooms: Map<RoomId, InternalState> = new Map();
 // Create an object to represent our Store
 const store: Application = {
   verifyToken(token: string): UserId | undefined {
-    return verifyJwt(token, process.env.APP_SECRET!);
+    const userId = verifyJwt(token, process.env.APP_SECRET!);
+    if (userId === undefined) {
+      console.error("Failed to verify token", token);
+    }
+    return userId;
   },
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
@@ -147,7 +154,7 @@ const store: Application = {
 };
 
 // Load our environment variables into process.env
-dotenv.config({ path: "../.env" });
+dotenv.config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.env") });
 if (process.env.APP_SECRET === undefined) {
   throw new Error("APP_SECRET not set");
 }
