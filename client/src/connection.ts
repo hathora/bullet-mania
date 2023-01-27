@@ -7,8 +7,6 @@ export type UpdateListener = (update: ServerMessage) => void;
 
 // A class representing a connection to our server room
 export class RoomConnection {
-  private encoder = new TextEncoder();
-  private decoder = new TextDecoder();
   private connection: HathoraConnection | undefined;
 
   public constructor(private client: HathoraClient, public token: string, public roomId: string) {}
@@ -22,14 +20,13 @@ export class RoomConnection {
   }
 
   public addListener(listener: UpdateListener) {
-    this.connection?.onMessage((data) => {
-      const msg: ServerMessage = JSON.parse(this.decoder.decode(data));
-      listener(msg);
+    this.connection?.onMessageJson<ServerMessage>((data) => {
+      listener(data);
     });
   }
 
   public sendMessage(msg: ClientMessage) {
-    this.connection?.write(this.encoder.encode(JSON.stringify(msg)));
+    this.connection?.writeJson(msg);
   }
 
   public disconnect() {
