@@ -16,7 +16,7 @@ export class RoomConnection {
     this.connection.onClose((err) => {
       console.error("close", err);
     });
-    this.connection.connect(this.token);
+    await this.connection.connect(this.token);
   }
 
   public addListener(listener: UpdateListener) {
