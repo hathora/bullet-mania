@@ -3,10 +3,10 @@ import { HathoraClient } from "@hathora/client-sdk";
 import { RoomConnection } from "../connection";
 
 // Instantiate an object which represents our client
-const connectionInfo = import.meta.env.DEV
+const connectionDetails = import.meta.env.DEV
   ? { host: "localhost", port: 4000, transportType: "tcp" as const }
   : undefined;
-const client = new HathoraClient(process.env.APP_ID!, connectionInfo);
+const client = new HathoraClient(process.env.APP_ID!, connectionDetails);
 
 // Here we extend from Phaser's Scene class to create a game scene compatible with Phaser
 export class BootScene extends Scene {
