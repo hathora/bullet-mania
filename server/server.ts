@@ -20,10 +20,16 @@ const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision det
 const BULLET_SPEED = 800; // The bullet's movement speed when shot
 
 // An x, y vector representing the spawn location of the player on the map
-const SPAWN_POSITION = {
-  x: 512,
-  y: 512,
-};
+const SPAWN_POSITIONS = [
+  {
+    x: 512,
+    y: 512,
+  },
+  {
+    x: 512,
+    y: 2048,
+  },
+];
 
 // The width of the map boundary rectangles
 const BOUNDARY_WIDTH = 50;
@@ -88,7 +94,8 @@ const store: Application = {
     // Make sure the player hasn't already spawned
     if (!game.players.some((player) => player.id === userId)) {
       // Then create a physics body for the player
-      const body = game.physics.createCircle(SPAWN_POSITION, PLAYER_RADIUS);
+      const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
+      const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
       game.players.push({
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
