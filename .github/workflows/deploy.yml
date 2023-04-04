@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: npm install -g hathora
-      - run: hathora cloud deploy --appName hathora-topdown-shooter --token ${{ secrets.HATHORA_TOKEN }}
+      - run: npm install -g @hathora/cli
+      - run: hathora-cloud deploy --appId app-122d530a-ab60-4597-95d8-fabeecfe3c1b --roomsPerProcess 10 --planName tiny --transportType tls --containerPort 4000 --env '[{"name": "APP_SECRET", "value": "${{ secrets.HATHORA_APP_SECRET }}"}]' --token ${{ secrets.HATHORA_TOKEN }}
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v2
       - run: npm install -g surge
       - run: npm ci
-      - run: APP_ID=e2d8571eb89af72f2abbe909def5f19bc4dad0cd475cce5f5b6e9018017d1f1c npm run build
+      - run: APP_ID=app-122d530a-ab60-4597-95d8-fabeecfe3c1b npm run build
       - run: cp dist/index.html dist/200.html
       - run: surge dist hathora-topdown-shooter.surge.sh
         env:
