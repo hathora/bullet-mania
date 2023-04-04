@@ -5,7 +5,7 @@
     "build": "npx vite build"
   },
   "dependencies": {
-    "@hathora/client-sdk": "^0.0.6",
+    "@hathora/client-sdk": "^1.0.0",
     "interpolation-buffer": "^1.2.5",
     "phaser": "^3.55.2"
   },

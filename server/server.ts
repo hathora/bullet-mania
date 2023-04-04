@@ -1,4 +1,7 @@
-import { register, Store, UserId, RoomId } from "@hathora/server-sdk";
+import path from "path";
+import { fileURLToPath } from "url";
+
+import { UserId, RoomId, Application, startServer, verifyJwt } from "@hathora/server-sdk";
 import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState } from "../common/types";
@@ -64,19 +67,22 @@ type InternalState = {
 const rooms: Map<RoomId, InternalState> = new Map();
 
 // Create an object to represent our Store
-const store: Store = {
-  // newState is called when a user requests a new room, this is a good place to handle any world initialization
-  newState(roomId: bigint, userId: string): void {
-    // Associate our roomId to our game state
-    rooms.set(roomId, initializeRoom());
+const store: Application = {
+  verifyToken(token: string): UserId | undefined {
+    const userId = verifyJwt(token, process.env.APP_SECRET!);
+    if (userId === undefined) {
+      console.error("Failed to verify token", token);
+    }
+    return userId;
   },
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
-  subscribeUser(roomId: bigint, userId: string): void {
-    // Make sure the room exists
+  subscribeUser(roomId: RoomId, userId: string): void {
     if (!rooms.has(roomId)) {
-      return;
+      console.log("newRoom", roomId, userId);
+      rooms.set(roomId, initializeRoom());
     }
+    console.log("subscribeUser", roomId, userId);
     const game = rooms.get(roomId)!;
 
     // Make sure the player hasn't already spawned
@@ -93,11 +99,12 @@ const store: Store = {
   },
 
   // unsubscribeUser is called when a user disconnects from a room, and is the place where you'd want to do any player-cleanup
-  unsubscribeUser(roomId: bigint, userId: string): void {
+  unsubscribeUser(roomId: RoomId, userId: string): void {
     // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
     }
+    console.log("unsubscribeUser", roomId, userId);
 
     // Remove the player from the room's state
     const game = rooms.get(roomId)!;
@@ -109,7 +116,7 @@ const store: Store = {
   },
 
   // onMessage is an integral part of your game's server. It is responsible for reading messages sent from the clients and handling them accordingly, this is where your game's event-based logic should live
-  onMessage(roomId: bigint, userId: string, data: ArrayBufferView): void {
+  onMessage(roomId: RoomId, userId: string, data: ArrayBuffer): void {
     if (!rooms.has(roomId)) {
       return;
     }
@@ -122,8 +129,7 @@ const store: Store = {
     }
 
     // Parse out the data string being sent from the client
-    const dataStr = Buffer.from(data.buffer, data.byteOffset, data.byteLength).toString("utf8");
-    const message: ClientMessage = JSON.parse(dataStr);
+    const message: ClientMessage = JSON.parse(Buffer.from(data).toString("utf8"));
 
     // Handle the various message types, specific to this game
     if (message.type === ClientMessageType.SetDirection) {
@@ -142,27 +148,21 @@ const store: Store = {
         type: ServerMessageType.PingResponse,
         id: message.id,
       };
-      coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
+      server.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
     }
   },
 };
 
 // Load our environment variables into process.env
-dotenv.config({ path: "../.env" });
+dotenv.config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.env") });
 if (process.env.APP_SECRET === undefined) {
   throw new Error("APP_SECRET not set");
 }
 
-// Connect to the Hathora coordinator
-const coordinator = await register({
-  coordinatorHost: process.env.COORDINATOR_HOST,
-  appSecret: process.env.APP_SECRET,
-  authInfo: { anonymous: { separator: "-" } },
-  store,
-});
-
-const { host, storeId } = coordinator;
-console.log(`Connected to coordinator at ${host} with storeId ${storeId}`);
+// Start the server
+const port = parseInt(process.env.PORT ?? "4000");
+const server = await startServer(store, port);
+console.log(`Server listening on port ${port}`);
 
 // Start the game's update loop
 setInterval(() => {
@@ -227,7 +227,6 @@ function tick(game: InternalState, deltaMs: number) {
 
 function broadcastStateUpdate(roomId: RoomId) {
   const game = rooms.get(roomId)!;
-  const subscribers = coordinator.getSubscribers(roomId);
   const now = Date.now();
   // Map properties in the game's state which the clients need to know about to render the game
   const state: GameState = {
@@ -243,14 +242,12 @@ function broadcastStateUpdate(roomId: RoomId) {
   };
 
   // Send the state update to each connected client
-  subscribers.forEach((userId) => {
-    const msg: ServerMessage = {
-      type: ServerMessageType.StateUpdate,
-      state,
-      ts: now,
-    };
-    coordinator.sendMessage(roomId, userId, Buffer.from(JSON.stringify(msg), "utf8"));
-  });
+  const msg: ServerMessage = {
+    type: ServerMessageType.StateUpdate,
+    state,
+    ts: now,
+  };
+  server.broadcastMessage(roomId, Buffer.from(JSON.stringify(msg), "utf8"));
 }
 
 function initializeRoom() {
