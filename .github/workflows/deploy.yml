@@ -10,7 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: npm install -g @hathora/cli
-      - run: hathora-cloud deploy --appId app-122d530a-ab60-4597-95d8-fabeecfe3c1b --roomsPerProcess 10 --planName tiny --transportType tls --containerPort 4000 --env '[{"name": "APP_SECRET", "value": "${{ secrets.HATHORA_APP_SECRET }}"}]' --token ${{ secrets.HATHORA_TOKEN }}
+      - run: >
+        hathora-cloud deploy --appId app-122d530a-ab60-4597-95d8-fabeecfe3c1b --roomsPerProcess 10 --planName tiny --transportType tls --containerPort 4000 --env '[{"name": "APP_SECRET", "value": "secret-8962c466-ac3d-4ef9-b09d-ece67b98d875"}]' --token ${{ secrets.HATHORA_TOKEN }}
   frontend:
     runs-on: ubuntu-latest
     defaults:
