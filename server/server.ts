@@ -75,7 +75,7 @@ const rooms: Map<RoomId, InternalState> = new Map();
 // Create an object to represent our Store
 const store: Application = {
   verifyToken(token: string): UserId | undefined {
-    const userId = verifyJwt(token, process.env.APP_SECRET!);
+    const userId = verifyJwt(token, process.env.HATHORA_APP_SECRET!);
     if (userId === undefined) {
       console.error("Failed to verify token", token);
     }
@@ -162,8 +162,8 @@ const store: Application = {
 
 // Load our environment variables into process.env
 dotenv.config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.env") });
-if (process.env.APP_SECRET === undefined) {
-  throw new Error("APP_SECRET not set");
+if (process.env.HATHORA_APP_SECRET === undefined) {
+  throw new Error("HATHORA_APP_SECRET not set");
 }
 
 // Start the server
