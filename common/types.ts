@@ -15,6 +15,9 @@ export type Player = {
   id: string;
   position: Position;
   aimAngle: number;
+  bullets: number;
+  isReloading: number | undefined;
+  score: number;
 };
 
 export type Bullet = {

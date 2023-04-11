@@ -4,7 +4,7 @@ import { RoomConnection } from "../connection";
 
 // Instantiate an object which represents our client
 const connectionDetails = import.meta.env.DEV
-  ? { host: "localhost", port: 4000, transportType: "tcp" as const }
+  ? { host: window.location.hostname, port: 4000, transportType: "tcp" as const }
   : undefined;
 const client = new HathoraClient(process.env.APP_ID!, connectionDetails);
 

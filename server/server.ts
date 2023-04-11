@@ -19,6 +19,10 @@ const PLAYER_SPEED = 200; // The player's movement speed
 const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision detection
 const BULLET_SPEED = 800; // The bullet's movement speed when shot
 
+// Reloading
+const BULLETS_MAX = 3;
+const RELOAD_SPEED = 3000; // in millis
+
 // An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITIONS = [
   {
@@ -26,8 +30,24 @@ const SPAWN_POSITIONS = [
     y: 512,
   },
   {
+    x: 24,
+    y: 256,
+  },
+  {
+    x: 1000,
+    y: 256,
+  },
+  {
     x: 512,
     y: 2048,
+  },
+  {
+    x: 24,
+    y: 1875,
+  },
+  {
+    x: 1000,
+    y: 1875,
   },
 ];
 
@@ -50,11 +70,15 @@ type InternalPlayer = {
   body: PhysicsBody;
   direction: Direction;
   angle: number;
+  bullets: number;
+  isReloading: number | undefined;
+  score: number;
 };
 
 // A type which defines the properties of a bullet used internally on the server (not sent to client)
 type InternalBullet = {
   id: number;
+  playerId: UserId;
   body: PhysicsBody;
   angle: number;
 };
@@ -101,6 +125,9 @@ const store: Application = {
         body: Object.assign(body, { oType: BodyType.Player }),
         direction: Direction.None,
         angle: 0,
+        bullets: 3,
+        isReloading: undefined,
+        score: 0,
       });
     }
   },
@@ -144,9 +171,17 @@ const store: Application = {
     } else if (message.type === ClientMessageType.SetAngle) {
       player.angle = message.angle;
     } else if (message.type === ClientMessageType.Shoot) {
+      if (player.isReloading) {
+        return;
+      }
+      player.bullets--;
+      if (player.bullets === 0) {
+        player.isReloading = Date.now() + RELOAD_SPEED;
+      }
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
+        playerId: player.id,
         body: Object.assign(body, { oType: BodyType.Bullet }),
         angle: player.angle,
       });
@@ -195,6 +230,11 @@ function tick(game: InternalState, deltaMs: number) {
     } else if (player.direction === Direction.Right) {
       player.body.x += PLAYER_SPEED * deltaMs;
     }
+
+    if (player.isReloading && player.isReloading + RELOAD_SPEED < Date.now()) {
+      player.isReloading = undefined;
+      player.bullets = BULLETS_MAX;
+    }
   });
 
   // Move all active bullets along a path based on their radian angle
@@ -219,6 +259,14 @@ function tick(game: InternalState, deltaMs: number) {
       }
     } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Player) {
       game.physics.remove(a);
+      // Update shooting player's score
+      const bullet = game.bullets.find((bullet) => bullet.body === a);
+      const shooter = game.players.find(p => p.id === bullet?.playerId);
+      if (shooter) {
+        shooter.score += 100;
+        console.log("score! ", shooter)
+      }
+
       const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);
       if (bulletIdx >= 0) {
         game.bullets.splice(bulletIdx, 1);
@@ -241,6 +289,9 @@ function broadcastStateUpdate(roomId: RoomId) {
       id: player.id,
       position: { x: player.body.x, y: player.body.y },
       aimAngle: player.angle,
+      bullets: player.bullets,
+      isReloading: player.isReloading,
+      score: player.score,
     })),
     bullets: game.bullets.map((bullet) => ({
       id: bullet.id,

@@ -6,6 +6,8 @@ import { Bullet, Direction, GameState, Player } from "../../../common/types";
 import map from "../../../common/map.json";
 import { RoomConnection } from "../connection";
 
+const BULLETS_MAX = 3;
+
 export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
   private connection!: RoomConnection;
@@ -14,6 +16,7 @@ export class GameScene extends Scene {
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   // A map of player sprites currently connected
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private playersAmmo: Map<string, Phaser.GameObjects.Text> = new Map();
   // A map of bullet sprites currently in-air
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
   // The Hathora user for the current client's connected player
@@ -22,6 +25,10 @@ export class GameScene extends Scene {
   private playerSprite: Phaser.GameObjects.Sprite | undefined;
   // The previous tick's aim radians (used to check if aim has changed, before sending an update)
   private prevAimRad: number = 0;
+  // Ammo indicator assets
+  private ammos: Map<number, Phaser.GameObjects.Image> = new Map();
+  private reloading: Phaser.GameObjects.Text | undefined = undefined;
+  private score: Phaser.GameObjects.Text | undefined = undefined;
 
   constructor() {
     super("scene-game");
@@ -56,6 +63,16 @@ export class GameScene extends Scene {
     // Ping indicator
     const pingText = this.add.text(0, 0, "Ping:", { color: "white" }).setScrollFactor(0);
     const pings: number[] = [];
+
+    // Score indicator
+    this.score = this.add.text(700, 0, "Score:", { color: "white" }).setScrollFactor(0);
+
+    // Ammos indicator
+    const ammoText = this.add.text(0, this.scale.height - 24, "Ammo:", { color: "white" }).setScrollFactor(0);
+    for (var i = 0; i < BULLETS_MAX; i++) {
+      this.ammos.set(i, this.add.image(56 + (16*i), this.scale.height - 16, "bullet").setScrollFactor(0));
+    }
+    this.reloading = this.add.text(56, this.scale.height - 24, "RELOADING", { color: "white" }).setVisible(false).setScrollFactor(0);
 
     this.connection.addListener((msg) => {
       if (msg.type === ServerMessageType.StateUpdate) {
@@ -143,6 +160,15 @@ export class GameScene extends Scene {
         ])
       )
     );
+    this.syncTexts(
+      this.playersAmmo,
+      new Map(
+        state.players.map((player) => [
+          player.id,
+          new Phaser.GameObjects.Text(this, player.position.x - 28, player.position.y + 24, "RELOADING!", { color: "white"}).setVisible(player.isReloading !== undefined),
+        ])
+      )
+    );
 
     // Do the same with bullets
     this.syncSprites(
@@ -154,6 +180,27 @@ export class GameScene extends Scene {
         ])
       )
     );
+
+    // sync ammo indicator and score
+    let player = state.players.find(p => p.id === this.currentUserID);
+    if (player) {
+      // console.log(player)
+      this.score!.text = "Score: " + (player!.score || 0).toString();
+    }
+    const bulletsRemaining = player?.bullets;
+    if (bulletsRemaining !== undefined) {
+      for (let i = 0; i < BULLETS_MAX; i++) {
+        if (this.ammos.has(i)) {
+          this.ammos.get(i)!.visible = !(bulletsRemaining <= i);
+        }
+      }
+    }
+
+    // sync reload indicator
+    this.reloading!.visible = !!state.players.find(p => p.id === this.currentUserID)?.isReloading;
+    if (state.players.find(p => p.id === this.currentUserID)?.isReloading) {
+      this.reloading!.text = `RELOADING ${Math.max(0,Math.ceil((state.players.find(p => p.id === this.currentUserID)?.isReloading! - Date.now())/1000))}s`
+    }
 
     // If this.playerSprite has been defined (a ref to our own sprite), send our mouse position to the server
     if (this.playerSprite) {
@@ -206,6 +253,28 @@ export class GameScene extends Scene {
       }
     });
   }
+
+  private syncTexts<T>(oldTexts: Map<T, Phaser.GameObjects.Text>, newTexts: Map<T, Phaser.GameObjects.Text>) {
+    newTexts.forEach((textObj, id) => {
+      console.log(textObj.visible)
+      if (oldTexts.has(id)) {
+        const oldSprite = oldTexts.get(id)!;
+        oldSprite.x = textObj.x;
+        oldSprite.y = textObj.y;
+        oldSprite.rotation = textObj.rotation;
+        oldSprite.visible = textObj.visible;
+      } else {
+        this.add.existing(textObj);
+        oldTexts.set(id, textObj);
+      }
+    });
+    oldTexts.forEach((textObj, id) => {
+      if (!newTexts.has(id)) {
+        textObj.destroy();
+        oldTexts.delete(id);
+      }
+    });
+  }
 }
 
 function lerp(from: GameState, to: GameState, pctElapsed: number): GameState {
@@ -229,6 +298,9 @@ function lerpPlayer(from: Player, to: Player, pctElapsed: number): Player {
       y: from.position.y + (to.position.y - from.position.y) * pctElapsed,
     },
     aimAngle: to.aimAngle,
+    bullets: to.bullets,
+    isReloading: to.isReloading,
+    score: to.score,
   };
 }
 

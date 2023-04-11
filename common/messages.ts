@@ -5,6 +5,7 @@ export enum ClientMessageType {
   SetAngle,
   Shoot,
   Ping,
+  Dash,
 }
 
 export enum ServerMessageType {
