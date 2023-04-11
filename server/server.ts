@@ -14,14 +14,16 @@ const TICK_INTERVAL_MS = 50;
 // Player configuration
 const PLAYER_RADIUS = 20; // The player's circular radius, used for collision detection
 const PLAYER_SPEED = 200; // The player's movement speed
+const DASH_DISTANCE = 40; // The player's dash distance
 
 // Bullet configuration
 const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision detection
-const BULLET_SPEED = 800; // The bullet's movement speed when shot
+const BULLET_SPEED = 1000; // The bullet's movement speed when shot
 
 // Reloading
 const BULLETS_MAX = 3;
 const RELOAD_SPEED = 3000; // in millis
+const DASH_COOLDOWN = 2000; // in millis
 
 // An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITIONS = [
@@ -60,6 +62,7 @@ enum BodyType {
   Bullet,
   Wall,
 }
+const PLAYER_SPRITES_COUNT = 9;
 
 // A type to represent a physics body with a type (uses BodyType above)
 type PhysicsBody = Body & { oType: BodyType };
@@ -72,7 +75,9 @@ type InternalPlayer = {
   angle: number;
   bullets: number;
   isReloading: number | undefined;
+  dashCooldown: number | undefined;
   score: number;
+  sprite: number;
 };
 
 // A type which defines the properties of a bullet used internally on the server (not sent to client)
@@ -123,11 +128,13 @@ const store: Application = {
       game.players.push({
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
-        direction: Direction.None,
+        direction: { x: 0, y: 0 },
         angle: 0,
         bullets: 3,
         isReloading: undefined,
+        dashCooldown: undefined,
         score: 0,
+        sprite: Math.floor(Math.random() * PLAYER_SPRITES_COUNT),
       });
     }
   },
@@ -170,6 +177,12 @@ const store: Application = {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAngle) {
       player.angle = message.angle;
+    } else if (message.type === ClientMessageType.Dash) {
+      if (!player.dashCooldown) {
+        player.body.x += DASH_DISTANCE * player.direction.x;
+        player.body.y += DASH_DISTANCE * player.direction.y;
+        player.dashCooldown = Date.now() + DASH_COOLDOWN;
+      }
     } else if (message.type === ClientMessageType.Shoot) {
       if (player.isReloading) {
         return;
@@ -221,19 +234,16 @@ setInterval(() => {
 function tick(game: InternalState, deltaMs: number) {
   // Move each player with a direction set
   game.players.forEach((player) => {
-    if (player.direction === Direction.Up) {
-      player.body.y -= PLAYER_SPEED * deltaMs;
-    } else if (player.direction === Direction.Down) {
-      player.body.y += PLAYER_SPEED * deltaMs;
-    } else if (player.direction === Direction.Left) {
-      player.body.x -= PLAYER_SPEED * deltaMs;
-    } else if (player.direction === Direction.Right) {
-      player.body.x += PLAYER_SPEED * deltaMs;
-    }
+    player.body.x += PLAYER_SPEED * player.direction.x * deltaMs;
+    player.body.y += PLAYER_SPEED * player.direction.y * deltaMs;
 
-    if (player.isReloading && player.isReloading + RELOAD_SPEED < Date.now()) {
+    if (player.isReloading && player.isReloading < Date.now()) {
       player.isReloading = undefined;
       player.bullets = BULLETS_MAX;
+    }
+
+    if (player.dashCooldown && player.dashCooldown < Date.now()) {
+      player.dashCooldown = undefined;
     }
   });
 
@@ -291,7 +301,9 @@ function broadcastStateUpdate(roomId: RoomId) {
       aimAngle: player.angle,
       bullets: player.bullets,
       isReloading: player.isReloading,
+      dashCooldown: player.dashCooldown,
       score: player.score,
+      sprite: player.sprite,
     })),
     bullets: game.bullets.map((bullet) => ({
       id: bullet.id,

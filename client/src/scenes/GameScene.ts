@@ -29,6 +29,8 @@ export class GameScene extends Scene {
   private ammos: Map<number, Phaser.GameObjects.Image> = new Map();
   private reloading: Phaser.GameObjects.Text | undefined = undefined;
   private score: Phaser.GameObjects.Text | undefined = undefined;
+  private leaderScore: Phaser.GameObjects.Text | undefined = undefined;
+  private dash: Phaser.GameObjects.Text | undefined = undefined;
 
   constructor() {
     super("scene-game");
@@ -61,18 +63,24 @@ export class GameScene extends Scene {
     this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
 
     // Ping indicator
-    const pingText = this.add.text(0, 0, "Ping:", { color: "white" }).setScrollFactor(0);
+    const pingText = this.add.text(4, 4, "Ping:", { color: "white" }).setScrollFactor(0);
     const pings: number[] = [];
 
     // Score indicator
-    this.score = this.add.text(700, 0, "Score:", { color: "white" }).setScrollFactor(0);
+    this.score = this.add.text(670, 4, "Score:", { color: "white" }).setScrollFactor(0);
+    this.leaderScore = this.add.text(660, 24, "Leader:", { color: "white" }).setScrollFactor(0);
+
+    // Dash indicator
+    this.dash = this.add.text(670, this.scale.height - 40, "Dash: READY", { color: "white" }).setScrollFactor(0);
+    this.add.text(670, this.scale.height - 24, "(SPACEBAR)", { color: "white" }).setScrollFactor(0);
 
     // Ammos indicator
-    const ammoText = this.add.text(0, this.scale.height - 24, "Ammo:", { color: "white" }).setScrollFactor(0);
+    const ammoText = this.add.text(4, this.scale.height - 40, "Ammo:", { color: "white" }).setScrollFactor(0);
     for (var i = 0; i < BULLETS_MAX; i++) {
-      this.ammos.set(i, this.add.image(56 + (16*i), this.scale.height - 16, "bullet").setScrollFactor(0));
+      this.ammos.set(i, this.add.image(60 + (16*i), this.scale.height - 32, "bullet").setScrollFactor(0));
     }
-    this.reloading = this.add.text(56, this.scale.height - 24, "RELOADING", { color: "white" }).setVisible(false).setScrollFactor(0);
+    this.reloading = this.add.text(56, this.scale.height - 40, "RELOADING", { color: "white" }).setVisible(false).setScrollFactor(0);
+    this.add.text(4, this.scale.height - 24, "(LEFT CLICK)", { color: "white" }).setScrollFactor(0);
 
     this.connection.addListener((msg) => {
       if (msg.type === ServerMessageType.StateUpdate) {
@@ -105,26 +113,45 @@ export class GameScene extends Scene {
       A: Phaser.Input.Keyboard.Key;
       D: Phaser.Input.Keyboard.Key;
     };
-    let prevDirection = Direction.None;
+    const keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    let prevDirection = {
+      x: 0,
+      y: 0
+    };
 
     const handleKeyEvt = () => {
-      let direction: Direction;
+      let direction = {
+        x: 0,
+        y: 0
+      };
       if (keys.W.isDown) {
-        direction = Direction.Up;
-      } else if (keys.S.isDown) {
-        direction = Direction.Down;
-      } else if (keys.D.isDown) {
-        direction = Direction.Right;
-      } else if (keys.A.isDown) {
-        direction = Direction.Left;
-      } else {
-        direction = Direction.None;
+        direction.y = -1;
+      }
+      else if (keys.S.isDown) {
+        direction.y = 1;
+      }
+      else {
+        direction.y = 0;
       }
 
-      if (prevDirection !== direction) {
+      if (keys.D.isDown) {
+        direction.x = 1;
+      }
+      else if (keys.A.isDown) {
+        direction.x = -1;
+      }
+      else {
+        direction.x = 0;
+      }
+
+      if (prevDirection.x !== direction.x || prevDirection.y !== direction.y) {
         // If connection is open and direction has changed, send updated direction
         prevDirection = direction;
         this.connection.sendMessage({ type: ClientMessageType.SetDirection, direction });
+      }
+
+      if (keySpace.isDown) {
+        this.connection.sendMessage({ type: ClientMessageType.Dash });
       }
     };
 
@@ -154,7 +181,7 @@ export class GameScene extends Scene {
       new Map(
         state.players.map((player) => [
           player.id,
-          new Phaser.GameObjects.Sprite(this, player.position.x, player.position.y, "player").setRotation(
+          new Phaser.GameObjects.Sprite(this, player.position.x, player.position.y, `p${player.sprite}${player.isReloading ? "_reload" : ""}`).setRotation(
             player.aimAngle
           ),
         ])
@@ -163,10 +190,12 @@ export class GameScene extends Scene {
     this.syncTexts(
       this.playersAmmo,
       new Map(
-        state.players.map((player) => [
-          player.id,
-          new Phaser.GameObjects.Text(this, player.position.x - 28, player.position.y + 24, "RELOADING!", { color: "white"}).setVisible(player.isReloading !== undefined),
-        ])
+        state.players.map((player) => {
+          return [
+            player.id,
+            new Phaser.GameObjects.Text(this, player.position.x - 28, player.position.y + 24, `RELOAD ${Math.max(0,Math.ceil(((player.isReloading || 0) - Date.now())/1000))}s`, { color: "white"}).setAlpha(.6).setVisible(player.isReloading !== undefined),
+          ]
+        })
       )
     );
 
@@ -181,11 +210,32 @@ export class GameScene extends Scene {
       )
     );
 
+    // calc leader score
+    let highScore = 0;
+    state.players.forEach(p => {
+      if (p.score > highScore) {
+        highScore = p.score;
+      }
+    });
+    this.leaderScore!.text = "Leader: " + (highScore).toString();
+
     // sync ammo indicator and score
     let player = state.players.find(p => p.id === this.currentUserID);
     if (player) {
       // console.log(player)
       this.score!.text = "Score: " + (player!.score || 0).toString();
+      if (player.dashCooldown) {
+        this.dash!.text = `Dash: ${Math.max(0, (player.dashCooldown - Date.now()) / 1000)}s`;
+      }
+      else {
+        this.dash!.text = `Dash: READY`;
+      }
+
+      // sync reload indicator
+      this.reloading!.visible = !!player.isReloading;
+      if (player.isReloading) {
+        this.reloading!.text = `${Math.max(0,(player.isReloading! - Date.now())/1000)}s`
+      }
     }
     const bulletsRemaining = player?.bullets;
     if (bulletsRemaining !== undefined) {
@@ -194,12 +244,6 @@ export class GameScene extends Scene {
           this.ammos.get(i)!.visible = !(bulletsRemaining <= i);
         }
       }
-    }
-
-    // sync reload indicator
-    this.reloading!.visible = !!state.players.find(p => p.id === this.currentUserID)?.isReloading;
-    if (state.players.find(p => p.id === this.currentUserID)?.isReloading) {
-      this.reloading!.text = `RELOADING ${Math.max(0,Math.ceil((state.players.find(p => p.id === this.currentUserID)?.isReloading! - Date.now())/1000))}s`
     }
 
     // If this.playerSprite has been defined (a ref to our own sprite), send our mouse position to the server
@@ -230,11 +274,13 @@ export class GameScene extends Scene {
 
   private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {
     newSprites.forEach((sprite, id) => {
+      console.log(sprite.texture)
       if (oldSprites.has(id)) {
         const oldSprite = oldSprites.get(id)!;
         oldSprite.x = sprite.x;
         oldSprite.y = sprite.y;
         oldSprite.rotation = sprite.rotation;
+        oldSprite.setTexture(sprite.texture.key);
       } else {
         this.add.existing(sprite);
         oldSprites.set(id, sprite);
@@ -256,13 +302,13 @@ export class GameScene extends Scene {
 
   private syncTexts<T>(oldTexts: Map<T, Phaser.GameObjects.Text>, newTexts: Map<T, Phaser.GameObjects.Text>) {
     newTexts.forEach((textObj, id) => {
-      console.log(textObj.visible)
       if (oldTexts.has(id)) {
         const oldSprite = oldTexts.get(id)!;
         oldSprite.x = textObj.x;
         oldSprite.y = textObj.y;
         oldSprite.rotation = textObj.rotation;
         oldSprite.visible = textObj.visible;
+        oldSprite.text = textObj.text;
       } else {
         this.add.existing(textObj);
         oldTexts.set(id, textObj);
@@ -300,7 +346,9 @@ function lerpPlayer(from: Player, to: Player, pctElapsed: number): Player {
     aimAngle: to.aimAngle,
     bullets: to.bullets,
     isReloading: to.isReloading,
+    dashCooldown: to.dashCooldown,
     score: to.score,
+    sprite: to.sprite,
   };
 }
 
