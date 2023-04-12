@@ -29,3 +29,7 @@ export type GameState = {
   players: Player[];
   bullets: Bullet[];
 };
+
+export type LobbyState = {
+  winningScore: number;
+};
