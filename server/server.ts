@@ -14,10 +14,16 @@ const TICK_INTERVAL_MS = 50;
 // Player configuration
 const PLAYER_RADIUS = 20; // The player's circular radius, used for collision detection
 const PLAYER_SPEED = 200; // The player's movement speed
+const DASH_DISTANCE = 40; // The player's dash distance
 
 // Bullet configuration
 const BULLET_RADIUS = 9; // The bullet's circular radius, used for collision detection
-const BULLET_SPEED = 800; // The bullet's movement speed when shot
+const BULLET_SPEED = 1000; // The bullet's movement speed when shot
+
+// Reloading
+const BULLETS_MAX = 3;
+const RELOAD_SPEED = 3000; // in millis
+const DASH_COOLDOWN = 2000; // in millis
 
 // An x, y vector representing the spawn location of the player on the map
 const SPAWN_POSITIONS = [
@@ -26,13 +32,29 @@ const SPAWN_POSITIONS = [
     y: 512,
   },
   {
+    x: 24,
+    y: 256,
+  },
+  {
+    x: 1000,
+    y: 256,
+  },
+  {
     x: 512,
     y: 2048,
+  },
+  {
+    x: 24,
+    y: 1875,
+  },
+  {
+    x: 1000,
+    y: 1875,
   },
 ];
 
 // The width of the map boundary rectangles
-const BOUNDARY_WIDTH = 50;
+const BOUNDARY_WIDTH = 200;
 
 // An enum which represents the type of body for a given object
 enum BodyType {
@@ -40,6 +62,7 @@ enum BodyType {
   Bullet,
   Wall,
 }
+const PLAYER_SPRITES_COUNT = 9;
 
 // A type to represent a physics body with a type (uses BodyType above)
 type PhysicsBody = Body & { oType: BodyType };
@@ -50,11 +73,18 @@ type InternalPlayer = {
   body: PhysicsBody;
   direction: Direction;
   angle: number;
+  isDead: boolean;
+  bullets: number;
+  isReloading: number | undefined;
+  dashCooldown: number | undefined;
+  score: number;
+  sprite: number;
 };
 
 // A type which defines the properties of a bullet used internally on the server (not sent to client)
 type InternalBullet = {
   id: number;
+  playerId: UserId;
   body: PhysicsBody;
   angle: number;
 };
@@ -99,8 +129,14 @@ const store: Application = {
       game.players.push({
         id: userId,
         body: Object.assign(body, { oType: BodyType.Player }),
-        direction: Direction.None,
+        direction: { x: 0, y: 0 },
         angle: 0,
+        isDead: false,
+        bullets: 3,
+        isReloading: undefined,
+        dashCooldown: undefined,
+        score: 0,
+        sprite: Math.floor(Math.random() * PLAYER_SPRITES_COUNT),
       });
     }
   },
@@ -143,10 +179,35 @@ const store: Application = {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAngle) {
       player.angle = message.angle;
+    } else if (message.type === ClientMessageType.Respawn) {
+      if (player.isDead) {
+        // Respawn player
+        const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
+        const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
+        player.direction = { x: 0, y: 0 };
+        player.angle = 0;
+        player.bullets = BULLETS_MAX;
+        player.body = Object.assign(body, { oType: BodyType.Player });
+        player.isDead = false;
+      }
+    } else if (message.type === ClientMessageType.Dash) {
+      if (!player.dashCooldown) {
+        player.body.x += DASH_DISTANCE * player.direction.x;
+        player.body.y += DASH_DISTANCE * player.direction.y;
+        player.dashCooldown = Date.now() + DASH_COOLDOWN;
+      }
     } else if (message.type === ClientMessageType.Shoot) {
+      if (player.isReloading) {
+        return;
+      }
+      player.bullets--;
+      if (player.bullets === 0) {
+        player.isReloading = Date.now() + RELOAD_SPEED;
+      }
       const body = game.physics.createCircle({ x: player.body.x, y: player.body.y }, BULLET_RADIUS);
       game.bullets.push({
         id: Math.floor(Math.random() * 1e6),
+        playerId: player.id,
         body: Object.assign(body, { oType: BodyType.Bullet }),
         angle: player.angle,
       });
@@ -186,14 +247,16 @@ setInterval(() => {
 function tick(game: InternalState, deltaMs: number) {
   // Move each player with a direction set
   game.players.forEach((player) => {
-    if (player.direction === Direction.Up) {
-      player.body.y -= PLAYER_SPEED * deltaMs;
-    } else if (player.direction === Direction.Down) {
-      player.body.y += PLAYER_SPEED * deltaMs;
-    } else if (player.direction === Direction.Left) {
-      player.body.x -= PLAYER_SPEED * deltaMs;
-    } else if (player.direction === Direction.Right) {
-      player.body.x += PLAYER_SPEED * deltaMs;
+    player.body.x += PLAYER_SPEED * player.direction.x * deltaMs;
+    player.body.y += PLAYER_SPEED * player.direction.y * deltaMs;
+
+    if (player.isReloading && player.isReloading < Date.now()) {
+      player.isReloading = undefined;
+      player.bullets = BULLETS_MAX;
+    }
+
+    if (player.dashCooldown && player.dashCooldown < Date.now()) {
+      player.dashCooldown = undefined;
     }
   });
 
@@ -219,15 +282,22 @@ function tick(game: InternalState, deltaMs: number) {
       }
     } else if (a.oType === BodyType.Bullet && b.oType === BodyType.Player) {
       game.physics.remove(a);
+      // Update shooting player's score
+      const bullet = game.bullets.find((bullet) => bullet.body === a);
+      const shooter = game.players.find(p => p.id === bullet?.playerId);
+      if (shooter) {
+        shooter.score += 100;
+      }
+
       const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);
       if (bulletIdx >= 0) {
         game.bullets.splice(bulletIdx, 1);
       }
-      game.physics.remove(b);
-      const playerIdx = game.players.findIndex((player) => player.body === b);
-      if (playerIdx >= 0) {
-        game.players.splice(playerIdx, 1);
+      const player = game.players.find((player) => player.body === b);
+      if (player) {
+        player.isDead = true;
       }
+      game.physics.remove(b);
     }
   });
 }
@@ -241,6 +311,12 @@ function broadcastStateUpdate(roomId: RoomId) {
       id: player.id,
       position: { x: player.body.x, y: player.body.y },
       aimAngle: player.angle,
+      isDead: player.isDead,
+      bullets: player.bullets,
+      isReloading: player.isReloading,
+      dashCooldown: player.dashCooldown,
+      score: player.score,
+      sprite: player.sprite,
     })),
     bullets: game.bullets.map((bullet) => ({
       id: bullet.id,
@@ -266,7 +342,10 @@ function initializeRoom() {
   const right = map.right * tileSize;
 
   // Create map wall bodies
-  map.walls.forEach(({ x, y, width, height }) => {
+  map.wallsBlue.forEach(({ x, y, width, height }) => {
+    physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
+  });
+  map.wallsRed.forEach(({ x, y, width, height }) => {
     physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
   });
 

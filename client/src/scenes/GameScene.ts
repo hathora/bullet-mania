@@ -1,10 +1,13 @@
 import Phaser, { Math as pMath, Scene } from "phaser";
-import { HathoraClient } from "@hathora/client-sdk";
 import { InterpolationBuffer } from "interpolation-buffer";
-import { ClientMessageType, ServerMessageType } from "../../../common/messages";
-import { Bullet, Direction, GameState, Player } from "../../../common/types";
-import map from "../../../common/map.json";
+import { HathoraClient } from "@hathora/client-sdk";
+
 import { RoomConnection } from "../connection";
+import { Bullet, GameState, Player } from "../../../common/types";
+import { ClientMessageType, ServerMessageType } from "../../../common/messages";
+import map from "../../../common/map.json";
+
+const BULLETS_MAX = 3;
 
 export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
@@ -14,6 +17,8 @@ export class GameScene extends Scene {
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   // A map of player sprites currently connected
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private playersName: Map<string, Phaser.GameObjects.Text> = new Map();
+  private playersAmmo: Map<string, Phaser.GameObjects.Text> = new Map();
   // A map of bullet sprites currently in-air
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
   // The Hathora user for the current client's connected player
@@ -21,7 +26,13 @@ export class GameScene extends Scene {
   // The current client's connected player's sprite object
   private playerSprite: Phaser.GameObjects.Sprite | undefined;
   // The previous tick's aim radians (used to check if aim has changed, before sending an update)
-  private prevAimRad: number = 0;
+  private prevAimRad = 0;
+  // Ammo indicator assets
+  private ammos: Map<number, Phaser.GameObjects.Image> = new Map();
+  private reloading: Phaser.GameObjects.Text | undefined = undefined;
+  private leaderBoard: Map<string, Phaser.GameObjects.Text> = new Map();
+  private dash: Phaser.GameObjects.Text | undefined = undefined;
+  private respawnText: Phaser.GameObjects.Text | undefined = undefined;
 
   constructor() {
     super("scene-game");
@@ -43,36 +54,60 @@ export class GameScene extends Scene {
     const right = map.right * tileSize;
 
     // Render grass
-    this.add.tileSprite(left, top, right - left, bottom - top, "grass").setOrigin(0, 0);
+    this.add.tileSprite(left, top, right - left, bottom - top, "floor").setOrigin(0, 0);
 
     // Render map objects
-    map.walls.forEach(({ x, y, width, height }) => {
-      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall").setOrigin(0, 0);
+    map.wallsRed.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall_red").setOrigin(0, 0);
+    });
+    map.wallsBlue.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall_blue").setOrigin(0, 0);
     });
 
     // Set the main camera's background colour and bounding box
     this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
 
     // Ping indicator
-    const pingText = this.add.text(0, 0, "Ping:", { color: "white" }).setScrollFactor(0);
+    const pingText = this.add.text(4, 4, "Ping:", { color: "white" }).setScrollFactor(0);
     const pings: number[] = [];
 
+    // Dash indicator
+    this.dash = this.add.text(670, this.scale.height - 40, "Dash: READY", { color: "white" }).setScrollFactor(0);
+    this.add.text(670, this.scale.height - 24, "(SPACEBAR)", { color: "white" }).setScrollFactor(0);
+
+    // Ammos indicator
+    this.add.text(4, this.scale.height - 40, "Ammo:", { color: "white" }).setScrollFactor(0);
+    for (let i = 0; i < BULLETS_MAX; i++) {
+      this.ammos.set(i, this.add.image(60 + 16 * i, this.scale.height - 32, "bullet").setScrollFactor(0));
+    }
+    this.reloading = this.add
+      .text(56, this.scale.height - 40, "RELOADING", { color: "white" })
+      .setVisible(false)
+      .setScrollFactor(0);
+    this.add.text(4, this.scale.height - 24, "(LEFT CLICK)", { color: "white" }).setScrollFactor(0);
+    this.respawnText = this.add
+      .text(380, 280, "Press [R] to respawn", { color: "white" })
+      .setScrollFactor(0)
+      .setVisible(false);
+
     this.connection.addListener((msg) => {
-      if (msg.type === ServerMessageType.StateUpdate) {
-        // Start enqueuing state updates
-        if (this.stateBuffer === undefined) {
-          this.stateBuffer = new InterpolationBuffer(msg.state, 50, lerp);
-        } else {
-          this.stateBuffer.enqueue(msg.state, [], msg.ts);
-        }
-      } else if (msg.type === ServerMessageType.PingResponse) {
-        // Update ping text
-        pings.push(Date.now() - msg.id);
-        if (pings.length > 10) {
-          pings.shift();
-        }
-        const sortedPings = [...pings].sort((a, b) => a - b);
-        pingText.text = `Ping: ${sortedPings[Math.floor(pings.length / 2)]}`;
+      switch (msg.type) {
+        case ServerMessageType.StateUpdate:
+          // Start enqueuing state updates
+          if (this.stateBuffer === undefined) {
+            this.stateBuffer = new InterpolationBuffer(msg.state, 50, lerp);
+          } else {
+            this.stateBuffer.enqueue(msg.state, [], msg.ts);
+          }
+          break;
+        case ServerMessageType.PingResponse:
+          // Update ping text
+          pings.push(Date.now() - msg.id);
+          if (pings.length > 10) {
+            pings.shift();
+          }
+          pingText.text = `Ping: ${[...pings].sort((a, b) => a - b)[Math.floor(pings.length / 2)]}`;
+          break;
       }
     });
 
@@ -88,26 +123,45 @@ export class GameScene extends Scene {
       A: Phaser.Input.Keyboard.Key;
       D: Phaser.Input.Keyboard.Key;
     };
-    let prevDirection = Direction.None;
+    const keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    const keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+    let prevDirection = {
+      x: 0,
+      y: 0,
+    };
 
     const handleKeyEvt = () => {
-      let direction: Direction;
+      const direction = {
+        x: 0,
+        y: 0,
+      };
       if (keys.W.isDown) {
-        direction = Direction.Up;
+        direction.y = -1;
       } else if (keys.S.isDown) {
-        direction = Direction.Down;
-      } else if (keys.D.isDown) {
-        direction = Direction.Right;
-      } else if (keys.A.isDown) {
-        direction = Direction.Left;
+        direction.y = 1;
       } else {
-        direction = Direction.None;
+        direction.y = 0;
       }
 
-      if (prevDirection !== direction) {
+      if (keys.D.isDown) {
+        direction.x = 1;
+      } else if (keys.A.isDown) {
+        direction.x = -1;
+      } else {
+        direction.x = 0;
+      }
+
+      if (prevDirection.x !== direction.x || prevDirection.y !== direction.y) {
         // If connection is open and direction has changed, send updated direction
         prevDirection = direction;
         this.connection.sendMessage({ type: ClientMessageType.SetDirection, direction });
+      }
+
+      if (keySpace.isDown) {
+        this.connection.sendMessage({ type: ClientMessageType.Dash });
+      }
+      if (keyR.isDown) {
+        this.connection.sendMessage({ type: ClientMessageType.Respawn });
       }
     };
 
@@ -135,12 +189,52 @@ export class GameScene extends Scene {
     this.syncSprites(
       this.players,
       new Map(
-        state.players.map((player) => [
-          player.id,
-          new Phaser.GameObjects.Sprite(this, player.position.x, player.position.y, "player").setRotation(
-            player.aimAngle
-          ),
-        ])
+        state.players
+          .filter((p) => !p.isDead)
+          .map((player) => [
+            player.id,
+            new Phaser.GameObjects.Sprite(
+              this,
+              player.position.x,
+              player.position.y,
+              `p${player.sprite}${player.isReloading ? "_reload" : ""}`
+            ).setRotation(player.aimAngle),
+          ])
+      )
+    );
+    // console.log(state);
+    // this.syncTexts(
+    //   this.playersName,
+    //   new Map(
+    //     state.players
+    //       .filter((p) => !p.isDead)
+    //       .map((player) => {
+    //         return [
+    //           player.id,
+    //           new Phaser.GameObjects.Text(this, player.position.x - 48, player.position.y - 34, `${player.id}s`, {
+    //             color: "green",
+    //           }),
+    //         ];
+    //       })
+    //   )
+    // );
+    this.syncTexts(
+      this.playersAmmo,
+      new Map(
+        state.players.map((player) => {
+          return [
+            player.id,
+            new Phaser.GameObjects.Text(
+              this,
+              player.position.x - 28,
+              player.position.y + 24,
+              `RELOAD ${Math.max(0, Math.ceil(((player.isReloading || 0) - Date.now()) / 1000))}s`,
+              { color: "white" }
+            )
+              .setAlpha(0.6)
+              .setVisible(player.isReloading !== undefined),
+          ];
+        })
       )
     );
 
@@ -154,6 +248,54 @@ export class GameScene extends Scene {
         ])
       )
     );
+
+    // calc leaderboard
+    // this.syncTexts(
+    //   this.leaderBoard,
+    //   new Map(
+    //     state.players.sort((a,b) => a.score - b.score).map((player, index) => [
+    //       player.id,
+    //       new Phaser.GameObjects.Text(this, 640, 4 + (20*index), `${player.id}: ${player.score}`, { color: player.id === this.currentUserID ? "green" : "white" }).setScrollFactor(0)
+    //     ])
+    //   )
+    // )
+
+    // sync ammo indicator and score
+    const player = state.players.find((p) => p.id === this.currentUserID);
+    if (player) {
+      if (this.respawnText) {
+        this.respawnText.visible = player.isDead;
+      }
+      // console.log(player)
+      if (player.dashCooldown) {
+        if (this.dash) {
+          this.dash.text = `Dash: ${Math.max(0, (player.dashCooldown - Date.now()) / 1000)}s`;
+        }
+      } else {
+        if (this.dash) {
+          this.dash.text = "Dash: READY";
+        }
+      }
+
+      // sync reload indicator
+      if (this.reloading) {
+        this.reloading.visible = !!player.isReloading;
+        if (player.isReloading) {
+          this.reloading.text = `${Math.max(0, ((player.isReloading || 0) - Date.now()) / 1000)}s`;
+        }
+      }
+    }
+    const bulletsRemaining = player?.bullets;
+    if (bulletsRemaining !== undefined) {
+      for (let i = 0; i < BULLETS_MAX; i++) {
+        if (this.ammos.has(i)) {
+          const ammos = this.ammos.get(i);
+          if (ammos) {
+            ammos.visible = !(bulletsRemaining <= i);
+          }
+        }
+      }
+    }
 
     // If this.playerSprite has been defined (a ref to our own sprite), send our mouse position to the server
     if (this.playerSprite) {
@@ -184,10 +326,13 @@ export class GameScene extends Scene {
   private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {
     newSprites.forEach((sprite, id) => {
       if (oldSprites.has(id)) {
-        const oldSprite = oldSprites.get(id)!;
-        oldSprite.x = sprite.x;
-        oldSprite.y = sprite.y;
-        oldSprite.rotation = sprite.rotation;
+        const oldSprite = oldSprites.get(id);
+        if (oldSprite != null) {
+          oldSprite.x = sprite.x;
+          oldSprite.y = sprite.y;
+          oldSprite.rotation = sprite.rotation;
+          oldSprite.setTexture(sprite.texture.key);
+        }
       } else {
         this.add.existing(sprite);
         oldSprites.set(id, sprite);
@@ -203,6 +348,30 @@ export class GameScene extends Scene {
       if (!newSprites.has(id)) {
         sprite.destroy();
         oldSprites.delete(id);
+      }
+    });
+  }
+
+  private syncTexts<T>(oldTexts: Map<T, Phaser.GameObjects.Text>, newTexts: Map<T, Phaser.GameObjects.Text>) {
+    newTexts.forEach((textObj, id) => {
+      if (oldTexts.has(id)) {
+        const oldText = oldTexts.get(id);
+        if (oldText != null) {
+          oldText.x = textObj.x;
+          oldText.y = textObj.y;
+          oldText.rotation = textObj.rotation;
+          oldText.visible = textObj.visible;
+          oldText.text = textObj.text;
+        }
+      } else {
+        this.add.existing(textObj);
+        oldTexts.set(id, textObj);
+      }
+    });
+    oldTexts.forEach((textObj, id) => {
+      if (!newTexts.has(id)) {
+        textObj.destroy();
+        oldTexts.delete(id);
       }
     });
   }
@@ -229,6 +398,12 @@ function lerpPlayer(from: Player, to: Player, pctElapsed: number): Player {
       y: from.position.y + (to.position.y - from.position.y) * pctElapsed,
     },
     aimAngle: to.aimAngle,
+    isDead: to.isDead,
+    bullets: to.bullets,
+    isReloading: to.isReloading,
+    dashCooldown: to.dashCooldown,
+    score: to.score,
+    sprite: to.sprite,
   };
 }
 
