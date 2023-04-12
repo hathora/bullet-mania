@@ -1,10 +1,7 @@
-export enum Direction {
-  None,
-  Up,
-  Down,
-  Left,
-  Right,
-}
+export type Direction = {
+  x: number;
+  y: number;
+};
 
 export type Position = {
   x: number;
@@ -15,6 +12,12 @@ export type Player = {
   id: string;
   position: Position;
   aimAngle: number;
+  isDead: boolean;
+  bullets: number;
+  isReloading: number | undefined;
+  dashCooldown: number | undefined;
+  score: number;
+  sprite: number;
 };
 
 export type Bullet = {
