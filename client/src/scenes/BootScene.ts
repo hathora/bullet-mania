@@ -39,7 +39,11 @@ export class BootScene extends Scene {
     this.load.image("p7", "p7.png");
     this.load.image("p8", "p8.png");
     this.load.image("wall", "wall.png");
+    this.load.image("wall_red", "wall_red.png");
+    this.load.image("wall_blue", "wall_blue.png");
+    this.load.image("wall", "wall.png");
     this.load.image("grass", "grass.png");
+    this.load.image("floor", "floor.png");
   }
 
   // Called before the update loop begins, create is used to intialize what the scene needs

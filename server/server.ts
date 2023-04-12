@@ -54,7 +54,7 @@ const SPAWN_POSITIONS = [
 ];
 
 // The width of the map boundary rectangles
-const BOUNDARY_WIDTH = 50;
+const BOUNDARY_WIDTH = 200;
 
 // An enum which represents the type of body for a given object
 enum BodyType {
@@ -73,6 +73,7 @@ type InternalPlayer = {
   body: PhysicsBody;
   direction: Direction;
   angle: number;
+  isDead: boolean;
   bullets: number;
   isReloading: number | undefined;
   dashCooldown: number | undefined;
@@ -130,6 +131,7 @@ const store: Application = {
         body: Object.assign(body, { oType: BodyType.Player }),
         direction: { x: 0, y: 0 },
         angle: 0,
+        isDead: false,
         bullets: 3,
         isReloading: undefined,
         dashCooldown: undefined,
@@ -177,6 +179,17 @@ const store: Application = {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAngle) {
       player.angle = message.angle;
+    } else if (message.type === ClientMessageType.Respawn) {
+      if (player.isDead) {
+        // Respawn player
+        const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
+        const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
+        player.direction = { x: 0, y: 0 };
+        player.angle = 0;
+        player.bullets = BULLETS_MAX;
+        player.body = Object.assign(body, { oType: BodyType.Player });
+        player.isDead = false;
+      }
     } else if (message.type === ClientMessageType.Dash) {
       if (!player.dashCooldown) {
         player.body.x += DASH_DISTANCE * player.direction.x;
@@ -274,18 +287,17 @@ function tick(game: InternalState, deltaMs: number) {
       const shooter = game.players.find(p => p.id === bullet?.playerId);
       if (shooter) {
         shooter.score += 100;
-        console.log("score! ", shooter)
       }
 
       const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);
       if (bulletIdx >= 0) {
         game.bullets.splice(bulletIdx, 1);
       }
-      game.physics.remove(b);
-      const playerIdx = game.players.findIndex((player) => player.body === b);
-      if (playerIdx >= 0) {
-        game.players.splice(playerIdx, 1);
+      const player = game.players.find((player) => player.body === b);
+      if (player) {
+        player.isDead = true;
       }
+      game.physics.remove(b);
     }
   });
 }
@@ -299,6 +311,7 @@ function broadcastStateUpdate(roomId: RoomId) {
       id: player.id,
       position: { x: player.body.x, y: player.body.y },
       aimAngle: player.angle,
+      isDead: player.isDead,
       bullets: player.bullets,
       isReloading: player.isReloading,
       dashCooldown: player.dashCooldown,
@@ -329,7 +342,10 @@ function initializeRoom() {
   const right = map.right * tileSize;
 
   // Create map wall bodies
-  map.walls.forEach(({ x, y, width, height }) => {
+  map.wallsBlue.forEach(({ x, y, width, height }) => {
+    physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
+  });
+  map.wallsRed.forEach(({ x, y, width, height }) => {
     physics.insert(wallBody(x * tileSize, y * tileSize, width * tileSize, height * tileSize));
   });
 

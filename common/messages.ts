@@ -6,6 +6,7 @@ export enum ClientMessageType {
   Shoot,
   Ping,
   Dash,
+  Respawn,
 }
 
 export enum ServerMessageType {
@@ -13,7 +14,7 @@ export enum ServerMessageType {
   PingResponse,
 }
 
-export type ClientMessage = SetDirectionMessage | SetAngleMessage | ShootMessage | PingMessage | DashMessage;
+export type ClientMessage = SetDirectionMessage | SetAngleMessage | ShootMessage | PingMessage | DashMessage | RespawnMessage;
 
 export type SetDirectionMessage = {
   type: ClientMessageType.SetDirection;
@@ -31,6 +32,10 @@ export type ShootMessage = {
 
 export type DashMessage = {
   type: ClientMessageType.Dash;
+};
+
+export type RespawnMessage = {
+  type: ClientMessageType.Respawn;
 };
 
 export type PingMessage = {

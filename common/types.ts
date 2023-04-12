@@ -12,6 +12,7 @@ export type Player = {
   id: string;
   position: Position;
   aimAngle: number;
+  isDead: boolean;
   bullets: number;
   isReloading: number | undefined;
   dashCooldown: number | undefined;

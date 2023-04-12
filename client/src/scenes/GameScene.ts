@@ -16,6 +16,7 @@ export class GameScene extends Scene {
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
   // A map of player sprites currently connected
   private players: Map<string, Phaser.GameObjects.Sprite> = new Map();
+  private playersName: Map<string, Phaser.GameObjects.Text> = new Map();
   private playersAmmo: Map<string, Phaser.GameObjects.Text> = new Map();
   // A map of bullet sprites currently in-air
   private bullets: Map<number, Phaser.GameObjects.Sprite> = new Map();
@@ -28,9 +29,9 @@ export class GameScene extends Scene {
   // Ammo indicator assets
   private ammos: Map<number, Phaser.GameObjects.Image> = new Map();
   private reloading: Phaser.GameObjects.Text | undefined = undefined;
-  private score: Phaser.GameObjects.Text | undefined = undefined;
-  private leaderScore: Phaser.GameObjects.Text | undefined = undefined;
+  private leaderBoard: Map<string, Phaser.GameObjects.Text> = new Map();
   private dash: Phaser.GameObjects.Text | undefined = undefined;
+  private respawnText: Phaser.GameObjects.Text | undefined = undefined;
 
   constructor() {
     super("scene-game");
@@ -52,11 +53,14 @@ export class GameScene extends Scene {
     const right = map.right * tileSize;
 
     // Render grass
-    this.add.tileSprite(left, top, right - left, bottom - top, "grass").setOrigin(0, 0);
+    this.add.tileSprite(left, top, right - left, bottom - top, "floor").setOrigin(0, 0);
 
     // Render map objects
-    map.walls.forEach(({ x, y, width, height }) => {
-      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall").setOrigin(0, 0);
+    map.wallsRed.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall_red").setOrigin(0, 0);
+    });
+    map.wallsBlue.forEach(({ x, y, width, height }) => {
+      this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall_blue").setOrigin(0, 0);
     });
 
     // Set the main camera's background colour and bounding box
@@ -65,10 +69,6 @@ export class GameScene extends Scene {
     // Ping indicator
     const pingText = this.add.text(4, 4, "Ping:", { color: "white" }).setScrollFactor(0);
     const pings: number[] = [];
-
-    // Score indicator
-    this.score = this.add.text(670, 4, "Score:", { color: "white" }).setScrollFactor(0);
-    this.leaderScore = this.add.text(660, 24, "Leader:", { color: "white" }).setScrollFactor(0);
 
     // Dash indicator
     this.dash = this.add.text(670, this.scale.height - 40, "Dash: READY", { color: "white" }).setScrollFactor(0);
@@ -81,6 +81,7 @@ export class GameScene extends Scene {
     }
     this.reloading = this.add.text(56, this.scale.height - 40, "RELOADING", { color: "white" }).setVisible(false).setScrollFactor(0);
     this.add.text(4, this.scale.height - 24, "(LEFT CLICK)", { color: "white" }).setScrollFactor(0);
+    this.respawnText = this.add.text(380, 280, "Press [R] to respawn", { color: "white" }).setScrollFactor(0).setVisible(false);
 
     this.connection.addListener((msg) => {
       if (msg.type === ServerMessageType.StateUpdate) {
@@ -114,6 +115,7 @@ export class GameScene extends Scene {
       D: Phaser.Input.Keyboard.Key;
     };
     const keySpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    const keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
     let prevDirection = {
       x: 0,
       y: 0
@@ -153,6 +155,9 @@ export class GameScene extends Scene {
       if (keySpace.isDown) {
         this.connection.sendMessage({ type: ClientMessageType.Dash });
       }
+      if (keyR.isDown) {
+        this.connection.sendMessage({ type: ClientMessageType.Respawn });
+      }
     };
 
     this.input.keyboard.on("keydown", handleKeyEvt);
@@ -179,12 +184,24 @@ export class GameScene extends Scene {
     this.syncSprites(
       this.players,
       new Map(
-        state.players.map((player) => [
+        state.players.filter(p => !p.isDead).map((player) => [
           player.id,
           new Phaser.GameObjects.Sprite(this, player.position.x, player.position.y, `p${player.sprite}${player.isReloading ? "_reload" : ""}`).setRotation(
             player.aimAngle
           ),
         ])
+      )
+    );
+    console.log(state)
+    this.syncTexts(
+      this.playersName,
+      new Map(
+        state.players.filter(p => !p.isDead).map((player) => {
+          return [
+            player.id,
+            new Phaser.GameObjects.Text(this, player.position.x - 48, player.position.y - 34, `${player.id}s`, { color: "green"}),
+          ]
+        })
       )
     );
     this.syncTexts(
@@ -210,20 +227,22 @@ export class GameScene extends Scene {
       )
     );
 
-    // calc leader score
-    let highScore = 0;
-    state.players.forEach(p => {
-      if (p.score > highScore) {
-        highScore = p.score;
-      }
-    });
-    this.leaderScore!.text = "Leader: " + (highScore).toString();
+    // calc leaderboard
+    // this.syncTexts(
+    //   this.leaderBoard,
+    //   new Map(
+    //     state.players.sort((a,b) => a.score - b.score).map((player, index) => [
+    //       player.id,
+    //       new Phaser.GameObjects.Text(this, 640, 4 + (20*index), `${player.id}: ${player.score}`, { color: player.id === this.currentUserID ? "green" : "white" }).setScrollFactor(0)
+    //     ])
+    //   )
+    // )
 
     // sync ammo indicator and score
     let player = state.players.find(p => p.id === this.currentUserID);
     if (player) {
+      this.respawnText!.visible = player.isDead;
       // console.log(player)
-      this.score!.text = "Score: " + (player!.score || 0).toString();
       if (player.dashCooldown) {
         this.dash!.text = `Dash: ${Math.max(0, (player.dashCooldown - Date.now()) / 1000)}s`;
       }
@@ -274,7 +293,6 @@ export class GameScene extends Scene {
 
   private syncSprites<T>(oldSprites: Map<T, Phaser.GameObjects.Sprite>, newSprites: Map<T, Phaser.GameObjects.Sprite>) {
     newSprites.forEach((sprite, id) => {
-      console.log(sprite.texture)
       if (oldSprites.has(id)) {
         const oldSprite = oldSprites.get(id)!;
         oldSprite.x = sprite.x;
@@ -344,6 +362,7 @@ function lerpPlayer(from: Player, to: Player, pctElapsed: number): Player {
       y: from.position.y + (to.position.y - from.position.y) * pctElapsed,
     },
     aimAngle: to.aimAngle,
+    isDead: to.isDead,
     bullets: to.bullets,
     isReloading: to.isReloading,
     dashCooldown: to.dashCooldown,
