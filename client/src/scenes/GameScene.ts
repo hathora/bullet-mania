@@ -1,12 +1,13 @@
 import Phaser, { Math as pMath, Scene } from "phaser";
 import { InterpolationBuffer } from "interpolation-buffer";
-
-const BULLETS_MAX = 3;
 import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
-import { Bullet, Direction, GameState, Player } from "../../../common/types";
+import { RoomConnection } from "../connection";
+import { Bullet, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import map from "../../../common/map.json";
+
+const BULLETS_MAX = 3;
 
 export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
@@ -189,6 +190,13 @@ export class GameScene extends Scene {
         // If connection is open and direction has changed, send updated direction
         prevDirection = direction;
         this.connection?.writeJson({ type: ClientMessageType.SetDirection, direction });
+      }
+
+      if (keySpace.isDown) {
+        this.connection.sendMessage({ type: ClientMessageType.Dash });
+      }
+      if (keyR.isDown) {
+        this.connection.sendMessage({ type: ClientMessageType.Respawn });
       }
 
       if (keySpace.isDown) {
