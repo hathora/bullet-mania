@@ -13,12 +13,14 @@ export const GameConfig = {
 };
 
 interface GameComponentProps {
-  connection: HathoraConnection;
+  connection: HathoraConnection | undefined;
   token: string;
 }
 export function GameComponent(props: GameComponentProps) {
   const { connection, token } = props;
-  const game = new Game(GameConfig);
-  game.scene.start("scene-game", { connection, token });
+  if (connection != null) {
+    const game = new Game(GameConfig);
+    game.scene.start("scene-game", { connection, token });
+  }
   return <div id="game-content"></div>;
 }

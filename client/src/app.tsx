@@ -45,11 +45,8 @@ function App() {
       <div className="w-fit mx-auto">
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
-          {connection == null ? (
-            <LobbySelector lobbyClient={lobbyClient} joinLobby={joinLobby(lobbyClient)} />
-          ) : (
-            <GameComponent connection={connection} token={token} />
-          )}
+          {connection == null && <LobbySelector lobbyClient={lobbyClient} joinLobby={joinLobby(lobbyClient)} />}
+          <GameComponent connection={connection} token={token} />
         </div>
         <ExplanationText />
       </div>
