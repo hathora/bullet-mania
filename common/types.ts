@@ -31,5 +31,7 @@ export type GameState = {
 };
 
 export type LobbyState = {
-  winningScore: number;
+  players: Player[];
+  capacity: number;
+  killsToWin: number;
 };

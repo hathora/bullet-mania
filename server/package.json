@@ -6,8 +6,7 @@
   "dependencies": {
     "@hathora/server-sdk": "^1.0.0",
     "detect-collisions": "^6.4.2",
-    "dotenv": "^16.0.2",
-    "@hathora/lobbies-sdk-typescript": "^1.0.0"
+    "dotenv": "^16.0.2"
   },
   "devDependencies": {
     "@types/node": "^18.7.16",
