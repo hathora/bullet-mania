@@ -115,10 +115,8 @@ const store: Application = {
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
   subscribeUser(roomId: RoomId, userId: string): void {
     if (!rooms.has(roomId)) {
-      console.log("newRoom", roomId, userId);
       rooms.set(roomId, initializeRoom());
     }
-    console.log("subscribeUser", roomId, userId);
     const game = rooms.get(roomId)!;
 
     // Make sure the player hasn't already spawned
@@ -147,7 +145,6 @@ const store: Application = {
     if (!rooms.has(roomId)) {
       return;
     }
-    console.log("unsubscribeUser", roomId, userId);
 
     // Remove the player from the room's state
     const game = rooms.get(roomId)!;
@@ -284,7 +281,7 @@ function tick(game: InternalState, deltaMs: number) {
       game.physics.remove(a);
       // Update shooting player's score
       const bullet = game.bullets.find((bullet) => bullet.body === a);
-      const shooter = game.players.find(p => p.id === bullet?.playerId);
+      const shooter = game.players.find((p) => p.id === bullet?.playerId);
       if (shooter) {
         shooter.score += 100;
       }

@@ -1,8 +1,7 @@
 import Phaser, { Math as pMath, Scene } from "phaser";
 import { InterpolationBuffer } from "interpolation-buffer";
-import { HathoraClient } from "@hathora/client-sdk";
+import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
-import { RoomConnection } from "../connection";
 import { Bullet, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import map from "../../../common/map.json";
@@ -11,7 +10,8 @@ const BULLETS_MAX = 3;
 
 export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
-  private connection!: RoomConnection;
+  private connection: HathoraConnection | undefined;
+  private token: string | undefined;
 
   // The buffer which holds state snapshots
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
@@ -38,9 +38,41 @@ export class GameScene extends Scene {
     super("scene-game");
   }
 
-  init({ connection, token }: { connection: RoomConnection; token: string }) {
+  // Called immediately after the constructor, this function is used to preload assets
+  preload() {
+    // Load our assets from before
+    this.load.image("bullet", "bullet.png");
+    this.load.image("player", "player.png");
+    this.load.image("p0_reload", "p0_reload.png");
+    this.load.image("p1_reload", "p1_reload.png");
+    this.load.image("p2_reload", "p2_reload.png");
+    this.load.image("p3_reload", "p3_reload.png");
+    this.load.image("p4_reload", "p4_reload.png");
+    this.load.image("p5_reload", "p5_reload.png");
+    this.load.image("p6_reload", "p6_reload.png");
+    this.load.image("p7_reload", "p7_reload.png");
+    this.load.image("p8_reload", "p8_reload.png");
+    this.load.image("p0", "p0.png");
+    this.load.image("p1", "p1.png");
+    this.load.image("p2", "p2.png");
+    this.load.image("p3", "p3.png");
+    this.load.image("p4", "p4.png");
+    this.load.image("p5", "p5.png");
+    this.load.image("p6", "p6.png");
+    this.load.image("p7", "p7.png");
+    this.load.image("p8", "p8.png");
+    this.load.image("wall", "wall.png");
+    this.load.image("wall_red", "wall_red.png");
+    this.load.image("wall_blue", "wall_blue.png");
+    this.load.image("wall", "wall.png");
+    this.load.image("grass", "grass.png");
+    this.load.image("floor", "floor.png");
+  }
+
+  init({ connection, token }: { connection: HathoraConnection; token: string }) {
     // Receive connection and user data from BootScene
     this.connection = connection;
+    this.token = token;
 
     const currentUser = HathoraClient.getUserFromToken(token);
     this.currentUserID = currentUser.id;
@@ -90,7 +122,7 @@ export class GameScene extends Scene {
       .setScrollFactor(0)
       .setVisible(false);
 
-    this.connection.addListener((msg) => {
+    this.connection?.onMessageJson((msg) => {
       switch (msg.type) {
         case ServerMessageType.StateUpdate:
           // Start enqueuing state updates
@@ -111,9 +143,11 @@ export class GameScene extends Scene {
       }
     });
 
+    this.token != null ? this.connection?.connect(this.token) : {};
+
     // Send pings every 500ms
     setInterval(() => {
-      this.connection.sendMessage({ type: ClientMessageType.Ping, id: Date.now() });
+      this.connection?.writeJson({ type: ClientMessageType.Ping, id: Date.now() });
     }, 1000);
 
     // Handle keyboard input
@@ -154,14 +188,21 @@ export class GameScene extends Scene {
       if (prevDirection.x !== direction.x || prevDirection.y !== direction.y) {
         // If connection is open and direction has changed, send updated direction
         prevDirection = direction;
-        this.connection.sendMessage({ type: ClientMessageType.SetDirection, direction });
+        this.connection?.writeJson({ type: ClientMessageType.SetDirection, direction });
       }
 
       if (keySpace.isDown) {
-        this.connection.sendMessage({ type: ClientMessageType.Dash });
+        this.connection?.writeJson({ type: ClientMessageType.Dash });
       }
       if (keyR.isDown) {
-        this.connection.sendMessage({ type: ClientMessageType.Respawn });
+        this.connection?.writeJson({ type: ClientMessageType.Respawn });
+      }
+
+      if (keySpace.isDown) {
+        this.connection?.writeJson({ type: ClientMessageType.Dash });
+      }
+      if (keyR.isDown) {
+        this.connection?.writeJson({ type: ClientMessageType.Respawn });
       }
     };
 
@@ -171,7 +212,7 @@ export class GameScene extends Scene {
     // Handle mouse-click input
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
       // If the connection is open, send through click events
-      this.connection.sendMessage({ type: ClientMessageType.Shoot });
+      this.connection?.writeJson({ type: ClientMessageType.Shoot });
     });
   }
 
@@ -339,7 +380,7 @@ export class GameScene extends Scene {
 
     // Only if the aim has updated, send the update
     if (aimMoved) {
-      this.connection.sendMessage({ type: ClientMessageType.SetAngle, angle: aimRad });
+      this.connection?.writeJson({ type: ClientMessageType.SetAngle, angle: aimRad });
     }
 
     this.prevAimRad = aimRad;
