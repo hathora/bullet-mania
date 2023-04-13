@@ -44,12 +44,13 @@ function App() {
     <div className="h-screen" style={{ backgroundColor: "#1E1E1E" }}>
       <div className="w-fit mx-auto">
         <HathoraLogo />
-        {connection == null && (
-          <div style={{ width: GameConfig.width, height: GameConfig.height }}>
+        <div style={{ width: GameConfig.width, height: GameConfig.height }}>
+          {connection == null ? (
             <LobbySelector lobbyClient={lobbyClient} joinLobby={joinLobby(lobbyClient)} />
-          </div>
-        )}
-        {connection != null && <GameComponent connection={connection} token={token} />}
+          ) : (
+            <GameComponent connection={connection} token={token} />
+          )}
+        </div>
         <ExplanationText />
       </div>
     </div>

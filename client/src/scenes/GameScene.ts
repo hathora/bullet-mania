@@ -2,7 +2,6 @@ import Phaser, { Math as pMath, Scene } from "phaser";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
-import { RoomConnection } from "../connection";
 import { Bullet, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import map from "../../../common/map.json";
@@ -193,17 +192,17 @@ export class GameScene extends Scene {
       }
 
       if (keySpace.isDown) {
-        this.connection.sendMessage({ type: ClientMessageType.Dash });
+        this.connection?.writeJson({ type: ClientMessageType.Dash });
       }
       if (keyR.isDown) {
-        this.connection.sendMessage({ type: ClientMessageType.Respawn });
+        this.connection?.writeJson({ type: ClientMessageType.Respawn });
       }
 
       if (keySpace.isDown) {
-        this.connection.sendMessage({ type: ClientMessageType.Dash });
+        this.connection?.writeJson({ type: ClientMessageType.Dash });
       }
       if (keyR.isDown) {
-        this.connection.sendMessage({ type: ClientMessageType.Respawn });
+        this.connection?.writeJson({ type: ClientMessageType.Respawn });
       }
     };
 

@@ -33,52 +33,52 @@ export function HathoraLogo() {
         d="M117.285 19.2148V31.025C117.244 32.3471 117.71 33.635 118.588 34.6268C119.058 35.0645 119.611 35.4041 120.215 35.6258C120.818 35.8475 121.461 35.9467 122.103 35.9176H128.497V31.5815H123.841C123.011 31.5815 122.546 31.1178 122.546 30.1903V19.2148H117.285Z"
         fill="white"
       />
-      <g clip-path="url(#clip0_3_1289)">
+      <g clipPath="url(#clip0_3_1289)">
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M2.27544 10.0843L17.7699 18.9821C24.9982 23.0345 32.3568 27.1586 33.637 27.867C33.6877 27.8941 33.746 27.9219 33.7967 27.9489C36.3785 29.209 38.8146 26.082 38.8146 26.082L38.8405 26.0465L5.40698 7.07077L2.27544 10.0843Z"
           fill="url(#paint0_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M20.6527 1.52441L17.5408 4.48675L44.6984 20.309L47.9452 17.1922L20.6527 1.52441Z"
           fill="url(#paint1_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M13.0497 4.06518L9.90247 7.08488L40.1034 24.6985L43.3727 21.5837L13.0497 4.06518Z"
           fill="url(#paint2_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M16.6232 20.6725L14.9255 22.2999L21.6339 26.0577L23.3392 24.4309L16.6232 20.6725Z"
           fill="url(#paint3_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M20.4808 27.2342L18.6753 28.9656L11.9832 25.1942L13.7642 23.4833L20.4808 27.2342Z"
           fill="url(#paint4_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M15.5691 31.9436L17.374 30.2197L10.6574 26.4688L8.85251 28.1927L15.5691 31.9436Z"
           fill="url(#paint5_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M14.2703 33.1827L12.4654 34.9066L5.79038 31.114L7.55429 29.4243L14.2703 33.1827Z"
           fill="url(#paint6_linear_3_1289)"
         />
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M11.1574 36.1526C10.5773 36.5402 8.5068 37.4023 5.80987 35.8981L2.67619 34.0988L4.44829 32.4023L11.1649 36.1532L11.1574 36.1526Z"
           fill="url(#paint7_linear_3_1289)"
         />
@@ -92,8 +92,8 @@ export function HathoraLogo() {
           y2="28.4847"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.156205" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.156205" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint1_linear_3_1289"
@@ -103,8 +103,8 @@ export function HathoraLogo() {
           y2="19.8564"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.156205" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.156205" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint2_linear_3_1289"
@@ -114,8 +114,8 @@ export function HathoraLogo() {
           y2="24.2345"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.156205" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.156205" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint3_linear_3_1289"
@@ -125,8 +125,8 @@ export function HathoraLogo() {
           y2="28.9424"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.100929" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.100929" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint4_linear_3_1289"
@@ -136,8 +136,8 @@ export function HathoraLogo() {
           y2="30.0607"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.144404" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.144404" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint5_linear_3_1289"
@@ -147,8 +147,8 @@ export function HathoraLogo() {
           y2="33.0442"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.144404" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.144404" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint6_linear_3_1289"
@@ -158,8 +158,8 @@ export function HathoraLogo() {
           y2="35.9988"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.144404" stop-color="#AF64EE" />
-          <stop offset="1" stop-color="#02FE57" />
+          <stop offset="0.144404" stopColor="#AF64EE" />
+          <stop offset="1" stopColor="#02FE57" />
         </linearGradient>
         <linearGradient
           id="paint7_linear_3_1289"
@@ -169,8 +169,8 @@ export function HathoraLogo() {
           y2="39.543"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0.144404" stop-color="#AF64EE" />
-          <stop offset="0.942412" stop-color="#02FE57" />
+          <stop offset="0.144404" stopColor="#AF64EE" />
+          <stop offset="0.942412" stopColor="#02FE57" />
         </linearGradient>
         <clipPath id="clip0_3_1289">
           <rect
