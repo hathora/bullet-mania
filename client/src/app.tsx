@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { InitialConfig, LobbyState } from "../../common/types";
+import { DisplayMetadata, InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -19,20 +19,22 @@ function App() {
   const appId = process.env.APP_ID ?? env.APP_ID;
   const token = useAuthToken(appId, ENDPOINT);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
+  const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "" });
 
-  const joinLobby = useCallback(
+  const joinRoom = useCallback(
     (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
       lobbyClient.getConnectionDetailsForLobbyV2(roomId).then((connectionDetails) => {
         if (connection != null) {
           connection.disconnect(200);
         }
-        if (import.meta.env.DEV) {
+        if (import.meta.env.DEV && connectionDetails.host === "george") {
           setConnection(
             new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
           );
         } else {
           setConnection(new HathoraConnection(roomId, connectionDetails));
         }
+        setDisplayMetadata({ serverUrl: `${connectionDetails.host}:${connectionDetails.port}` });
         history.pushState({}, "", `/${roomId}`); //update url
       }),
     [connection]
@@ -43,7 +45,7 @@ function App() {
   const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId, ENDPOINT);
   const roomIdFromUrl = getRoomIdFromUrl();
   if (roomIdFromUrl != null) {
-    joinLobby(lobbyClient)(roomIdFromUrl);
+    joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
     <div className="h-screen" style={{ backgroundColor: "#1E1E1E" }}>
@@ -51,9 +53,9 @@ function App() {
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
           {connection == null && (
-            <LobbySelector lobbyClient={lobbyClient} joinLobby={joinLobby(lobbyClient)} playerToken={token} />
+            <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
           )}
-          <GameComponent connection={connection} token={token} />
+          <GameComponent connection={connection} token={token} displayMetadata={displayMetadata} />
         </div>
         <ExplanationText />
       </div>

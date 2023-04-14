@@ -20,8 +20,9 @@ export abstract class AbstractLobbyClient<LobbyState extends object = object, In
     const res = await getJson(`${this.lobbyEndpoint}/info/${roomId}`, {});
     return res;
   }
+  getConnectionDetailsForLobbyV2 = memoize((roomId: string) => this._getConnectionDetailsForLobbyV2(roomId));
 
-  async getConnectionDetailsForLobbyV2(roomId: string): Promise<ConnectionDetails> {
+  private async _getConnectionDetailsForLobbyV2(roomId: string): Promise<ConnectionDetails> {
     return poll(
       async () => {
         const res: ConnectionInfo = await getJson(`${this.roomsEndpoint}/connectioninfo/${roomId}`, {});
@@ -48,3 +49,19 @@ export type ConnectionDetails = {
 function isActiveConnection(ConnectionInfo: ConnectionInfo): ConnectionInfo is ActiveConnectionInfo {
   return ConnectionInfo.status === "active";
 }
+
+const memoize = <S, T>(fn: (a: S) => T) => {
+  const cache = new Map<S, T>();
+  const cached = function (arg: S) {
+    if (cache.has(arg)) {
+      return cache.get(arg)!;
+    } else {
+      const result = fn(arg);
+      cache.set(arg, result);
+      return result;
+    }
+  };
+  cached.cache = cache;
+  console.log("cache", cache);
+  return cached;
+};

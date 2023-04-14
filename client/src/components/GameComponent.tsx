@@ -15,12 +15,15 @@ export const GameConfig = {
 interface GameComponentProps {
   connection: HathoraConnection | undefined;
   token: string;
+  displayMetadata: {
+    serverUrl: string;
+  };
 }
 export function GameComponent(props: GameComponentProps) {
-  const { connection, token } = props;
+  const { connection, token, displayMetadata } = props;
   if (connection != null) {
     const game = new Game(GameConfig);
-    game.scene.start("scene-game", { connection, token });
+    game.scene.start(GameScene.NAME, { connection, token, displayMetadata });
   }
   return <div id="game-content"></div>;
 }

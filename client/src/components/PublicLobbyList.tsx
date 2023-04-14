@@ -1,5 +1,5 @@
 import { useInterval } from "use-interval";
-import React from "react";
+import React, { useEffect } from "react";
 import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 dayjs.extend(relativeTime);
@@ -17,12 +17,25 @@ import { BulletButton } from "./BulletButton";
 
 interface PublicLobbyListProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
-  joinLobby: (roomId: string) => void;
+  joinRoom: (roomId: string) => void;
 }
 
 export function PublicLobbyList(props: PublicLobbyListProps) {
-  const { lobbyClient, joinLobby } = props;
+  const { lobbyClient, joinRoom } = props;
   const lobbies = useLobbies(lobbyClient);
+  const [readyRooms, setReadyRooms] = React.useState<Set<string>>(new Set());
+  //BUG! this waits until all lobbies are ready before updating the list, rather than rendering
+  //the ready lobbies as they become ready. not good if we hit scale!
+  useEffect(() => {
+    Promise.all(
+      lobbies.map(async (l) => {
+        await lobbyClient.getConnectionDetailsForLobbyV2(l.roomId);
+        return l.roomId;
+      })
+    )
+      .then((rooms) => new Set(rooms))
+      .then(setReadyRooms);
+  }, [lobbies, lobbyClient]);
   return (
     <LobbyPageCard>
       <Header className="mt-4 mb-2">Join Public Lobby</Header>
@@ -36,45 +49,47 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
             </th>
             <th colSpan={1} className="py-1 text-sm font-medium border border-secondary-700"></th>
           </tr>
-          {lobbies.map((lobby, index) => (
-            <tr
-              key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
-              className={`text-secondary-900 ${index % 2 === 0 ? "bg-secondary-600" : ""}`}
-            >
-              <td
-                className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
-              >{`${lobby.roomId}`}</td>
-              <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}>
-                <div className={"flex items-center justify-center gap-1"}>
-                  <UsersIcon className="h-4 w-4 text-secondary-700" />
-                  {`${lobby.state?.playerIds.length ?? 0}/${lobby.initialConfig.capacity}`}
-                </div>
-              </td>
-              <td className={"flex justify-center px-1 py-1 text-sm"}>
-                <div className={"grid grid-cols-2 grid-rows-2 gap-x-2"}>
-                  <div className={"flex"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
-                  <div className={"flex items-center gap-1"}>
-                    <ClockIcon className="h-4 w-4 text-secondary-700" />
-                    {`${dayjs(lobby.createdAt).fromNow()}`}
+          {lobbies
+            .filter((l) => readyRooms.has(l.roomId))
+            .map((lobby, index) => (
+              <tr
+                key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
+                className={`text-secondary-900 ${index % 2 === 0 ? "bg-secondary-600" : ""}`}
+              >
+                <td
+                  className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
+                >{`${lobby.roomId}`}</td>
+                <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}>
+                  <div className={"flex items-center justify-center gap-1"}>
+                    <UsersIcon className="h-4 w-4 text-secondary-700" />
+                    {`${lobby.state?.playerIds.length ?? 0}/${lobby.initialConfig.capacity}`}
                   </div>
-                  <div className={"flex items-center"}>
-                    <UserIcon className="h-4 w-4 text-secondary-700" />
-                    {lobby.createdBy}
+                </td>
+                <td className={"flex justify-center px-1 py-1 text-sm"}>
+                  <div className={"grid grid-cols-2 grid-rows-2 gap-x-2"}>
+                    <div className={"flex"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
+                    <div className={"flex items-center gap-1"}>
+                      <ClockIcon className="h-4 w-4 text-secondary-700" />
+                      {`${dayjs(lobby.createdAt).fromNow()}`}
+                    </div>
+                    <div className={"flex items-center"}>
+                      <UserIcon className="h-4 w-4 text-secondary-700" />
+                      {lobby.createdBy}
+                    </div>
+                    <div className={"flex items-center gap-1"}>
+                      <TrophyIcon className="h-4 w-4 text-secondary-700" />
+                      {`${lobby.initialConfig.winningScore} kills to win`}
+                    </div>
                   </div>
-                  <div className={"flex items-center gap-1"}>
-                    <TrophyIcon className="h-4 w-4 text-secondary-700" />
-                    {`${lobby.initialConfig.winningScore} kills to win`}
-                  </div>
-                </div>
-              </td>
-              <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}></td>
-              <td>
-                <button onClick={() => joinLobby(lobby.roomId)}>
-                  <BulletButton text={"JOIN!"}></BulletButton>
-                </button>
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}></td>
+                <td>
+                  <button onClick={() => joinRoom(lobby.roomId)}>
+                    <BulletButton text={"JOIN!"}></BulletButton>
+                  </button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </table>
     </LobbyPageCard>

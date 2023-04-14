@@ -12,9 +12,10 @@ import { Dropdown } from "./Dropdown";
 interface GameCreatorProps {
   lobbyClient: PlayerLobbyClient<LobbyState>;
   playerToken: string;
+  joinRoom: (roomId: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
-  const { lobbyClient, playerToken } = props;
+  const { lobbyClient, playerToken, joinRoom } = props;
   const [visibility, setVisibility] = React.useState<"Public" | "Private">("Public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
@@ -38,7 +39,14 @@ export function GameCreator(props: GameCreatorProps) {
         selected={winningScore}
         onSelect={(s) => setWinningScore(Number(s))}
       />
-      <button onClick={() => lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig)}>Create!</button>
+      <button
+        onClick={async () => {
+          const lobby = await lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig);
+          joinRoom(lobby.roomId);
+        }}
+      >
+        Create!
+      </button>
     </LobbyPageCard>
   );
 }

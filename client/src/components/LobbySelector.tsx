@@ -8,12 +8,12 @@ import { LobbyPageCard } from "./LobbyPageCard";
 import { GameCreator } from "./GameCreator";
 interface LobbySelectorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
-  joinLobby: (roomId: string) => void;
+  joinRoom: (roomId: string) => void;
   playerToken: string;
 }
 
 export function LobbySelector(props: LobbySelectorProps) {
-  const { lobbyClient, joinLobby, playerToken } = props;
+  const { lobbyClient, joinRoom, playerToken } = props;
   const [privateLobbyID, setPrivateLobbyID] = React.useState<string>("");
   return (
     <div className="bg-[url('/splash.png')] h-full flex flex-col p-1">
@@ -22,10 +22,10 @@ export function LobbySelector(props: LobbySelectorProps) {
       </div>
       <div className="flex overflow-hidden h-full w-full justify-between">
         <div className="grow">
-          <PublicLobbyList lobbyClient={lobbyClient} joinLobby={joinLobby} />
+          <PublicLobbyList lobbyClient={lobbyClient} joinRoom={joinRoom} />
         </div>
         <div className="flex flex-col grow">
-          <GameCreator lobbyClient={lobbyClient} playerToken={playerToken} />
+          <GameCreator lobbyClient={lobbyClient} playerToken={playerToken} joinRoom={joinRoom} />
           <LobbyPageCard>
             Join existing game
             <input
@@ -35,7 +35,7 @@ export function LobbySelector(props: LobbySelectorProps) {
               onChange={(e) => setPrivateLobbyID(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  joinLobby(privateLobbyID);
+                  joinRoom(privateLobbyID);
                 }
               }}
             />

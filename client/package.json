@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "start": "npx vite & npm run watch:css",
+    "start": "npx vite & npm run watch:css && npx tsc",
     "build": "npx vite build",
     "watch:css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
   },

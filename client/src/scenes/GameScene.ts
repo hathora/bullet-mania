@@ -2,7 +2,7 @@ import Phaser, { Math as pMath, Scene } from "phaser";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
-import { Bullet, GameState, Player } from "../../../common/types";
+import { Bullet, DisplayMetadata, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import map from "../../../common/map.json";
 
@@ -12,6 +12,7 @@ export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
   private connection: HathoraConnection | undefined;
   private token: string | undefined;
+  private displayMetadata: DisplayMetadata | undefined;
 
   // The buffer which holds state snapshots
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
@@ -34,8 +35,10 @@ export class GameScene extends Scene {
   private dash: Phaser.GameObjects.Text | undefined = undefined;
   private respawnText: Phaser.GameObjects.Text | undefined = undefined;
 
+  static NAME = "scene-game";
+
   constructor() {
-    super("scene-game");
+    super(GameScene.NAME);
   }
 
   // Called immediately after the constructor, this function is used to preload assets
@@ -70,10 +73,19 @@ export class GameScene extends Scene {
     this.load.image("splash", "splash.png");
   }
 
-  init({ connection, token }: { connection: HathoraConnection; token: string }) {
+  init({
+    connection,
+    token,
+    displayMetadata,
+  }: {
+    connection: HathoraConnection;
+    token: string;
+    displayMetadata: DisplayMetadata;
+  }) {
     // Receive connection and user data from BootScene
     this.connection = connection;
     this.token = token;
+    this.displayMetadata = displayMetadata;
 
     const currentUser = HathoraClient.getUserFromToken(token);
     this.currentUserID = currentUser.id;
@@ -100,8 +112,13 @@ export class GameScene extends Scene {
     // Set the main camera's background colour and bounding box
     this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
 
+    // Display metadata
+    const _serverUrl = this.add
+      .text(4, 4, this.displayMetadata?.serverUrl ?? "", { color: "white" })
+      .setScrollFactor(0);
+
     // Ping indicator
-    const pingText = this.add.text(4, 4, "Ping:", { color: "white" }).setScrollFactor(0);
+    const pingText = this.add.text(4, 20, "Ping:", { color: "white" }).setScrollFactor(0);
     const pings: number[] = [];
 
     // Dash indicator
