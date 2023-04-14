@@ -4,9 +4,15 @@ import { fileURLToPath } from "url";
 import { UserId, RoomId, Application, startServer, verifyJwt } from "@hathora/server-sdk";
 import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
-import { Direction, GameState } from "../common/types";
+import { Direction, GameState, InitialConfig, LobbyState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import map from "../common/map.json" assert { type: "json" };
+
+import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
+/**
+ * TODO: remove this lmao
+ */
+const ENDPOINT = "https://api.hathora.io";
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -114,6 +120,23 @@ const store: Application = {
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
   subscribeUser(roomId: RoomId, userId: string): void {
+    const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!, ENDPOINT);
+    lobbyClient
+      .getLobbyInfoV2(roomId)
+      .then((lobbyInfo) => {
+        const initialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
+        const newState: LobbyState =
+          lobbyInfo.state != null
+            ? lobbyInfo.state
+            : {
+                playerIds: [],
+              };
+        newState.playerIds.push(userId);
+        return lobbyClient.setLobbyState(roomId, newState).catch((a) => console.log("set lobby state failed: ", a));
+      })
+      .catch((err) => {
+        console.log("failed to connect to room: ", err);
+      });
     if (!rooms.has(roomId)) {
       rooms.set(roomId, initializeRoom());
     }
@@ -363,4 +386,12 @@ function wallBody(x: number, y: number, width: number, height: number): PhysicsB
   return Object.assign(new Box({ x, y }, width, height, { isStatic: true }), {
     oType: BodyType.Wall,
   });
+}
+
+function getAppToken() {
+  const token = process.env.APP_TOKEN;
+  if (token == null) {
+    throw new Error("APP_TOKEN not set");
+  }
+  return token;
 }
