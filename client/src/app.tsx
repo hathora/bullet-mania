@@ -39,13 +39,15 @@ function App() {
   if (appId == null || token == null) {
     return <div>loading...</div>;
   }
-  const lobbyClient = new PlayerLobbyClient<LobbyState>(token, appId, ENDPOINT);
+  const lobbyClient = new PlayerLobbyClient<LobbyState>(appId, ENDPOINT);
   return (
     <div className="h-screen" style={{ backgroundColor: "#1E1E1E" }}>
       <div className="w-fit mx-auto">
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
-          {connection == null && <LobbySelector lobbyClient={lobbyClient} joinLobby={joinLobby(lobbyClient)} />}
+          {connection == null && (
+            <LobbySelector lobbyClient={lobbyClient} joinLobby={joinLobby(lobbyClient)} playerToken={token} />
+          )}
           <GameComponent connection={connection} token={token} />
         </div>
         <ExplanationText />

@@ -1,23 +1,23 @@
 export async function postJson(url: string, body: object, headers: Record<string, string> = {}) {
   const res = await fetch(url, {
-    method: 'POST',
-    headers: { ...headers, 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  throwOnHttpError(res);
-  return await res.json();
+  return maybeGetHttpError(res);
 }
 export async function getJson(url: string, headers: Record<string, string> = {}) {
   const res = await fetch(url, {
-    headers: { ...headers, 'Content-Type': 'application/json' },
+    headers: { ...headers, "Content-Type": "application/json" },
   });
-  throwOnHttpError(res);
-  return await res.json();
+  return maybeGetHttpError(res);
 }
 
-async function throwOnHttpError(res: Response) {
+async function maybeGetHttpError(res: Response) {
   if (res.status != 200) {
-    throw new Error(`Request failed with status ${res.status} and ${await res.clone().text()}`);
+    return Promise.reject(`Request failed with status ${res.status} and ${await res.text()}`);
+  } else {
+    return await res.json();
   }
 }
 
@@ -35,7 +35,7 @@ export async function poll<Intermediate, Target extends Intermediate>(
     if (validate(result)) {
       return resolve(result);
     } else if (maxAttempts && attempts === maxAttempts) {
-      return reject(new Error('Exceeded max attempts'));
+      return reject(new Error("Exceeded max attempts"));
     } else {
       setTimeout(executePoll, interval, resolve, reject);
     }

@@ -31,7 +31,10 @@ export type GameState = {
 };
 
 export type LobbyState = {
-  players: Player[];
+  playerIds: string[];
+};
+
+export type InitialConfig = {
   capacity: number;
-  killsToWin: number;
+  winningScore: number;
 };
