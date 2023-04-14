@@ -13,9 +13,11 @@ import { HathoraLogo } from "./components/HathoraLogo";
 import { GameComponent, GameConfig } from "./components/GameComponent";
 import { ExplanationText } from "./components/ExplanationText";
 
+const ENDPOINT = "https://api.hathora.io";
+
 function App() {
   const appId = process.env.APP_ID ?? env.APP_ID;
-  const token = useAuthToken(appId);
+  const token = useAuthToken(appId, ENDPOINT);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "" });
   const [failedToConnect, setFailedToConnect] = useState(false);
@@ -40,7 +42,7 @@ function App() {
   if (appId == null || token == null) {
     return <div>loading...</div>;
   }
-  const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
+  const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId, ENDPOINT);
   const roomIdFromUrl = getRoomIdFromUrl();
   if (roomIdFromUrl != null) {
     joinRoom(lobbyClient)(roomIdFromUrl);

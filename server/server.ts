@@ -12,6 +12,8 @@ import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
 /**
  * TODO: remove this lmao
  */
+const ENDPOINT = "https://api.hathora.io";
+
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
 
@@ -120,8 +122,11 @@ const store: Application = {
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.APP_ID!);
-      console.log("fetching lobbyInfo", roomId);
+      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(
+        getAppToken(),
+        process.env.APP_ID!,
+        ENDPOINT
+      );
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
       console.log("fetched lobbyInfo", lobbyInfo);
 
@@ -184,7 +189,7 @@ const store: Application = {
 
     try {
       //remove player from lobby state
-      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!);
+      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!, ENDPOINT);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
       const newState: LobbyState =
         lobbyInfo.state != null
