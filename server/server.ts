@@ -9,9 +9,14 @@ import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } fr
 import map from "../common/map.json" assert { type: "json" };
 
 import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
+
 /**
  * TODO: remove this lmao
  */
+process.on("unhandledRejection", (error) => {
+  console.error("unhandledRejection", error);
+});
+
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
 
@@ -121,9 +126,7 @@ const store: Application = {
     console.log("subscribeUser", roomId, userId);
     try {
       const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
-      console.log("fetching lobbyInfo", process.env.HATHORA_APP_ID, roomId);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
-      console.log("fetched lobbyInfo", lobbyInfo);
 
       if (!rooms.has(roomId)) {
         rooms.set(roomId, initializeRoom());
@@ -142,9 +145,7 @@ const store: Application = {
                 playerCount: game.players.length + 1,
               };
         newState.playerCount = game.players.length + 1;
-        console.log("fetching lobbyState", roomId);
         const state = await lobbyClient.setLobbyState(roomId, newState);
-        console.log("fetched lobbyState", state);
         // Then create a physics body for the player
         const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
         const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
@@ -169,6 +170,7 @@ const store: Application = {
 
   // unsubscribeUser is called when a user disconnects from a room, and is the place where you'd want to do any player-cleanup
   async unsubscribeUser(roomId: RoomId, userId: string): Promise<void> {
+    console.log("unsubscribeUser", roomId, userId);
     // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
