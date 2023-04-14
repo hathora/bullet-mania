@@ -4,12 +4,13 @@ interface MultiSelectProps<T extends string> {
   options: T[];
   selected: T;
   onSelect: (s: T) => void;
+  className?: string;
 }
 
 export function MultiSelect<T extends string>(props: MultiSelectProps<T>) {
-  const { options, selected, onSelect } = props;
+  const { options, selected, onSelect, className } = props;
   return (
-    <div className="flex justify-center">
+    <div className={`flex justify-center ${className}`}>
       {options.map((option, index) => (
         <button
           key={option}

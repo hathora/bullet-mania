@@ -11,17 +11,18 @@ export abstract class AbstractLobbyClient<LobbyState extends object = object, In
     this.roomsEndpoint = `  ${endpoint}/rooms/v1/${appId}`;
   }
 
-  async listActivePublicLobbiesV2(region?: Region): Promise<Lobby<LobbyState>[]> {
+  async listActivePublicLobbiesV2(region?: Region): Promise<Lobby<LobbyState, InitialConfig>[]> {
     const lobbies = await getJson(`${this.lobbyEndpoint}/list/public` + (region != null ? `&region=${region}` : ""));
     return lobbies as Lobby<LobbyState, InitialConfig>[];
   }
 
-  async getLobbyInfoV2(roomId: string): Promise<Lobby<LobbyState>> {
+  async getLobbyInfoV2(roomId: string): Promise<Lobby<LobbyState, InitialConfig>> {
     const res = await getJson(`${this.lobbyEndpoint}/info/${roomId}`, {});
     return res;
   }
+  getConnectionDetailsForLobbyV2 = memoize((roomId: string) => this._getConnectionDetailsForLobbyV2(roomId));
 
-  async getConnectionDetailsForLobbyV2(roomId: string): Promise<ConnectionDetails> {
+  private async _getConnectionDetailsForLobbyV2(roomId: string): Promise<ConnectionDetails> {
     return poll(
       async () => {
         const res: ConnectionInfo = await getJson(`${this.roomsEndpoint}/connectioninfo/${roomId}`, {});
@@ -48,3 +49,19 @@ export type ConnectionDetails = {
 function isActiveConnection(ConnectionInfo: ConnectionInfo): ConnectionInfo is ActiveConnectionInfo {
   return ConnectionInfo.status === "active";
 }
+
+const memoize = <S, T>(fn: (a: S) => T) => {
+  const cache = new Map<S, T>();
+  const cached = function (arg: S) {
+    if (cache.has(arg)) {
+      return cache.get(arg)!;
+    } else {
+      const result = fn(arg);
+      cache.set(arg, result);
+      return result;
+    }
+  };
+  cached.cache = cache;
+  console.log("cache", cache);
+  return cached;
+};

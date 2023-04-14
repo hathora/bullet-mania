@@ -38,3 +38,5 @@ export type InitialConfig = {
   capacity: number;
   winningScore: number;
 };
+
+export type DisplayMetadata = { serverUrl: string };
