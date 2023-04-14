@@ -118,9 +118,12 @@ const store: Application = {
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
+    console.log("subscribeUser", roomId, userId);
     try {
       const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.APP_ID!);
+      console.log("fetching lobbyInfo", roomId);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+      console.log("fetched lobbyInfo", lobbyInfo);
 
       if (!rooms.has(roomId)) {
         rooms.set(roomId, initializeRoom());
@@ -139,7 +142,9 @@ const store: Application = {
                 playerCount: game.players.length + 1,
               };
         newState.playerCount = game.players.length + 1;
-        await lobbyClient.setLobbyState(roomId, newState);
+        console.log("fetching lobbyState", roomId);
+        const state = await lobbyClient.setLobbyState(roomId, newState);
+        console.log("fetched lobbyState", state);
         // Then create a physics body for the player
         const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
         const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
