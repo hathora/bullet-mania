@@ -20,6 +20,7 @@ function App() {
   const token = useAuthToken(appId, ENDPOINT);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "" });
+  const [failedToConnect, setFailedToConnect] = useState(false);
 
   const joinRoom = useCallback(
     (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
@@ -27,13 +28,12 @@ function App() {
         if (connection != null) {
           connection.disconnect(200);
         }
-        if (import.meta.env.DEV && connectionDetails.host === "george") {
-          setConnection(
-            new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
-          );
-        } else {
-          setConnection(new HathoraConnection(roomId, connectionDetails));
-        }
+        const connect = import.meta.env.DEV
+          ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
+          : new HathoraConnection(roomId, connectionDetails);
+
+        connect.onClose(() => setFailedToConnect(true));
+        setConnection(connect);
         setDisplayMetadata({ serverUrl: `${connectionDetails.host}:${connectionDetails.port}` });
         history.pushState({}, "", `/${roomId}`); //update url
       }),
@@ -52,10 +52,18 @@ function App() {
       <div className="w-fit mx-auto">
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
-          {connection == null && (
-            <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
+          {failedToConnect ? (
+            <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center">
+              Failed to connect to server
+            </div>
+          ) : (
+            <>
+              {connection == null && (
+                <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
+              )}
+              <GameComponent connection={connection} token={token} displayMetadata={displayMetadata} />
+            </>
           )}
-          <GameComponent connection={connection} token={token} displayMetadata={displayMetadata} />
         </div>
         <ExplanationText />
       </div>

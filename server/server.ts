@@ -119,51 +119,57 @@ const store: Application = {
   },
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
-  subscribeUser(roomId: RoomId, userId: string): void {
-    const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!, ENDPOINT);
-    lobbyClient
-      .getLobbyInfoV2(roomId)
-      .then((lobbyInfo) => {
-        const initialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
+  async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
+    try {
+      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(
+        getAppToken(),
+        process.env.APP_ID!,
+        ENDPOINT
+      );
+      const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+
+      if (!rooms.has(roomId)) {
+        rooms.set(roomId, initializeRoom());
+      }
+      const game = rooms.get(roomId)!;
+
+      if (game.players.length === lobbyInfo.initialConfig.capacity) {
+        throw new Error("room is full");
+      }
+      // Make sure the player hasn't already spawned
+      if (!game.players.some((player) => player.id === userId)) {
         const newState: LobbyState =
           lobbyInfo.state != null
             ? lobbyInfo.state
             : {
-                playerIds: [],
+                playerCount: game.players.length + 1,
               };
-        newState.playerIds.push(userId);
-        return lobbyClient.setLobbyState(roomId, newState).catch((a) => console.log("set lobby state failed: ", a));
-      })
-      .catch((err) => {
-        console.log("failed to connect to room: ", err);
-      });
-    if (!rooms.has(roomId)) {
-      rooms.set(roomId, initializeRoom());
-    }
-    const game = rooms.get(roomId)!;
-
-    // Make sure the player hasn't already spawned
-    if (!game.players.some((player) => player.id === userId)) {
-      // Then create a physics body for the player
-      const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
-      const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
-      game.players.push({
-        id: userId,
-        body: Object.assign(body, { oType: BodyType.Player }),
-        direction: { x: 0, y: 0 },
-        angle: 0,
-        isDead: false,
-        bullets: 3,
-        isReloading: undefined,
-        dashCooldown: undefined,
-        score: 0,
-        sprite: Math.floor(Math.random() * PLAYER_SPRITES_COUNT),
-      });
+        newState.playerCount = game.players.length + 1;
+        await lobbyClient.setLobbyState(roomId, newState);
+        // Then create a physics body for the player
+        const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
+        const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
+        game.players.push({
+          id: userId,
+          body: Object.assign(body, { oType: BodyType.Player }),
+          direction: { x: 0, y: 0 },
+          angle: 0,
+          isDead: false,
+          bullets: 3,
+          isReloading: undefined,
+          dashCooldown: undefined,
+          score: 0,
+          sprite: Math.floor(Math.random() * PLAYER_SPRITES_COUNT),
+        });
+      }
+    } catch (err) {
+      console.log("failed to connect to room: ", err);
+      server.closeConnection(roomId, userId, err instanceof Error ? err.message : "failed to connect to room");
     }
   },
 
   // unsubscribeUser is called when a user disconnects from a room, and is the place where you'd want to do any player-cleanup
-  unsubscribeUser(roomId: RoomId, userId: string): void {
+  async unsubscribeUser(roomId: RoomId, userId: string): Promise<void> {
     // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
@@ -177,23 +183,21 @@ const store: Application = {
       game.players.splice(idx, 1);
     }
 
-    //remove player from lobby state
-    const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!, ENDPOINT);
-    lobbyClient
-      .getLobbyInfoV2(roomId)
-      .then((lobbyInfo) => {
-        const newState: LobbyState =
-          lobbyInfo.state != null
-            ? lobbyInfo.state
-            : {
-                playerIds: [],
-              };
-        newState.playerIds = newState.playerIds.filter((u) => u !== userId);
-        return lobbyClient.setLobbyState(roomId, newState).catch((a) => console.log("set lobby state failed: ", a));
-      })
-      .catch((err) => {
-        console.log("failed to connect to room: ", err);
-      });
+    try {
+      //remove player from lobby state
+      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!, ENDPOINT);
+      const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+      const newState: LobbyState =
+        lobbyInfo.state != null
+          ? lobbyInfo.state
+          : {
+              playerCount: game.players.length,
+            };
+      newState.playerCount = game.players.length;
+      await lobbyClient.setLobbyState(roomId, newState);
+    } catch (err) {
+      console.log("failed to connect to room: ", err);
+    }
   },
 
   // onMessage is an integral part of your game's server. It is responsible for reading messages sent from the clients and handling them accordingly, this is where your game's event-based logic should live

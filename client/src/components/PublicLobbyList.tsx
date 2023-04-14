@@ -1,6 +1,7 @@
 import { useInterval } from "use-interval";
 import React, { useEffect } from "react";
 import relativeTime from "dayjs/plugin/relativeTime";
+// eslint-disable-next-line import/order
 import dayjs from "dayjs";
 dayjs.extend(relativeTime);
 
@@ -62,7 +63,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                 <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}>
                   <div className={"flex items-center justify-center gap-1"}>
                     <UsersIcon className="h-4 w-4 text-secondary-700" />
-                    {`${lobby.state?.playerIds.length ?? 0}/${lobby.initialConfig.capacity}`}
+                    {`${lobby.state?.playerCount ?? 0}/${lobby.initialConfig.capacity}`}
                   </div>
                 </td>
                 <td className={"flex justify-center px-1 py-1 text-sm"}>

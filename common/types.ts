@@ -31,7 +31,7 @@ export type GameState = {
 };
 
 export type LobbyState = {
-  playerIds: string[];
+  playerCount: number;
 };
 
 export type InitialConfig = {

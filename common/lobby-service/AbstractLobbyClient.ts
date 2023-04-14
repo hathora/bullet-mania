@@ -62,6 +62,5 @@ const memoize = <S, T>(fn: (a: S) => T) => {
     }
   };
   cached.cache = cache;
-  console.log("cache", cache);
   return cached;
 };
