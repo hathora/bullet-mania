@@ -5,6 +5,7 @@ import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClie
 
 import { PublicLobbyList } from "./PublicLobbyList";
 import { LobbyPageCard } from "./LobbyPageCard";
+import { Header } from "./Header";
 import { GameCreator } from "./GameCreator";
 interface LobbySelectorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
@@ -24,11 +25,12 @@ export function LobbySelector(props: LobbySelectorProps) {
         <div className="grow">
           <PublicLobbyList lobbyClient={lobbyClient} joinRoom={joinRoom} />
         </div>
-        <div className="flex flex-col grow min-w-[240px">
+        <div className="flex flex-col grow w-[240px]">
           <GameCreator lobbyClient={lobbyClient} playerToken={playerToken} joinRoom={joinRoom} />
           <LobbyPageCard>
-            Join existing game
+            <Header className="mt-3 mb-1">Join Game</Header>
             <input
+              className="px-4 py-2 bg-secondary-600 rounded placeholder:text-secondary-800 text-secondary-800 cursor-pointer mb-3"
               name="gameCode"
               placeholder="ENTER ROOM CODE"
               value={privateLobbyID}

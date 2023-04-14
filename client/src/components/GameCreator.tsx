@@ -49,21 +49,22 @@ export function GameCreator(props: GameCreatorProps) {
       <button
         className="mb-3"
         onClick={async () => {
-          setIsLoading(true);
-          try {
-            const lobby = await lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig);
-            setIsLoading(false);
-            joinRoom(lobby.roomId);
-          } catch (e) {
-            setIsLoading(false);
-            setError(e.toString());
+          if (!isLoading) {
+            setIsLoading(true);
+            try {
+              const lobby = await lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig);
+              joinRoom(lobby.roomId);
+            } catch (e) {
+              setIsLoading(false);
+              setError(e.toString());
+            }
           }
         }}
       >
         <BulletButton text={"CREATE!"} large />
       </button>
-      {isLoading && <div className={"inline text-secondary-700"}>Loading..</div>}
-      {error && <div className={"mb-3 text-brand-500"}>{error}</div>}
+      {isLoading && <div className={"text-secondary-700 inline-flex items-center"}>Loading..</div>}
+      {error && <div className={"mb-3 text-brand-500 text-xs"}>{error}</div>}
     </LobbyPageCard>
   );
 }
