@@ -52,7 +52,10 @@ export function GameCreator(props: GameCreatorProps) {
           if (!isLoading) {
             setIsLoading(true);
             try {
-              const lobby = await lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig);
+              const lobby =
+                visibility === "Public"
+                  ? await lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig)
+                  : await lobbyClient.createPrivateLobbyV2(playerToken, region, initialConfig);
               joinRoom(lobby.roomId);
             } catch (e) {
               setIsLoading(false);

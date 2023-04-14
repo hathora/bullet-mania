@@ -1,14 +1,45 @@
+import { join } from "path";
+import { platform } from "os";
+import { connect } from "http2";
+import { request } from "http";
+import { read } from "fs";
+import { on } from "events";
+import { sign } from "crypto";
+import { match } from "assert";
+
 import React from "react";
+import { use } from "matter";
+import { call } from "dayjs";
 
 import { GameConfig } from "./GameComponent";
 
 export function ExplanationText() {
   return (
     <div style={{ width: GameConfig.width }}>
-      <h1 style={h1Style}>What is happening?</h1>
+      <h1 style={h1Style}>Bullet Mania’s multiplayer infrastructure</h1>
       <p style={pStyle}>
-        Top-down Shooter is a multiplayer 2D shooter. You must navigate through the map while shooting bullets at others
-        and avoid dying.
+        We built Bullet Mania to showcase how easy it is to build a multiplayer game on Hathora. This game is completely
+        open source and you can check it out here.
+      </p>
+      <p>
+        Hathora is a serverless cloud hosting platform that dynamically provisions servers for multiplayer games on
+        demand. With our platform, your game servers will be available globally and you won’t pay for idle servers. When
+        your game sees player spikes, Hathora will automatically scale your game servers to meet demand.{" "}
+      </p>
+      <h1 style={h1Style}> Modern infrastructure, accessible to everyone</h1>
+      <p style={pStyle}>
+        With Hathora you can spin up servers on demand with 1 API call. Bullet Mania was built in less than a week and
+        can scale on Hathora’s serverless architecture to a global audience. Read more about serverless here.
+      </p>
+      <h1 style={h1Style}>How do you use Hathora for your game?</h1>
+      <p style={pStyle}>
+        When a match request arrives from a player, Hathora will generate a unique “roomId” which resolves to a “host +
+        port” that the game client can connect to. Read more about Hathora entities here. In order to provision capacity
+        on Hathora, your game will need some middleware Lobby/Matchmaking service to authenticate and route players to a
+        correct game server. Bullet Mania uses Hathora’s lightweight Lobby service so players can request a match.
+        Players requesting a match must be authenticated in order to provide “rateLimiting”. Your game can either use
+        Hathora auth service (read here) or you can use your own auth and sign it with your application’s appSecret.
+        Unauthenticated users can still join existing public and private rooms.
       </p>
     </div>
   );
