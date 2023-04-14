@@ -11,12 +11,12 @@ export abstract class AbstractLobbyClient<LobbyState extends object = object, In
     this.roomsEndpoint = `  ${endpoint}/rooms/v1/${appId}`;
   }
 
-  async listActivePublicLobbiesV2(region?: Region): Promise<Lobby<LobbyState>[]> {
+  async listActivePublicLobbiesV2(region?: Region): Promise<Lobby<LobbyState, InitialConfig>[]> {
     const lobbies = await getJson(`${this.lobbyEndpoint}/list/public` + (region != null ? `&region=${region}` : ""));
     return lobbies as Lobby<LobbyState, InitialConfig>[];
   }
 
-  async getLobbyInfoV2(roomId: string): Promise<Lobby<LobbyState>> {
+  async getLobbyInfoV2(roomId: string): Promise<Lobby<LobbyState, InitialConfig>> {
     const res = await getJson(`${this.lobbyEndpoint}/info/${roomId}`, {});
     return res;
   }

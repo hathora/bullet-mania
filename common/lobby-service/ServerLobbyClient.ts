@@ -1,14 +1,15 @@
-import { AbstractLobbyClient } from './AbstractLobbyClient';
-import { Lobby } from './Lobby';
-import { Region } from './Region';
-import { postJson } from './util';
+import { AbstractLobbyClient } from "./AbstractLobbyClient";
+import { Lobby } from "./Lobby";
+import { Region } from "./Region";
+import { postJson } from "./util";
 
 export class ServerLobbyClient<
-  LobbyState extends object = object
-> extends AbstractLobbyClient<LobbyState> {
+  LobbyState extends object = object,
+  InitialConfig extends object = object
+> extends AbstractLobbyClient<LobbyState, InitialConfig> {
   private appToken: string;
 
-  constructor(appToken: string, appId: string, endpoint: string = 'https://api.hathora.dev') {
+  constructor(appToken: string, appId: string, endpoint: string = "https://api.hathora.dev") {
     super(appId, endpoint);
     this.appToken = appToken;
   }

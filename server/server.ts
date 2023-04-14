@@ -176,6 +176,24 @@ const store: Application = {
       game.physics.remove(game.players[idx].body);
       game.players.splice(idx, 1);
     }
+
+    //remove player from lobby state
+    const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!, ENDPOINT);
+    lobbyClient
+      .getLobbyInfoV2(roomId)
+      .then((lobbyInfo) => {
+        const newState: LobbyState =
+          lobbyInfo.state != null
+            ? lobbyInfo.state
+            : {
+                playerIds: [],
+              };
+        newState.playerIds = newState.playerIds.filter((u) => u !== userId);
+        return lobbyClient.setLobbyState(roomId, newState).catch((a) => console.log("set lobby state failed: ", a));
+      })
+      .catch((err) => {
+        console.log("failed to connect to room: ", err);
+      });
   },
 
   // onMessage is an integral part of your game's server. It is responsible for reading messages sent from the clients and handling them accordingly, this is where your game's event-based logic should live
