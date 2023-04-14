@@ -2,7 +2,7 @@
   "type": "module",
   "scripts": {
     "start": "npx vite & npm run watch:css && npx tsc",
-    "build": "npx vite build",
+    "build": "npx tailwindcss -i ./src/input.css -o ./dist/output.css && npx vite build",
     "watch:css": "npx tailwindcss -i ./src/input.css -o ./dist/output.css --watch"
   },
   "dependencies": {
