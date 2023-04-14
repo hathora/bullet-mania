@@ -38,9 +38,9 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
       .then(setReadyRooms);
   }, [lobbies, lobbyClient]);
   return (
-    <LobbyPageCard>
+    <LobbyPageCard className={""}>
       <Header className="mt-4 mb-2">Join Public Lobby</Header>
-      <table className="w-full mb-4 border border-secondary-700 rounded-sm">
+      <table className="w-full mb-4 border border-secondary-700 rounded-sm overflow-y-auto max-h-[390px]">
         <tbody>
           <tr className="bg-secondary-500 text-secondary-800">
             <th className="py-1 text-sm font-medium border border-secondary-700">Room ID</th>
@@ -58,18 +58,18 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                 className={`text-secondary-900 ${index % 2 === 0 ? "bg-secondary-600" : ""}`}
               >
                 <td
-                  className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
+                  className={`border-r text-sm ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
                 >{`${lobby.roomId}`}</td>
-                <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}>
+                <td className={`border-r text-sm ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}>
                   <div className={"flex items-center justify-center gap-1"}>
                     <UsersIcon className="h-4 w-4 text-secondary-700" />
                     {`${lobby.state?.playerCount ?? 0}/${lobby.initialConfig.capacity}`}
                   </div>
                 </td>
-                <td className={"flex justify-center px-1 py-1 text-sm"}>
+                <td className={"flex justify-center px-0.5 py-1 text-xs"}>
                   <div className={"grid grid-cols-2 grid-rows-2 gap-x-2"}>
-                    <div className={"flex"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
-                    <div className={"flex items-center gap-1"}>
+                    <div className={"flex items-center"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
+                    <div className={"flex items-center gap-1 text-xs"}>
                       <ClockIcon className="h-4 w-4 text-secondary-700" />
                       {`${dayjs(lobby.createdAt).fromNow()}`}
                     </div>
@@ -77,7 +77,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                       <UserIcon className="h-4 w-4 text-secondary-700" />
                       {lobby.createdBy}
                     </div>
-                    <div className={"flex items-center gap-1"}>
+                    <div className={"flex items-center gap-1 text-xs"}>
                       <TrophyIcon className="h-4 w-4 text-secondary-700" />
                       {`${lobby.initialConfig.winningScore} kills to win`}
                     </div>
@@ -85,8 +85,8 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                 </td>
                 <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}></td>
                 <td>
-                  <button onClick={() => joinRoom(lobby.roomId)}>
-                    <BulletButton text={"JOIN!"}></BulletButton>
+                  <button className={"mt-2"} onClick={() => joinRoom(lobby.roomId)}>
+                    <BulletButton text={"JOIN!"} />
                   </button>
                 </td>
               </tr>
