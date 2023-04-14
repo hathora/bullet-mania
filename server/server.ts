@@ -184,7 +184,7 @@ const store: Application = {
 
     try {
       //remove player from lobby state
-      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!);
+      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.HATHORA_APP_ID!);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
       const newState: LobbyState =
         lobbyInfo.state != null
