@@ -120,8 +120,8 @@ const store: Application = {
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.APP_ID!);
-      console.log("fetching lobbyInfo", process.env.APP_ID, roomId);
+      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
+      console.log("fetching lobbyInfo", process.env.HATHORA_APP_ID, roomId);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
       console.log("fetched lobbyInfo", lobbyInfo);
 
