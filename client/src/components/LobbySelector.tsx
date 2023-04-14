@@ -9,10 +9,11 @@ import { GameCreator } from "./GameCreator";
 interface LobbySelectorProps {
   lobbyClient: PlayerLobbyClient<LobbyState>;
   joinLobby: (roomId: string) => void;
+  playerToken: string;
 }
 
 export function LobbySelector(props: LobbySelectorProps) {
-  const { lobbyClient, joinLobby } = props;
+  const { lobbyClient, joinLobby, playerToken } = props;
   return (
     <div className="bg-[url('/floor.png')] h-full flex flex-col">
       <img src="lobby_header.png" alt="logo" className="w-full" />
@@ -21,7 +22,7 @@ export function LobbySelector(props: LobbySelectorProps) {
           <PublicLobbyList lobbyClient={lobbyClient} joinLobby={joinLobby} />
         </div>
         <div className="flex flex-col grow">
-          <GameCreator lobbyClient={lobbyClient} />
+          <GameCreator lobbyClient={lobbyClient} playerToken={playerToken} />
           <LobbyPageCard>Join existing game</LobbyPageCard>
         </div>
       </div>

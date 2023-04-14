@@ -4,14 +4,15 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 dayjs.extend(relativeTime);
 
-import { LobbyState } from "../../../common/types";
+import { InitialConfig, InitialConfig, LobbyState } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
 import { Lobby } from "../../../common/lobby-service/Lobby";
 
 import { LobbyPageCard } from "./LobbyPageCard";
+import { Header } from "./Header";
 interface PublicLobbyListProps {
-  lobbyClient: PlayerLobbyClient<LobbyState>;
+  lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   joinLobby: (roomId: string) => void;
 }
 
@@ -20,7 +21,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   const lobbies = useLobbies(lobbyClient);
   return (
     <LobbyPageCard>
-      <Header text="Join Public Lobby" />
+      <Header>Join Public Lobby</Header>
       <table className="w-full border">
         <tbody>
           <tr>
@@ -34,7 +35,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
           {lobbies.map((lobby) => (
             <tr key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}>
               <td>{`${lobby.roomId}`}</td>
-              <td>{`${lobby.state?.players.length ?? 0}/${lobby.capacity ?? 0}`}</td>
+              <td>{`${lobby.state?.playerIds.length ?? 0}/${lobby.initialConfig.capacity}`}</td>
               <td>
                 <table>
                   <tbody>
@@ -44,7 +45,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     </tr>
                     <tr>
                       <td>{`${lobby.createdBy}`}</td>
-                      <td>{`${lobby.state?.killsToWin ?? 0} kills to win`}</td>
+                      <td>{`${lobby.initialConfig.winningScore} kills to win`}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -61,8 +62,8 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   );
 }
 
-function useLobbies(lobbyClient: PlayerLobbyClient<LobbyState>): Lobby<LobbyState>[] {
-  const [lobbies, setLobbies] = React.useState<Lobby<LobbyState>[]>([]);
+function useLobbies<S extends object, I extends object>(lobbyClient: PlayerLobbyClient<S, I>): Lobby<S, I>[] {
+  const [lobbies, setLobbies] = React.useState<Lobby<S, I>[]>([]);
   React.useEffect(() => {
     lobbyClient.listActivePublicLobbiesV2().then(setLobbies);
   }, [lobbyClient]);
@@ -70,10 +71,6 @@ function useLobbies(lobbyClient: PlayerLobbyClient<LobbyState>): Lobby<LobbyStat
     lobbyClient.listActivePublicLobbiesV2().then(setLobbies);
   }, 2000);
   return lobbies;
-}
-
-function Header(props: { text: string }) {
-  return <h1 className="text-2xl font-bold">{props.text}</h1>;
 }
 
 const FLAG_TABLE: Record<Region, string> = {
