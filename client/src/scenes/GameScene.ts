@@ -34,6 +34,7 @@ export class GameScene extends Scene {
   private leaderBoard: Map<string, Phaser.GameObjects.Text> = new Map();
   private dash: Phaser.GameObjects.Text | undefined = undefined;
   private respawnText: Phaser.GameObjects.Text | undefined = undefined;
+  private endText: Phaser.GameObjects.Text | undefined = undefined;
 
   static NAME = "scene-game";
 
@@ -137,6 +138,11 @@ export class GameScene extends Scene {
     this.add.text(4, this.scale.height - 24, "(LEFT CLICK)", { color: "white" }).setScrollFactor(0);
     this.respawnText = this.add
       .text(380, 280, "Press [R] to respawn", { color: "white" })
+      .setScrollFactor(0)
+      .setVisible(false);
+
+    this.endText = this.add
+      .text(380, 280, "GAME OVER - Winning score reached", { color: "white" })
       .setScrollFactor(0)
       .setVisible(false);
 
@@ -277,6 +283,9 @@ export class GameScene extends Scene {
     state.players
       .sort((a, b) => b.score - a.score)
       .forEach((player, index) => {
+        if (player.score >= this.displayMetadata?.winningScore && this.endText) {
+          this.endText.visible = true;
+        }
         // update leaderboard text
         if (this.leaderBoard.has(player.id)) {
           const existing = this.leaderBoard.get(player.id);

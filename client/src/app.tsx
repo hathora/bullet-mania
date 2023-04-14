@@ -19,12 +19,12 @@ function App() {
   const appId = process.env.APP_ID ?? env.APP_ID;
   const token = useAuthToken(appId, ENDPOINT);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
-  const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "" });
+  const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "", winningScore: 15 });
   const [failedToConnect, setFailedToConnect] = useState(false);
 
   const joinRoom = useCallback(
-    (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
-      lobbyClient.getConnectionDetailsForLobbyV2(roomId).then((connectionDetails) => {
+    (lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>) => (roomId: string) =>
+      lobbyClient.getConnectionDetailsForLobbyV2(roomId).then(async (connectionDetails) => {
         if (connection != null) {
           connection.disconnect(200);
         }
@@ -32,9 +32,14 @@ function App() {
           ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
           : new HathoraConnection(roomId, connectionDetails);
 
+        const res = await lobbyClient.getLobbyInfoV2(roomId);
+
         connect.onClose(() => setFailedToConnect(true));
         setConnection(connect);
-        setDisplayMetadata({ serverUrl: `${connectionDetails.host}:${connectionDetails.port}` });
+        setDisplayMetadata({
+          serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+          winningScore: res.initialConfig.winningScore,
+        });
         history.pushState({}, "", `/${roomId}`); //update url
       }),
     [connection]
