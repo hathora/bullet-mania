@@ -5,7 +5,7 @@ interface LobbyPageCardProps {
 }
 export function LobbyPageCard(props: LobbyPageCardProps) {
   return (
-    <div className="border-solid border-2 rounded-lg block text-center px-3 m-2" style={{ backgroundColor: "#A9CFCF" }}>
+    <div className="bg-secondary-400 border-2 border-brand-500 rounded-lg block text-center px-2 m-1">
       {props.children}
     </div>
   );

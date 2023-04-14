@@ -67,6 +67,7 @@ export class GameScene extends Scene {
     this.load.image("wall", "wall.png");
     this.load.image("grass", "grass.png");
     this.load.image("floor", "floor.png");
+    this.load.image("splash", "splash.png");
   }
 
   init({ connection, token }: { connection: HathoraConnection; token: string }) {
@@ -243,41 +244,6 @@ export class GameScene extends Scene {
           ])
       )
     );
-    // console.log(state);
-    // this.syncTexts(
-    //   this.playersName,
-    //   new Map(
-    //     state.players
-    //       .filter((p) => !p.isDead)
-    //       .map((player) => {
-    //         return [
-    //           player.id,
-    //           new Phaser.GameObjects.Text(this, player.position.x - 48, player.position.y - 34, `${player.id}s`, {
-    //             color: "green",
-    //           }),
-    //         ];
-    //       })
-    //   )
-    // );
-    this.syncTexts(
-      this.playersAmmo,
-      new Map(
-        state.players.map((player) => {
-          return [
-            player.id,
-            new Phaser.GameObjects.Text(
-              this,
-              player.position.x - 28,
-              player.position.y + 24,
-              `RELOAD ${Math.max(0, Math.ceil(((player.isReloading || 0) - Date.now()) / 1000))}s`,
-              { color: "white" }
-            )
-              .setAlpha(0.6)
-              .setVisible(player.isReloading !== undefined),
-          ];
-        })
-      )
-    );
 
     // Do the same with bullets
     this.syncSprites(
@@ -291,15 +257,72 @@ export class GameScene extends Scene {
     );
 
     // calc leaderboard
-    // this.syncTexts(
-    //   this.leaderBoard,
-    //   new Map(
-    //     state.players.sort((a,b) => a.score - b.score).map((player, index) => [
-    //       player.id,
-    //       new Phaser.GameObjects.Text(this, 640, 4 + (20*index), `${player.id}: ${player.score}`, { color: player.id === this.currentUserID ? "green" : "white" }).setScrollFactor(0)
-    //     ])
-    //   )
-    // )
+    state.players
+      .sort((a, b) => b.score - a.score)
+      .forEach((player, index) => {
+        // update leaderboard text
+        if (this.leaderBoard.has(player.id)) {
+          const existing = this.leaderBoard.get(player.id);
+          if (existing) {
+            existing.text = `${player.id}: ${player.score}`;
+            existing.setY(4 + 20 * index);
+          }
+        } else {
+          const newScore = new Phaser.GameObjects.Text(this, 640, 4 + 20 * index, `${player.id}: ${player.score}`, {
+            color: player.id === this.currentUserID ? "green" : "white",
+          }).setScrollFactor(0);
+          this.add.existing(newScore);
+          this.leaderBoard.set(player.id, newScore);
+        }
+      });
+
+    state.players.forEach((player) => {
+      // Update player name label
+      if (this.playersName.has(player.id)) {
+        const existing = this.playersName.get(player.id);
+        if (existing) {
+          existing.visible = !player.isDead;
+          existing.x = player.position.x - 48;
+          existing.y = player.position.y - 34;
+        }
+      } else {
+        const newName = new Phaser.GameObjects.Text(
+          this,
+          player.position.x - 48,
+          player.position.y - 34,
+          `${player.id}`,
+          {
+            color: player.id === this.currentUserID ? "green" : "white",
+          }
+        ).setAlpha(0.6);
+        this.add.existing(newName);
+        this.playersName.set(player.id, newName);
+      }
+      // Update reloading label
+      if (this.playersAmmo.has(player.id)) {
+        const existing = this.playersAmmo.get(player.id);
+        if (existing) {
+          existing.visible = player.isReloading !== undefined;
+          existing.text = `RELOAD ${Math.max(0, Math.ceil(((player.isReloading || 0) - Date.now()) / 1000))}s`;
+          existing.x = player.position.x - 28;
+          existing.y = player.position.y + 24;
+        }
+      } else {
+        const newLabel = new Phaser.GameObjects.Text(
+          this,
+          player.position.x - 28,
+          player.position.y + 24,
+          `RELOAD ${Math.max(0, Math.ceil(((player.isReloading || 0) - Date.now()) / 1000))}s`,
+          {
+            color: "white",
+          }
+        )
+          .setVisible(player.isReloading !== undefined)
+          .setAlpha(0.6);
+        this.add.existing(newLabel);
+        this.playersAmmo.set(player.id, newLabel);
+      }
+    });
 
     // sync ammo indicator and score
     const player = state.players.find((p) => p.id === this.currentUserID);
