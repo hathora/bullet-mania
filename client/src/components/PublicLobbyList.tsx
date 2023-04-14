@@ -4,13 +4,14 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 dayjs.extend(relativeTime);
 
-import { InitialConfig, InitialConfig, LobbyState } from "../../../common/types";
+import { InitialConfig, LobbyState } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
 import { Lobby } from "../../../common/lobby-service/Lobby";
 
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
+
 interface PublicLobbyListProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   joinLobby: (roomId: string) => void;

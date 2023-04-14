@@ -1,5 +1,4 @@
 export async function postJson(url: string, body: object, headers: Record<string, string> = {}) {
-  console.log("postJson", url, body, headers);
   const res = await fetch(url, {
     method: "POST",
     headers: { ...headers, "Content-Type": "application/json" },
@@ -8,7 +7,6 @@ export async function postJson(url: string, body: object, headers: Record<string
   return maybeGetHttpError(res);
 }
 export async function getJson(url: string, headers: Record<string, string> = {}) {
-  console.log("getJson", url, headers);
   const res = await fetch(url, {
     headers: { ...headers, "Content-Type": "application/json" },
   });

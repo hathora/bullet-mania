@@ -26,7 +26,7 @@ function App() {
         if (connection != null) {
           connection.disconnect(200);
         }
-        if (import.meta.env.DEV && "ldasocalhost" === window.location.hostname) {
+        if (import.meta.env.DEV) {
           setConnection(
             new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
           );
