@@ -67,6 +67,7 @@ export class GameScene extends Scene {
     this.load.image("wall", "wall.png");
     this.load.image("grass", "grass.png");
     this.load.image("floor", "floor.png");
+    this.load.image("splash", "splash.png");
   }
 
   init({ connection, token }: { connection: HathoraConnection; token: string }) {
