@@ -322,7 +322,7 @@ function tick(game: InternalState, deltaMs: number) {
       const bullet = game.bullets.find((bullet) => bullet.body === a);
       const shooter = game.players.find((p) => p.id === bullet?.playerId);
       if (shooter) {
-        shooter.score += 100;
+        shooter.score += 1;
       }
 
       const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);
