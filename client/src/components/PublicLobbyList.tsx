@@ -4,6 +4,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import dayjs from "dayjs";
 dayjs.extend(relativeTime);
 
+import { ClockIcon, TrophyIcon, UserIcon, UsersIcon } from "@heroicons/react/24/outline";
+
 import { InitialConfig, LobbyState } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
@@ -11,6 +13,7 @@ import { Lobby } from "../../../common/lobby-service/Lobby";
 
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
+import { BulletButton } from "./BulletButton";
 
 interface PublicLobbyListProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
@@ -22,38 +25,53 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   const lobbies = useLobbies(lobbyClient);
   return (
     <LobbyPageCard>
-      <Header>Join Public Lobby</Header>
-      <table className="w-full border">
+      <Header className="mt-4 mb-2">Join Public Lobby</Header>
+      <table className="w-full mb-4 border border-secondary-700 rounded-sm">
         <tbody>
-          <tr>
-            <th className="border-x">Room ID</th>
-            <th className="border-x">Spots</th>
-            <th colSpan={2} className="border-x">
+          <tr className="bg-secondary-500 text-secondary-800">
+            <th className="py-1 text-sm font-medium border border-secondary-700">Room ID</th>
+            <th className="py-1 text-sm font-medium border border-secondary-700">Spots</th>
+            <th colSpan={2} className="py-1 text-sm font-medium border border-secondary-700">
               Details
             </th>
-            <th colSpan={1} className="border-x"></th>
+            <th colSpan={1} className="py-1 text-sm font-medium border border-secondary-700"></th>
           </tr>
-          {lobbies.map((lobby) => (
-            <tr key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}>
-              <td>{`${lobby.roomId}`}</td>
-              <td>{`${lobby.state?.playerIds.length ?? 0}/${lobby.initialConfig.capacity}`}</td>
-              <td>
-                <table>
-                  <tbody>
-                    <tr>
-                      <td>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</td>
-                      <td>{`${dayjs(lobby.createdAt).fromNow()}`}</td>
-                    </tr>
-                    <tr>
-                      <td>{`${lobby.createdBy}`}</td>
-                      <td>{`${lobby.initialConfig.winningScore} kills to win`}</td>
-                    </tr>
-                  </tbody>
-                </table>
+          {lobbies.map((lobby, index) => (
+            <tr
+              key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
+              className={`text-secondary-900 ${index % 2 === 0 ? "bg-secondary-600" : ""}`}
+            >
+              <td
+                className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
+              >{`${lobby.roomId}`}</td>
+              <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}>
+                <div className={"flex items-center justify-center gap-1"}>
+                  <UsersIcon className="h-4 w-4 text-secondary-700" />
+                  {`${lobby.state?.playerIds.length ?? 0}/${lobby.initialConfig.capacity}`}
+                </div>
               </td>
-              <td></td>
+              <td className={"flex justify-center px-1 py-1 text-sm"}>
+                <div className={"grid grid-cols-2 grid-rows-2 gap-x-2"}>
+                  <div className={"flex"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
+                  <div className={"flex items-center gap-1"}>
+                    <ClockIcon className="h-4 w-4 text-secondary-700" />
+                    {`${dayjs(lobby.createdAt).fromNow()}`}
+                  </div>
+                  <div className={"flex items-center"}>
+                    <UserIcon className="h-4 w-4 text-secondary-700" />
+                    {lobby.createdBy}
+                  </div>
+                  <div className={"flex items-center gap-1"}>
+                    <TrophyIcon className="h-4 w-4 text-secondary-700" />
+                    {`${lobby.initialConfig.winningScore} kills to win`}
+                  </div>
+                </div>
+              </td>
+              <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}></td>
               <td>
-                <button onClick={() => joinLobby(lobby.roomId)}>Join</button>
+                <button onClick={() => joinLobby(lobby.roomId)}>
+                  <BulletButton text={"JOIN!"}></BulletButton>
+                </button>
               </td>
             </tr>
           ))}

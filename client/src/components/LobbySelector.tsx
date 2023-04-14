@@ -15,8 +15,10 @@ interface LobbySelectorProps {
 export function LobbySelector(props: LobbySelectorProps) {
   const { lobbyClient, joinLobby, playerToken } = props;
   return (
-    <div className="bg-[url('/floor.png')] h-full flex flex-col">
-      <img src="lobby_header.png" alt="logo" className="w-full" />
+    <div className="bg-[url('/splash.png')] h-full flex flex-col p-1">
+      <div className={"flex items-center justify-center mt-6 mb-4"}>
+        <img src="lobby_header.png" alt="logo" className="" />
+      </div>
       <div className="flex overflow-hidden h-full w-full justify-between">
         <div className="grow">
           <PublicLobbyList lobbyClient={lobbyClient} joinLobby={joinLobby} />
