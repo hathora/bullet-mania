@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { LobbyState } from "../../common/types";
+import { InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -33,13 +33,18 @@ function App() {
         } else {
           setConnection(new HathoraConnection(roomId, connectionDetails));
         }
+        history.pushState({}, "", `/${roomId}`); //update url
       }),
     [connection]
   );
   if (appId == null || token == null) {
     return <div>loading...</div>;
   }
-  const lobbyClient = new PlayerLobbyClient<LobbyState>(appId, ENDPOINT);
+  const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId, ENDPOINT);
+  const roomIdFromUrl = getRoomIdFromUrl();
+  if (roomIdFromUrl != null) {
+    joinLobby(lobbyClient)(roomIdFromUrl);
+  }
   return (
     <div className="h-screen" style={{ backgroundColor: "#1E1E1E" }}>
       <div className="w-fit mx-auto">
@@ -79,4 +84,10 @@ async function getToken(client: AuthClient): Promise<string> {
   const token = await client.loginAnonymousV1();
   sessionStorage.setItem("topdown-shooter-token", token);
   return token;
+}
+
+function getRoomIdFromUrl(): string | undefined {
+  if (location.pathname.length > 1) {
+    return location.pathname.split("/").pop();
+  }
 }

@@ -6,7 +6,7 @@ import { AbstractLobbyClient } from "./AbstractLobbyClient";
 export class PlayerLobbyClient<
   LobbyState extends object = object,
   InitialConfig extends object = object
-> extends AbstractLobbyClient<LobbyState> {
+> extends AbstractLobbyClient<LobbyState, InitialConfig> {
   constructor(appId: string, endpoint: string = "https://api.hathora.dev") {
     super(appId, endpoint);
   }
@@ -16,14 +16,14 @@ export class PlayerLobbyClient<
     region: Region,
     initialConfig: InitialConfig,
     roomId?: string
-  ): Promise<Lobby<LobbyState>> {
+  ): Promise<Lobby<LobbyState, InitialConfig>> {
     const lobby = await postJson(
       `${this.lobbyEndpoint}/create/private` + (roomId != null ? `&roomId=${roomId}` : ""),
       { region, initialConfig },
       { Authorization: playerToken }
     );
 
-    return lobby as Lobby<LobbyState>;
+    return lobby as Lobby<LobbyState, InitialConfig>;
   }
 
   async createPublicLobbyV2(
@@ -31,13 +31,13 @@ export class PlayerLobbyClient<
     region: Region,
     initialConfig: InitialConfig,
     roomId?: string
-  ): Promise<Lobby<LobbyState>> {
+  ): Promise<Lobby<LobbyState, InitialConfig>> {
     const lobby = await postJson(
       `${this.lobbyEndpoint}/create/public` + (roomId != null ? `&roomId=${roomId}` : ""),
       { region, initialConfig },
       { Authorization: playerToken }
     );
 
-    return lobby as Lobby<LobbyState>;
+    return lobby as Lobby<LobbyState, InitialConfig>;
   }
 }
