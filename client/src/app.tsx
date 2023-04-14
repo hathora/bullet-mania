@@ -28,10 +28,9 @@ function App() {
         if (connection != null) {
           connection.disconnect(200);
         }
-        const connect =
-          import.meta.env.DEV && connectionDetails.host === "george"
-            ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
-            : new HathoraConnection(roomId, connectionDetails);
+        const connect = import.meta.env.DEV
+          ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
+          : new HathoraConnection(roomId, connectionDetails);
 
         connect.onClose(() => setFailedToConnect(true));
         setConnection(connect);
