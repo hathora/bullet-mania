@@ -23,7 +23,7 @@ export function LobbySelector(props: LobbySelectorProps) {
         <div className="grow">
           <PublicLobbyList lobbyClient={lobbyClient} joinLobby={joinLobby} />
         </div>
-        <div className="flex flex-col grow">
+        <div className="flex flex-col grow min-w-[240px]">
           <GameCreator lobbyClient={lobbyClient} playerToken={playerToken} />
           <LobbyPageCard>Join existing game</LobbyPageCard>
         </div>

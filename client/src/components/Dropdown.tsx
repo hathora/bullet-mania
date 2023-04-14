@@ -18,9 +18,9 @@ export function Dropdown<T extends string | number>(props: MultiSelectProps<T>) 
   );
   return (
     <div className="flex justify-center">
-      <select value={selected} onChange={changeOption}>
+      <select className={"px-4 py-1 bg-secondary-600 rounded-lg"} value={selected} onChange={changeOption}>
         {options.map((r) => (
-          <option value={r}>{`${format(r)}`}</option>
+          <option key={r} value={r}>{`${format(r)}`}</option>
         ))}
       </select>
     </div>

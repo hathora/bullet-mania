@@ -52,8 +52,8 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
               </td>
               <td className={"flex justify-center px-1 py-1 text-sm"}>
                 <div className={"grid grid-cols-2 grid-rows-2 gap-x-2"}>
-                  <div className={"flex"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
-                  <div className={"flex items-center gap-1"}>
+                  <div className={"flex items-center"}>{`${FLAG_TABLE[lobby.region as Region]} ${lobby.region}`}</div>
+                  <div className={"flex items-center gap-1 text-xs"}>
                     <ClockIcon className="h-4 w-4 text-secondary-700" />
                     {`${dayjs(lobby.createdAt).fromNow()}`}
                   </div>
@@ -61,7 +61,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     <UserIcon className="h-4 w-4 text-secondary-700" />
                     {lobby.createdBy}
                   </div>
-                  <div className={"flex items-center gap-1"}>
+                  <div className={"flex items-center gap-1 text-xs"}>
                     <TrophyIcon className="h-4 w-4 text-secondary-700" />
                     {`${lobby.initialConfig.winningScore} kills to win`}
                   </div>
@@ -69,7 +69,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
               </td>
               <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}></td>
               <td>
-                <button onClick={() => joinLobby(lobby.roomId)}>
+                <button className={"mt-2"} onClick={() => joinLobby(lobby.roomId)}>
                   <BulletButton text={"JOIN!"}></BulletButton>
                 </button>
               </td>

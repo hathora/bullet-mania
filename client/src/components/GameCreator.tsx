@@ -23,7 +23,7 @@ export function GameCreator(props: GameCreatorProps) {
   const initialConfig: InitialConfig = { capacity, winningScore };
   return (
     <LobbyPageCard>
-      <Header>Create New Game</Header>
+      <Header className="mt-4 mb-2">Create Game</Header>
       <MultiSelect options={["Public", "Private"]} selected={visibility} onSelect={setVisibility} />
       <Dropdown options={Object.values(Region)} selected={region} onSelect={setRegion} />
       <Dropdown
