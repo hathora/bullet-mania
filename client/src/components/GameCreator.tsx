@@ -11,13 +11,13 @@ import { Dropdown } from "./Dropdown";
 import { BulletButton } from "./BulletButton";
 
 interface GameCreatorProps {
-  lobbyClient: PlayerLobbyClient<LobbyState>;
+  lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   playerToken: string;
   joinRoom: (roomId: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
   const { lobbyClient, playerToken, joinRoom } = props;
-  const [visibility, setVisibility] = React.useState<"Public" | "Private">("Public");
+  const [visibility, setVisibility] = React.useState<"Public" | "Private" | "Local">("Public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
   const [winningScore, setWinningScore] = React.useState<number>(20);
@@ -28,7 +28,12 @@ export function GameCreator(props: GameCreatorProps) {
   return (
     <LobbyPageCard>
       <Header className="mt-4 mb-2">Create Game</Header>
-      <MultiSelect className="mb-3" options={["Public", "Private"]} selected={visibility} onSelect={setVisibility} />
+      <MultiSelect
+        className="mb-3"
+        options={import.meta.env.DEV ? ["Public", "Private", "Local"] : ["Public", "Private"]}
+        selected={visibility}
+        onSelect={setVisibility}
+      />
       <Dropdown className="mb-3" width="w-56" options={Object.values(Region)} selected={region} onSelect={setRegion} />
       <Dropdown
         className="mb-3"
@@ -52,14 +57,11 @@ export function GameCreator(props: GameCreatorProps) {
           if (!isLoading) {
             setIsLoading(true);
             try {
-              const lobby =
-                visibility === "Public"
-                  ? await lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig)
-                  : await lobbyClient.createPrivateLobbyV2(playerToken, region, initialConfig);
+              const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
               joinRoom(lobby.roomId);
             } catch (e) {
               setIsLoading(false);
-              setError(e.toString());
+              setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
             }
           }
         }}
@@ -70,4 +72,21 @@ export function GameCreator(props: GameCreatorProps) {
       {error && <div className={"mb-3 text-brand-500 text-xs"}>{error}</div>}
     </LobbyPageCard>
   );
+}
+
+function getLobby(
+  lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>,
+  playerToken: string,
+  region: Region,
+  initialConfig: InitialConfig,
+  visibility: "Public" | "Private" | "Local"
+) {
+  switch (visibility) {
+    case "Public":
+      return lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig);
+    case "Private":
+      return lobbyClient.createPrivateLobbyV2(playerToken, region, initialConfig);
+    case "Local":
+      return lobbyClient.createLocalLobbyV2(playerToken, region, initialConfig);
+  }
 }

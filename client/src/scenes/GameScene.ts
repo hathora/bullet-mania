@@ -356,7 +356,6 @@ export class GameScene extends Scene {
       if (this.respawnText) {
         this.respawnText.visible = player.isDead;
       }
-      // console.log(player)
       if (player.dashCooldown) {
         if (this.dash) {
           this.dash.text = `Dash: ${Math.max(0, (player.dashCooldown - Date.now()) / 1000)}s`;
