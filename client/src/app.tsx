@@ -44,7 +44,7 @@ function App() {
     joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
-    <div className="h-screen" style={{ backgroundColor: "#0E0E1B" }}>
+    <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
       <div className="w-fit mx-auto">
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
