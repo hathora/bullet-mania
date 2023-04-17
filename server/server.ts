@@ -317,7 +317,6 @@ setInterval(() => {
 
 // The frame-by-frame logic of your game should live in it's server's tick function. This is often a place to check for collisions, compute score, and so forth
 function tick(game: InternalState, deltaMs: number) {
-  let highScore = 0;
   // Move each player with a direction set
   game.players.forEach((player) => {
     player.body.x += PLAYER_SPEED * player.direction.x * deltaMs;
@@ -331,21 +330,7 @@ function tick(game: InternalState, deltaMs: number) {
     if (player.dashCooldown && player.dashCooldown < Date.now()) {
       player.dashCooldown = undefined;
     }
-
-    if (player.score > highScore) {
-      highScore = player.score;
-    }
   });
-
-  if (highScore >= lobbyInfo.state.winningScore) {}
-  const newState: LobbyState =
-    lobbyInfo.state != null
-      ? lobbyInfo.state
-      : {
-        playerCount: game.players.length + 1,
-      };
-  newState.playerCount = game.players.length + 1;
-  const state = await lobbyClient.setLobbyState(roomId, newState);
 
   // Move all active bullets along a path based on their radian angle
   game.bullets.forEach((bullet) => {
