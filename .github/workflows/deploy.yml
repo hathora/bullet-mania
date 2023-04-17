@@ -12,8 +12,9 @@ jobs:
       - run: npm install -g @hathora/cli
       - run: >
           hathora-cloud deploy --appId app-122d530a-ab60-4597-95d8-fabeecfe3c1b
-          --roomsPerProcess 10 --planName tiny --transportType tls
-          --containerPort 4000 --env '[]' --token ${{ secrets.HATHORA_TOKEN }}
+          --roomsPerProcess 1 --planName tiny --transportType tls
+          --containerPort 4000 --env '[{"name": "APP_TOKEN", "value": "${{
+          secrets.HATHORA_TOKEN }}"}]' --token ${{ secrets.HATHORA_TOKEN }}
   frontend:
     runs-on: ubuntu-latest
     defaults:
