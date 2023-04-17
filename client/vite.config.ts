@@ -9,8 +9,8 @@ export default defineConfig(({ mode }) => {
     clearScreen: false,
     define: {
       "process.env": {
-        APP_ID: process.env.APP_ID ?? env.APP_ID,
-        COORDINATOR_HOST: process.env.COORDINATOR_HOST ?? env.COORDINATOR_HOST,
+        HATHORA_APP_ID: process.env.HATHORA_APP_ID ?? env.HATHORA_APP_ID,
+        HATHORA_API_HOST: process.env.HATHORA_API_HOST ?? env.HATHORA_API_HOST,
       },
     },
   };

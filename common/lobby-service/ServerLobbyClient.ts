@@ -9,8 +9,8 @@ export class ServerLobbyClient<
 > extends AbstractLobbyClient<LobbyState, InitialConfig> {
   private appToken: string;
 
-  constructor(appToken: string, appId: string, endpoint: string = "https://api.hathora.dev") {
-    super(appId, endpoint);
+  constructor(appToken: string, appId: string) {
+    super(appId);
     this.appToken = appToken;
   }
 

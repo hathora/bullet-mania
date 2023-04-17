@@ -14,7 +14,7 @@ export async function getJson(url: string, headers: Record<string, string> = {})
 }
 
 async function maybeGetHttpError(res: Response) {
-  if (res.status != 200) {
+  if (!res.ok) {
     return Promise.reject(`Request failed with status ${res.status} and ${await res.text()}`);
   } else {
     return await res.json();
@@ -28,17 +28,13 @@ export async function poll<Intermediate, Target extends Intermediate>(
   maxAttempts: number
 ): Promise<Target> {
   let attempts = 0;
-  const executePoll = async (resolve: (arg0: Target) => void, reject: (arg0: Error) => void) => {
-    const result = await fn();
-    attempts++;
-
-    if (validate(result)) {
-      return resolve(result);
-    } else if (maxAttempts && attempts === maxAttempts) {
-      return reject(new Error("Exceeded max attempts"));
-    } else {
-      setTimeout(executePoll, interval, resolve, reject);
+  while (attempts < maxAttempts) {
+    const res = await fn();
+    if (validate(res)) {
+      return res;
     }
-  };
-  return new Promise(executePoll);
+    await new Promise((resolve) => setTimeout(resolve, interval));
+    attempts++;
+  }
+  throw new Error("Polling timed out");
 }
