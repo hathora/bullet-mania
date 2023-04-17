@@ -1,5 +1,3 @@
-import { env } from "process";
-
 import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
@@ -8,13 +6,14 @@ import { DisplayMetadata, InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
+import { Socials } from "./components/Socials";
 import { LobbySelector } from "./components/LobbySelector";
 import { HathoraLogo } from "./components/HathoraLogo";
 import { GameComponent, GameConfig } from "./components/GameComponent";
 import { ExplanationText } from "./components/ExplanationText";
 
 function App() {
-  const appId = process.env.APP_ID ?? env.APP_ID;
+  const appId = process.env.HATHORA_APP_ID;
   const token = useAuthToken(appId);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "" });
@@ -22,19 +21,18 @@ function App() {
 
   const joinRoom = useCallback(
     (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
-      lobbyClient.getConnectionDetailsForLobbyV2(roomId).then((connectionDetails) => {
-        if (connection != null) {
-          connection.disconnect(200);
-        }
-        const connect = import.meta.env.DEV
-          ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
-          : new HathoraConnection(roomId, connectionDetails);
-
-        connect.onClose(() => setFailedToConnect(true));
-        setConnection(connect);
-        setDisplayMetadata({ serverUrl: `${connectionDetails.host}:${connectionDetails.port}` });
-        history.pushState({}, "", `/${roomId}`); //update url
-      }),
+      lobbyClient
+        .getConnectionDetailsForLobbyV2(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
+        .then((connectionDetails) => {
+          if (connection != null) {
+            connection.disconnect(200);
+          }
+          const connect = new HathoraConnection(roomId, connectionDetails);
+          connect.onClose(() => setFailedToConnect(true));
+          setConnection(connect);
+          setDisplayMetadata({ serverUrl: `${connectionDetails.host}:${connectionDetails.port}` });
+          history.pushState({}, "", `/${roomId}`); //update url
+        }),
     [connection]
   );
   if (appId == null || token == null) {
@@ -46,7 +44,7 @@ function App() {
     joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
-    <div className="h-screen" style={{ backgroundColor: "#1E1E1E" }}>
+    <div className="h-screen" style={{ backgroundColor: "#0E0E1B" }}>
       <div className="w-fit mx-auto">
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
@@ -63,6 +61,7 @@ function App() {
             </>
           )}
         </div>
+        <Socials />
         <ExplanationText />
       </div>
     </div>
