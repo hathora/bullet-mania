@@ -9,9 +9,14 @@ import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } fr
 import map from "../common/map.json" assert { type: "json" };
 
 import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
+
 /**
  * TODO: remove this lmao
  */
+process.on("unhandledRejection", (error) => {
+  console.error("unhandledRejection", error);
+});
+
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
 
@@ -118,8 +123,9 @@ const store: Application = {
 
   // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
+    console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.APP_ID!);
+      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
 
       if (!rooms.has(roomId)) {
@@ -139,7 +145,7 @@ const store: Application = {
                 playerCount: game.players.length + 1,
               };
         newState.playerCount = game.players.length + 1;
-        await lobbyClient.setLobbyState(roomId, newState);
+        const state = await lobbyClient.setLobbyState(roomId, newState);
         // Then create a physics body for the player
         const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
         const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
@@ -164,6 +170,7 @@ const store: Application = {
 
   // unsubscribeUser is called when a user disconnects from a room, and is the place where you'd want to do any player-cleanup
   async unsubscribeUser(roomId: RoomId, userId: string): Promise<void> {
+    console.log("unsubscribeUser", roomId, userId);
     // Make sure the room exists
     if (!rooms.has(roomId)) {
       return;
@@ -179,7 +186,7 @@ const store: Application = {
 
     try {
       //remove player from lobby state
-      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.APP_ID!);
+      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.HATHORA_APP_ID!);
       const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
       const newState: LobbyState =
         lobbyInfo.state != null

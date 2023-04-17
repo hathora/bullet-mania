@@ -1,15 +1,4 @@
-import { join } from "path";
-import { platform } from "os";
-import { connect } from "http2";
-import { request } from "http";
-import { read } from "fs";
-import { on } from "events";
-import { sign } from "crypto";
-import { match } from "assert";
-
 import React from "react";
-import { use } from "matter";
-import { call } from "dayjs";
 
 import { GameConfig } from "./GameComponent";
 
@@ -21,7 +10,7 @@ export function ExplanationText() {
         We built Bullet Mania to showcase how easy it is to build a multiplayer game on Hathora. This game is completely
         open source and you can check it out here.
       </p>
-      <p>
+      <p style={pStyle}>
         Hathora is a serverless cloud hosting platform that dynamically provisions servers for multiplayer games on
         demand. With our platform, your game servers will be available globally and you won’t pay for idle servers. When
         your game sees player spikes, Hathora will automatically scale your game servers to meet demand.{" "}
