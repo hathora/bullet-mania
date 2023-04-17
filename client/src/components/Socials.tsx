@@ -1,10 +1,7 @@
-import React from "react";
 import React, { useState } from "react";
 
 export function Socials() {
-  return (
-    <div className="flex flex-row justify-center">{socialButton("github.svg", "github-hover.svg", "", "github")()}</div>
-  );
+  return <div className="flex flex-row justify-center">{socialButton("", "github-hover.svg", "", "github")()}</div>;
 }
 
 function socialButton(neutralImage: string, hoverImage: string, link: string, alt: string) {

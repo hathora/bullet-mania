@@ -3,7 +3,8 @@ import { postJson } from "./util";
 export class AuthClient {
   protected authEndpoint: string;
 
-  constructor(appId: string, endpoint: string = "https://api.hathora.dev") {
+  constructor(appId: string) {
+    const endpoint = process.env.HATHORA_API_HOST ?? "https://api.hathora.dev";
     this.authEndpoint = `${endpoint}/auth/v1/${appId}`;
   }
 

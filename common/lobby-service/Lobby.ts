@@ -6,7 +6,7 @@ export interface Lobby<LobbyState extends object = object, InitialConfig extends
   createdAt: Date;
   createdBy: string;
   local: boolean;
-  visibility: "public" | "private";
+  visibility: "public" | "private" | "local";
   region: Region;
   roomId: string;
   appId: string;
