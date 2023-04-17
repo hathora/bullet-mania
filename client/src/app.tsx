@@ -8,6 +8,7 @@ import { DisplayMetadata, InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
+import { Socials } from "./components/Socials";
 import { LobbySelector } from "./components/LobbySelector";
 import { HathoraLogo } from "./components/HathoraLogo";
 import { GameComponent, GameConfig } from "./components/GameComponent";
@@ -26,9 +27,10 @@ function App() {
         if (connection != null) {
           connection.disconnect(200);
         }
-        const connect = import.meta.env.DEV
-          ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
-          : new HathoraConnection(roomId, connectionDetails);
+        const connect =
+          import.meta.env.DEV && connectionDetails.host === "localhosdst"
+            ? new HathoraConnection(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
+            : new HathoraConnection(roomId, connectionDetails);
 
         connect.onClose(() => setFailedToConnect(true));
         setConnection(connect);
@@ -46,7 +48,7 @@ function App() {
     joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
-    <div className="h-screen" style={{ backgroundColor: "#1E1E1E" }}>
+    <div className="h-screen" style={{ backgroundColor: "#0E0E1B" }}>
       <div className="w-fit mx-auto">
         <HathoraLogo />
         <div style={{ width: GameConfig.width, height: GameConfig.height }}>
@@ -63,6 +65,7 @@ function App() {
             </>
           )}
         </div>
+        <Socials />
         <ExplanationText />
       </div>
     </div>

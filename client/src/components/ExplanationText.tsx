@@ -35,16 +35,18 @@ export function ExplanationText() {
 }
 
 const h1Style = {
-  fontFamily: "Space Grotesk",
+  fontFamily: "Oxanium",
   fontStyle: "normal",
   fontWeight: 500,
   fontSize: "32px",
   lineHeight: "44px",
   color: "#AF64EE",
+  marginBottom: "8px",
+  marginTop: "7px",
 };
 
 const pStyle = {
-  fontFamily: "Space Grotesk",
+  fontFamily: "Oxanium",
   fontStyle: "normal",
   fontWeight: 400,
   fontSize: "20px",
