@@ -1,31 +1,36 @@
-import React, { useState } from "react";
+import React from "react";
 
 export function Socials() {
   return (
-    <div className="flex flex-row justify-center">{socialButton("github.svg", "github-hover.svg", "", "github")()}</div>
+    <div className="flex items-left w-full h-full my-4">
+      <SocialIcon href="https://discord.gg/hathora" imgSrc="social-media/icon-discord.svg" imgAlt="Discord" />
+      <SocialIcon href="https://github.com/hathora" imgSrc="social-media/icon-github.svg" imgAlt="Github" />
+      <SocialIcon href="https://twitter.com/HathoraDev" imgSrc="social-media/icon-twitter.svg" imgAlt="Twitter" />
+      <SocialIcon
+        href="https://www.youtube.com/channel/UCwJhOa1fXbkitI0u94PJOHg"
+        imgSrc="social-media/icon-youtube.svg"
+        imgAlt="YouTube"
+      />
+      <SocialIcon
+        href="https://www.linkedin.com/company/hathora/"
+        imgSrc="social-media/icon-linkedin.svg"
+        imgAlt="LinkedIn"
+      />
+    </div>
   );
 }
 
-function socialButton(neutralImage: string, hoverImage: string, link: string, alt: string) {
-  return () => {
-    const [image, setImage] = useState(neutralImage);
-    return (
-      <button
-        onMouseEnter={() => setImage(hoverImage)}
-        onMouseLeave={() => setImage(neutralImage)}
-        className="flex flex-row justify-center"
-        onClick={() => window.open(link, "_blank")}
-      >
-        <img src={image} alt={alt} className="w-8 h-8 m-2" />
-      </button>
-    );
-  };
+interface SocialIconProps {
+  href: string;
+  imgSrc: string;
+  imgAlt: string;
 }
 
-{
-  /* <div onHover={} className="flex flex-row justify-center">
-<a href="" target="_blank" rel="noreferrer">
-  <img src={image} alt="github" className="w-8 h-8 m-2" />
-</a>
-</div> */
+function SocialIcon(props: SocialIconProps) {
+  const { href, imgSrc, imgAlt } = props;
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className="mr-3">
+      <img src={imgSrc} alt={imgAlt} />
+    </a>
+  );
 }
