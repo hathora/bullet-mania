@@ -51,24 +51,29 @@ export function GameCreator(props: GameCreatorProps) {
         selected={winningScore}
         onSelect={(s) => setWinningScore(Number(s))}
       />
-      <button
-        className="mb-3"
-        onClick={async () => {
-          if (!isLoading) {
-            setIsLoading(true);
-            try {
-              const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
-              joinRoom(lobby.roomId);
-            } catch (e) {
-              setIsLoading(false);
-              setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
+      <div className={"mb-3 flex items-center justify-center"}>
+        <button
+          onClick={async () => {
+            if (!isLoading) {
+              setIsLoading(true);
+              try {
+                const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
+                joinRoom(lobby.roomId);
+              } catch (e) {
+                setIsLoading(false);
+                setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
+              }
             }
-          }
-        }}
-      >
-        <BulletButton text={"CREATE!"} large />
-      </button>
-      {isLoading && <div className={"text-secondary-700 inline-flex items-center"}>Loading..</div>}
+          }}
+        >
+          <BulletButton text={"CREATE!"} disabled={isLoading} large />
+        </button>
+        {isLoading && (
+          <div className={"absolute ml-40 text-secondary-700 inline-flex items-center loading-dots-animation"}>
+            Starting...
+          </div>
+        )}
+      </div>
       {error && <div className={"mb-3 text-brand-500 text-xs"}>{error}</div>}
     </LobbyPageCard>
   );

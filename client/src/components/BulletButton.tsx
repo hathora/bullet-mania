@@ -2,12 +2,13 @@ import React from "react";
 
 interface BulletButtonProps {
   text: string;
+  disabled?: boolean;
   large?: boolean;
 }
 export function BulletButton(props: BulletButtonProps) {
-  const { text, large } = props;
+  const { text, disabled, large } = props;
   return (
-    <div className={"relative text-brand-500 hover:text-brand-600"}>
+    <div className={`relative ${disabled ? "text-brand-400" : "text-brand-500 hover:text-brand-600"}`}>
       <div className={`absolute text-secondary-400 ${large ? "left-[29px] top-[4px]" : "left-[22px]"}`}>{text}</div>
       <svg
         width={large ? "120" : "90"}

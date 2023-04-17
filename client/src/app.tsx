@@ -20,7 +20,7 @@ function App() {
   const [failedToConnect, setFailedToConnect] = useState(false);
 
   const joinRoom = useCallback(
-    (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
+    (lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>) => (roomId: string) =>
       lobbyClient
         .getConnectionDetailsForLobbyV2(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
         .then(async (connectionDetails) => {

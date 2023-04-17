@@ -17,7 +17,7 @@ interface GameComponentProps {
   token: string;
   displayMetadata: {
     serverUrl: string;
-    winCondition: string;
+    winningScore: string;
   };
 }
 export function GameComponent(props: GameComponentProps) {
