@@ -47,7 +47,7 @@ function App() {
   }
   const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
   const roomIdFromUrl = getRoomIdFromUrl();
-  if (roomIdFromUrl != null) {
+  if (roomIdFromUrl != null && connection == null) {
     joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
