@@ -50,6 +50,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
           </tr>
           {lobbies
             .filter((l) => readyRooms.has(l.roomId))
+            .sort((a, b) => (new Date(b.createdAt).getTime() || 0) - (new Date(a.createdAt).getTime() || 0))
             .map((lobby, index) => (
               <tr
                 key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
@@ -86,9 +87,13 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                   </div>
                 </td>
                 <td className={""}>
-                  <button className={"mt-2"} onClick={() => joinRoom(lobby.roomId)}>
-                    <BulletButton text={"JOIN!"} />
-                  </button>
+                  {lobby.state?.isGameEnd ? (
+                    <div className={"leading-4"}>GAME ENDED</div>
+                  ) : (
+                    <button className={"mt-2"} onClick={() => joinRoom(lobby.roomId)}>
+                      <BulletButton text={"JOIN!"} />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

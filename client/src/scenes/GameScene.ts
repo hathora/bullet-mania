@@ -288,7 +288,7 @@ export class GameScene extends Scene {
     state.players
       .sort((a, b) => b.score - a.score)
       .forEach((player, index) => {
-        if (player.score >= this.sessionMetadata?.winningScore && this.endText) {
+        if (this.sessionMetadata?.winningScore && player.score >= this.sessionMetadata?.winningScore && this.endText) {
           this.endText.visible = true;
           this.endText.text = `GAME OVER - ${player.id} wins (${player.score} kills)`;
         }

@@ -32,6 +32,7 @@ export type GameState = {
 
 export type LobbyState = {
   playerCount: number;
+  isGameEnd?: boolean;
 };
 
 export type InitialConfig = {
