@@ -39,4 +39,4 @@ export type InitialConfig = {
   winningScore: number;
 };
 
-export type DisplayMetadata = { serverUrl: string, winningScore: any };
+export type SessionMetadata = { serverUrl: string, winningScore: number };

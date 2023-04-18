@@ -2,7 +2,7 @@ import Phaser, { Math as pMath, Scene } from "phaser";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
-import { Bullet, DisplayMetadata, GameState, Player } from "../../../common/types";
+import { Bullet, SessionMetadata, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import map from "../../../common/map.json";
 
@@ -12,7 +12,7 @@ export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
   private connection: HathoraConnection | undefined;
   private token: string | undefined;
-  private displayMetadata: DisplayMetadata | undefined;
+  private sessionMetadata: SessionMetadata | undefined;
 
   // The buffer which holds state snapshots
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
@@ -77,16 +77,16 @@ export class GameScene extends Scene {
   init({
     connection,
     token,
-    displayMetadata,
+    sessionMetadata,
   }: {
     connection: HathoraConnection;
     token: string;
-    displayMetadata: DisplayMetadata;
+    sessionMetadata: SessionMetadata;
   }) {
     // Receive connection and user data from BootScene
     this.connection = connection;
     this.token = token;
-    this.displayMetadata = displayMetadata;
+    this.sessionMetadata = sessionMetadata;
 
     const currentUser = HathoraClient.getUserFromToken(token);
     this.currentUserID = currentUser.id;
@@ -115,7 +115,7 @@ export class GameScene extends Scene {
 
     // Display metadata
     const _serverUrl = this.add
-      .text(4, 4, this.displayMetadata?.serverUrl ?? "", { color: "white" })
+      .text(4, 4, this.sessionMetadata?.serverUrl ?? "", { color: "white" })
       .setScrollFactor(0);
 
     // Ping indicator
@@ -288,7 +288,7 @@ export class GameScene extends Scene {
     state.players
       .sort((a, b) => b.score - a.score)
       .forEach((player, index) => {
-        if (player.score >= this.displayMetadata?.winningScore && this.endText) {
+        if (player.score >= this.sessionMetadata?.winningScore && this.endText) {
           this.endText.visible = true;
           this.endText.text = `GAME OVER - ${player.id} wins (${player.score} kills)`;
         }

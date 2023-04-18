@@ -2,7 +2,7 @@ import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { DisplayMetadata, InitialConfig, LobbyState } from "../../common/types";
+import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -16,7 +16,7 @@ function App() {
   const appId = process.env.HATHORA_APP_ID;
   const token = useAuthToken(appId);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
-  const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "", winningScore: 15 });
+  const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({ serverUrl: "", winningScore: 15 });
   const [failedToConnect, setFailedToConnect] = useState(false);
 
   const joinRoom = useCallback(
@@ -33,7 +33,7 @@ function App() {
           const connect = new HathoraConnection(roomId, connectionDetails);
           connect.onClose(() => setFailedToConnect(true));
           setConnection(connect);
-          setDisplayMetadata({
+          setSessionMetadata({
             serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
             winningScore: res.initialConfig.winningScore,
           });
@@ -63,7 +63,7 @@ function App() {
               {connection == null && (
                 <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
               )}
-              <GameComponent connection={connection} token={token} displayMetadata={displayMetadata} />
+              <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />
             </>
           )}
         </div>
