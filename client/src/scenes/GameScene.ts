@@ -35,6 +35,7 @@ export class GameScene extends Scene {
   private dash: Phaser.GameObjects.Text | undefined = undefined;
   private respawnText: Phaser.GameObjects.Text | undefined = undefined;
   private endText: Phaser.GameObjects.Text | undefined = undefined;
+  private disconnectText: Phaser.GameObjects.Text | undefined = undefined;
 
   static NAME = "scene-game";
 
@@ -147,6 +148,14 @@ export class GameScene extends Scene {
         fontSize: "20px",
         backgroundColor: "#9A282A",
         padding: { x: 8, y: 4 },
+      })
+      .setScrollFactor(0)
+      .setVisible(this.sessionMetadata?.isGameEnd || false);
+    this.disconnectText = this.add
+      .text(this.scale.width / 2 - 100, 260, "Match will disconnect shortly", {
+        color: "#ecf5f5",
+        backgroundColor: "#9A282A",
+        padding: { x: 4, y: 2 },
       })
       .setScrollFactor(0)
       .setVisible(false);
@@ -288,9 +297,15 @@ export class GameScene extends Scene {
     state.players
       .sort((a, b) => b.score - a.score)
       .forEach((player, index) => {
-        if (this.sessionMetadata?.winningScore && player.score >= this.sessionMetadata?.winningScore && this.endText) {
+        if (
+          this.sessionMetadata?.winningScore &&
+          player.score >= this.sessionMetadata?.winningScore &&
+          this.endText &&
+          this.disconnectText
+        ) {
           this.endText.visible = true;
           this.endText.text = `GAME OVER - ${player.id} wins (${player.score} kills)`;
+          this.disconnectText.visible = true;
         }
         // update leaderboard text
         if (this.leaderBoard.has(player.id)) {

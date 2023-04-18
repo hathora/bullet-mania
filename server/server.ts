@@ -348,19 +348,7 @@ async function tick(roomId: string, game: InternalState, deltaMs: number) {
   // Check if game has ended, update state if so
   if (highScore >= game.winningScore && !game.isGameEnd) {
     game.isGameEnd = true;
-    const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
-    const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
-    const modifiedState: LobbyState =
-      lobbyInfo.state != null
-        ? {
-          ...lobbyInfo.state,
-          isGameEnd: true
-        }
-        : {
-          playerCount: game.players.length,
-          isGameEnd: true
-        };
-    lobbyClient.setLobbyState(roomId, modifiedState);
+    endGameCleanup(roomId, game);
   }
 
   // Move all active bullets along a path based on their radian angle
@@ -479,4 +467,31 @@ function getAppToken() {
     throw new Error("APP_TOKEN not set");
   }
   return token;
+}
+
+async function endGameCleanup(roomId: string, game: InternalState) {
+  // Update lobby state (so new players can't join)
+  const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
+  const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+  const modifiedState: LobbyState =
+    lobbyInfo.state != null
+      ? {
+        ...lobbyInfo.state,
+        isGameEnd: true
+      }
+      : {
+        playerCount: game.players.length,
+        isGameEnd: true
+      };
+  lobbyClient.setLobbyState(roomId, modifiedState);
+
+  // boot all players and destroy room
+  console.log("players at end:", game.players);
+  setTimeout(() => {
+    game.players.forEach(p => {
+      console.log("disconnecting: ", p.id, roomId, p)
+      server.closeConnection(roomId, p.id, "game has ended, disconnecting players");
+    });
+    // TODO: once SDK is ready, destroyRoom()
+  }, 25000)
 }
