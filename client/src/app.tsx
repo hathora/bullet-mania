@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import React from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { DisplayMetadata, InitialConfig, LobbyState } from "../../common/types";
+import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -17,21 +17,27 @@ function App() {
   const appId = process.env.HATHORA_APP_ID;
   const token = useAuthToken(appId);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
-  const [displayMetadata, setDisplayMetadata] = useState<DisplayMetadata>({ serverUrl: "" });
+  const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({ serverUrl: "", winningScore: 15 });
   const [failedToConnect, setFailedToConnect] = useState(false);
 
   const joinRoom = useCallback(
-    (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
+    (lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>) => (roomId: string) =>
       lobbyClient
         .getConnectionDetailsForLobby(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
-        .then((connectionDetails) => {
+        .then(async (connectionDetails) => {
           if (connection != null) {
             connection.disconnect(1000);
           }
+
+          const res = await lobbyClient.getLobbyInfo(roomId);
+
           const connect = new HathoraConnection(roomId, connectionDetails);
           connect.onClose(() => setFailedToConnect(true));
           setConnection(connect);
-          setDisplayMetadata({ serverUrl: `${connectionDetails.host}:${connectionDetails.port}` });
+          setSessionMetadata({
+            serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+            winningScore: res.initialConfig.winningScore,
+          });
           history.pushState({}, "", `/${roomId}`); //update url
         }),
     [connection]
@@ -58,7 +64,7 @@ function App() {
               {connection == null && (
                 <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
               )}
-              <GameComponent connection={connection} token={token} displayMetadata={displayMetadata} />
+              <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />
             </>
           )}
         </div>

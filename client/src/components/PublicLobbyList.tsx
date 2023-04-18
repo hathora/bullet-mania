@@ -45,17 +45,15 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
           <tr className="bg-secondary-500 text-secondary-800">
             <th className="py-1 text-sm font-medium border border-secondary-700">Room ID</th>
             <th className="py-1 text-sm font-medium border border-secondary-700">Spots</th>
-            <th colSpan={2} className="py-1 text-sm font-medium border border-secondary-700">
-              Details
-            </th>
-            <th colSpan={1} className="py-1 text-sm font-medium border border-secondary-700"></th>
+            <th className="py-1 text-sm font-medium border border-secondary-700">Details</th>
+            <th className="py-1 text-sm font-medium border border-secondary-700 w-16"></th>
           </tr>
           {lobbies
             .filter((l) => readyRooms.has(l.roomId))
             .map((lobby, index) => (
               <tr
                 key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
-                className={`text-secondary-900 ${index % 2 === 0 ? "bg-secondary-600" : ""}`}
+                className={"text-secondary-900 even:bg-secondary-600"}
               >
                 <td
                   className={`border-r text-sm ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
@@ -66,7 +64,11 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     {`${lobby.state?.playerCount ?? 0}/${lobby.initialConfig.capacity}`}
                   </div>
                 </td>
-                <td className={"flex justify-center px-0.5 py-1 text-xs"}>
+                <td
+                  className={`col-span-2 flex justify-center px-0.5 py-1 text-xs border-r ${
+                    index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"
+                  }`}
+                >
                   <div className={"grid grid-cols-2 grid-rows-2 gap-x-2"}>
                     <div className={"flex items-center"}>{`${FLAG_TABLE[lobby.region]} ${lobby.region}`}</div>
                     <div className={"flex items-center gap-1 text-xs"}>
@@ -83,8 +85,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     </div>
                   </div>
                 </td>
-                <td className={`border-r ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}></td>
-                <td>
+                <td className={""}>
                   <button className={"mt-2"} onClick={() => joinRoom(lobby.roomId)}>
                     <BulletButton text={"JOIN!"} />
                   </button>
