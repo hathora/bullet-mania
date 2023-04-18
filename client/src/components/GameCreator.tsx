@@ -58,10 +58,11 @@ export function GameCreator(props: GameCreatorProps) {
               setIsLoading(true);
               try {
                 const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
-                joinRoom(lobby.roomId);
+                await joinRoom(lobby.roomId);
               } catch (e) {
-                setIsLoading(false);
                 setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
+              } finally {
+                setIsLoading(false);
               }
             }
           }}

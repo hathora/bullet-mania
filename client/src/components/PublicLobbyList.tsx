@@ -53,7 +53,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
             .map((lobby, index) => (
               <tr
                 key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
-                className={`text-secondary-900 ${index % 2 === 0 ? "bg-secondary-600" : ""}`}
+                className={"text-secondary-900 even:bg-secondary-600"}
               >
                 <td
                   className={`border-r text-sm ${index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"}`}
