@@ -1,29 +1,27 @@
-import { postJson } from "./util";
+import { AuthV1Api, AuthV1ApiInterface, Configuration } from "@hathora/hathora-cloud-sdk";
 
 export class AuthClient {
-  protected authEndpoint: string;
+  private client: AuthV1ApiInterface;
+  private appId: string;
 
   constructor(appId: string) {
     const endpoint = process.env.HATHORA_API_HOST ?? "https://api.hathora.dev";
-    this.authEndpoint = `${endpoint}/auth/v1/${appId}`;
+    this.client = new AuthV1Api(new Configuration({ basePath: endpoint }));
+    this.appId = appId;
   }
 
-  async loginAnonymousV1(): Promise<string> {
-    const res = await postJson(`${this.authEndpoint}/login/anonymous`, {});
+  async loginAnonymous(): Promise<string> {
+    const res = await this.client.loginAnonymous(this.appId);
     return res.token;
   }
 
-  async loginNicknameV1(nickname: string): Promise<string> {
-    const res = await postJson(`${this.authEndpoint}/login/nickname`, {
-      nickname,
-    });
+  async loginNickname(nickname: string): Promise<string> {
+    const res = await this.client.loginNickname(this.appId, { nickname });
     return res.token;
   }
 
   async loginGoogle(idToken: string): Promise<string> {
-    const res = await postJson(`${this.authEndpoint}/login/google`, {
-      idToken,
-    });
+    const res = await this.client.loginGoogle(this.appId, { idToken });
     return res.token;
   }
 }

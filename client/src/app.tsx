@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { DisplayMetadata, InitialConfig, LobbyState } from "../../common/types";
@@ -22,10 +23,10 @@ function App() {
   const joinRoom = useCallback(
     (lobbyClient: PlayerLobbyClient<LobbyState>) => (roomId: string) =>
       lobbyClient
-        .getConnectionDetailsForLobbyV2(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
+        .getConnectionDetailsForLobby(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
         .then((connectionDetails) => {
           if (connection != null) {
-            connection.disconnect(200);
+            connection.disconnect(1000);
           }
           const connect = new HathoraConnection(roomId, connectionDetails);
           connect.onClose(() => setFailedToConnect(true));
@@ -71,14 +72,14 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
-function useAuthToken(appId: string | undefined, endpoint?: string): string | undefined {
+function useAuthToken(appId: string | undefined): string | undefined {
   const [token, setToken] = React.useState<string | undefined>();
   useEffect(() => {
     if (appId != null) {
-      const authClient = new AuthClient(appId, endpoint);
+      const authClient = new AuthClient(appId);
       getToken(authClient).then(setToken);
     }
-  }, [appId, endpoint]);
+  }, [appId]);
   return token;
 }
 
@@ -88,7 +89,7 @@ async function getToken(client: AuthClient): Promise<string> {
   if (maybeToken !== null) {
     return maybeToken;
   }
-  const token = await client.loginAnonymousV1();
+  const token = await client.loginAnonymous();
   sessionStorage.setItem("topdown-shooter-token", token);
   return token;
 }

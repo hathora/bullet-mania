@@ -6,6 +6,7 @@
     "target": "esnext",
     "moduleResolution": "node",
     "isolatedModules": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "experimentalDecorators": true
   }
 }

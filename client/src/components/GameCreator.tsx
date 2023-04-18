@@ -83,10 +83,10 @@ function getLobby(
 ) {
   switch (visibility) {
     case "Public":
-      return lobbyClient.createPublicLobbyV2(playerToken, region, initialConfig);
+      return lobbyClient.createPublicLobby(playerToken, region, initialConfig);
     case "Private":
-      return lobbyClient.createPrivateLobbyV2(playerToken, region, initialConfig);
+      return lobbyClient.createPrivateLobby(playerToken, region, initialConfig);
     case "Local":
-      return lobbyClient.createLocalLobbyV2(playerToken, region, initialConfig);
+      return lobbyClient.createLocalLobby(playerToken, region, initialConfig);
   }
 }

@@ -30,7 +30,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   useEffect(() => {
     Promise.all(
       lobbies.map(async (l) => {
-        await lobbyClient.getConnectionDetailsForLobbyV2(l.roomId);
+        await lobbyClient.getConnectionDetailsForLobby(l.roomId);
         return l.roomId;
       })
     )
@@ -100,10 +100,10 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
 function useLobbies<S extends object, I extends object>(lobbyClient: PlayerLobbyClient<S, I>): Lobby<S, I>[] {
   const [lobbies, setLobbies] = React.useState<Lobby<S, I>[]>([]);
   React.useEffect(() => {
-    lobbyClient.listActivePublicLobbiesV2().then(setLobbies);
+    lobbyClient.listActivePublicLobbies().then(setLobbies);
   }, [lobbyClient]);
   useInterval(() => {
-    lobbyClient.listActivePublicLobbiesV2().then(setLobbies);
+    lobbyClient.listActivePublicLobbies().then(setLobbies);
   }, 2000);
   return lobbies;
 }

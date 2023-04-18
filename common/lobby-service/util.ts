@@ -1,26 +1,3 @@
-export async function postJson(url: string, body: object, headers: Record<string, string> = {}) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { ...headers, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return maybeGetHttpError(res);
-}
-export async function getJson(url: string, headers: Record<string, string> = {}) {
-  const res = await fetch(url, {
-    headers: { ...headers, "Content-Type": "application/json" },
-  });
-  return maybeGetHttpError(res);
-}
-
-async function maybeGetHttpError(res: Response) {
-  if (!res.ok) {
-    return Promise.reject(`Request failed with status ${res.status} and ${await res.text()}`);
-  } else {
-    return await res.json();
-  }
-}
-
 export async function poll<Intermediate, Target extends Intermediate>(
   fn: () => Promise<Intermediate>,
   validate: (a: Intermediate) => a is Target,

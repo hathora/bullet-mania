@@ -126,7 +126,7 @@ const store: Application = {
     console.log("subscribeUser", roomId, userId);
     try {
       const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
-      const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+      const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
 
       if (!rooms.has(roomId)) {
         rooms.set(roomId, initializeRoom());
@@ -187,7 +187,7 @@ const store: Application = {
     try {
       //remove player from lobby state
       const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.HATHORA_APP_ID!);
-      const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+      const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
       const newState: LobbyState =
         lobbyInfo.state != null
           ? lobbyInfo.state
