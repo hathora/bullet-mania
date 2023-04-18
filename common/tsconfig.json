@@ -9,8 +9,5 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
-    "types": [
-      "vite/client"
-    ]
   }
 }
