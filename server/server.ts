@@ -45,7 +45,31 @@ const SPAWN_POSITIONS = [
     y: 256,
   },
   {
-    x: 1000,
+    x: 1001,
+    y: 750,
+  },
+  {
+    x: 1044,
+    y: 1140,
+  },
+  {
+    x: 120,
+    y: 820,
+  },
+  {
+    x: 610,
+    y: 1050,
+  },
+  {
+    x: 480,
+    y: 1100,
+  },
+  {
+    x: 60,
+    y: 1250,
+  },
+  {
+    x: 1002,
     y: 256,
   },
   {
@@ -53,7 +77,7 @@ const SPAWN_POSITIONS = [
     y: 2048,
   },
   {
-    x: 24,
+    x: 110,
     y: 1875,
   },
   {
@@ -231,16 +255,21 @@ const store: Application = {
         player.angle = 0;
         player.bullets = BULLETS_MAX;
         player.body = Object.assign(body, { oType: BodyType.Player });
+        player.isReloading = undefined;
+        player.dashCooldown = undefined;
         player.isDead = false;
       }
     } else if (message.type === ClientMessageType.Dash) {
+      if (player.isDead) {
+        return;
+      }
       if (!player.dashCooldown) {
         player.body.x += DASH_DISTANCE * player.direction.x;
         player.body.y += DASH_DISTANCE * player.direction.y;
         player.dashCooldown = Date.now() + DASH_COOLDOWN;
       }
     } else if (message.type === ClientMessageType.Shoot) {
-      if (player.isReloading) {
+      if (player.isReloading || player.isDead) {
         return;
       }
       player.bullets--;
@@ -329,7 +358,7 @@ function tick(game: InternalState, deltaMs: number) {
       const bullet = game.bullets.find((bullet) => bullet.body === a);
       const shooter = game.players.find((p) => p.id === bullet?.playerId);
       if (shooter) {
-        shooter.score += 100;
+        shooter.score += 1;
       }
 
       const bulletIdx = game.bullets.findIndex((bullet) => bullet.body === a);

@@ -2,7 +2,7 @@ import Phaser, { Math as pMath, Scene } from "phaser";
 import { InterpolationBuffer } from "interpolation-buffer";
 import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
-import { Bullet, DisplayMetadata, GameState, Player } from "../../../common/types";
+import { Bullet, SessionMetadata, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
 import map from "../../../common/map.json";
 
@@ -12,7 +12,7 @@ export class GameScene extends Scene {
   // A variable to represent our RoomConnection instance
   private connection: HathoraConnection | undefined;
   private token: string | undefined;
-  private displayMetadata: DisplayMetadata | undefined;
+  private sessionMetadata: SessionMetadata | undefined;
 
   // The buffer which holds state snapshots
   private stateBuffer: InterpolationBuffer<GameState> | undefined;
@@ -34,6 +34,7 @@ export class GameScene extends Scene {
   private leaderBoard: Map<string, Phaser.GameObjects.Text> = new Map();
   private dash: Phaser.GameObjects.Text | undefined = undefined;
   private respawnText: Phaser.GameObjects.Text | undefined = undefined;
+  private endText: Phaser.GameObjects.Text | undefined = undefined;
 
   static NAME = "scene-game";
 
@@ -76,16 +77,16 @@ export class GameScene extends Scene {
   init({
     connection,
     token,
-    displayMetadata,
+    sessionMetadata,
   }: {
     connection: HathoraConnection;
     token: string;
-    displayMetadata: DisplayMetadata;
+    sessionMetadata: SessionMetadata;
   }) {
     // Receive connection and user data from BootScene
     this.connection = connection;
     this.token = token;
-    this.displayMetadata = displayMetadata;
+    this.sessionMetadata = sessionMetadata;
 
     const currentUser = HathoraClient.getUserFromToken(token);
     this.currentUserID = currentUser.id;
@@ -114,7 +115,7 @@ export class GameScene extends Scene {
 
     // Display metadata
     const _serverUrl = this.add
-      .text(4, 4, this.displayMetadata?.serverUrl ?? "", { color: "white" })
+      .text(4, 4, this.sessionMetadata?.serverUrl ?? "", { color: "white" })
       .setScrollFactor(0);
 
     // Ping indicator
@@ -136,7 +137,17 @@ export class GameScene extends Scene {
       .setScrollFactor(0);
     this.add.text(4, this.scale.height - 24, "(LEFT CLICK)", { color: "white" }).setScrollFactor(0);
     this.respawnText = this.add
-      .text(380, 280, "Press [R] to respawn", { color: "white" })
+      .text(this.scale.width / 2 - 60, 280, "Press [R] to respawn", { color: "white" })
+      .setScrollFactor(0)
+      .setVisible(false);
+
+    this.endText = this.add
+      .text(this.scale.width / 2 - 160, 220, "GAME OVER - Winning score reached", {
+        color: "#ecf5f5",
+        fontSize: "20px",
+        backgroundColor: "#9A282A",
+        padding: { x: 8, y: 4 },
+      })
       .setScrollFactor(0)
       .setVisible(false);
 
@@ -277,6 +288,10 @@ export class GameScene extends Scene {
     state.players
       .sort((a, b) => b.score - a.score)
       .forEach((player, index) => {
+        if (player.score >= this.sessionMetadata?.winningScore && this.endText) {
+          this.endText.visible = true;
+          this.endText.text = `GAME OVER - ${player.id} wins (${player.score} kills)`;
+        }
         // update leaderboard text
         if (this.leaderBoard.has(player.id)) {
           const existing = this.leaderBoard.get(player.id);
@@ -311,7 +326,9 @@ export class GameScene extends Scene {
           {
             color: player.id === this.currentUserID ? "green" : "white",
           }
-        ).setAlpha(0.6);
+        )
+          .setVisible(!player.isDead)
+          .setAlpha(0.6);
         this.add.existing(newName);
         this.playersName.set(player.id, newName);
       }
@@ -319,7 +336,7 @@ export class GameScene extends Scene {
       if (this.playersAmmo.has(player.id)) {
         const existing = this.playersAmmo.get(player.id);
         if (existing) {
-          existing.visible = player.isReloading !== undefined;
+          existing.visible = player.isReloading !== undefined && !player.isDead;
           existing.text = `RELOAD ${Math.max(0, Math.ceil(((player.isReloading || 0) - Date.now()) / 1000))}s`;
           existing.x = player.position.x - 28;
           existing.y = player.position.y + 24;
@@ -334,7 +351,7 @@ export class GameScene extends Scene {
             color: "white",
           }
         )
-          .setVisible(player.isReloading !== undefined)
+          .setVisible(player.isReloading !== undefined && !player.isDead)
           .setAlpha(0.6);
         this.add.existing(newLabel);
         this.playersAmmo.set(player.id, newLabel);
