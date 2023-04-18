@@ -1,6 +1,5 @@
 import { Region } from "./Region";
 import { Lobby } from "./Lobby";
-import { postJson } from "./util";
 import { AbstractLobbyClient } from "./AbstractLobbyClient";
 
 export class PlayerLobbyClient<
@@ -11,48 +10,33 @@ export class PlayerLobbyClient<
     super(appId);
   }
 
-  async createPrivateLobbyV2(
+  async createPrivateLobby(
     playerToken: string,
     region: Region,
     initialConfig: InitialConfig,
     roomId?: string
   ): Promise<Lobby<LobbyState, InitialConfig>> {
-    const lobby = await postJson(
-      `${this.lobbyEndpoint}/create/private` + (roomId != null ? `&roomId=${roomId}` : ""),
-      { region, initialConfig },
-      { Authorization: playerToken }
-    );
-
+    const lobby = await this.lobbyClient.createPrivateLobby(this.appId, playerToken, { region, initialConfig }, roomId);
     return lobby as Lobby<LobbyState, InitialConfig>;
   }
 
-  async createPublicLobbyV2(
+  async createPublicLobby(
     playerToken: string,
     region: Region,
     initialConfig: InitialConfig,
     roomId?: string
   ): Promise<Lobby<LobbyState, InitialConfig>> {
-    const lobby = await postJson(
-      `${this.lobbyEndpoint}/create/public` + (roomId != null ? `&roomId=${roomId}` : ""),
-      { region, initialConfig },
-      { Authorization: playerToken }
-    );
-
+    const lobby = await this.lobbyClient.createPublicLobby(this.appId, playerToken, { region, initialConfig }, roomId);
     return lobby as Lobby<LobbyState, InitialConfig>;
   }
 
-  async createLocalLobbyV2(
+  async createLocalLobby(
     playerToken: string,
     region: Region,
     initialConfig: InitialConfig,
     roomId?: string
   ): Promise<Lobby<LobbyState, InitialConfig>> {
-    const lobby = await postJson(
-      `${this.lobbyEndpoint}/create/local` + (roomId != null ? `&roomId=${roomId}` : ""),
-      { region, initialConfig },
-      { Authorization: playerToken }
-    );
-
+    const lobby = await this.lobbyClient.createLocalLobby(this.appId, playerToken, { region, initialConfig }, roomId);
     return lobby as Lobby<LobbyState, InitialConfig>;
   }
 }

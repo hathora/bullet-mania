@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
+import React from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
@@ -22,13 +23,13 @@ function App() {
   const joinRoom = useCallback(
     (lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>) => (roomId: string) =>
       lobbyClient
-        .getConnectionDetailsForLobbyV2(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
+        .getConnectionDetailsForLobby(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
         .then(async (connectionDetails) => {
           if (connection != null) {
-            connection.disconnect(200);
+            connection.disconnect(1000);
           }
 
-          const res = await lobbyClient.getLobbyInfoV2(roomId);
+          const res = await lobbyClient.getLobbyInfo(roomId);
 
           if (!res.state?.isGameEnd) {
             const connect = new HathoraConnection(roomId, connectionDetails);
@@ -80,14 +81,14 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
-function useAuthToken(appId: string | undefined, endpoint?: string): string | undefined {
+function useAuthToken(appId: string | undefined): string | undefined {
   const [token, setToken] = React.useState<string | undefined>();
   useEffect(() => {
     if (appId != null) {
-      const authClient = new AuthClient(appId, endpoint);
+      const authClient = new AuthClient(appId);
       getToken(authClient).then(setToken);
     }
-  }, [appId, endpoint]);
+  }, [appId]);
   return token;
 }
 
@@ -97,7 +98,7 @@ async function getToken(client: AuthClient): Promise<string> {
   if (maybeToken !== null) {
     return maybeToken;
   }
-  const token = await client.loginAnonymousV1();
+  const token = await client.loginAnonymous();
   sessionStorage.setItem("topdown-shooter-token", token);
   return token;
 }
