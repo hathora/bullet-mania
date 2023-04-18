@@ -1,7 +1,5 @@
 import { AbstractLobbyClient } from "./AbstractLobbyClient";
 import { Lobby } from "./Lobby";
-import { Region } from "./Region";
-import { postJson } from "./util";
 
 export class ServerLobbyClient<
   LobbyState extends object = object,
@@ -15,12 +13,12 @@ export class ServerLobbyClient<
   }
 
   async setLobbyState(roomId: string, state: LobbyState): Promise<Lobby<LobbyState>> {
-    const lobby = await postJson(
-      `${this.lobbyEndpoint}/setState/${roomId}`,
+    const lobby = await this.lobbyClient.setLobbyState(
+      this.appId,
+      roomId,
       { state },
-      { Authorization: `Bearer ${this.appToken}` }
+      { headers: { Authorization: `Bearer ${this.appToken}` } }
     );
-
     return lobby as Lobby<LobbyState>;
   }
 }

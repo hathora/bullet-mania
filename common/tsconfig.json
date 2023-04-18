@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "jsx": "react",
     "esModuleInterop": true,
     "noEmit": true,
     "module": "esnext",
@@ -8,10 +7,7 @@
     "target": "esnext",
     "moduleResolution": "node",
     "isolatedModules": true,
-    "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "types": [
-      "vite/client"
-    ]
+    "resolveJsonModule": true,
   }
 }
