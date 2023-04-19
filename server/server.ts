@@ -472,7 +472,7 @@ function getAppToken() {
 async function endGameCleanup(roomId: string, game: InternalState) {
   // Update lobby state (so new players can't join)
   const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
-  const lobbyInfo = await lobbyClient.getLobbyInfoV2(roomId);
+  const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
   const modifiedState: LobbyState =
     lobbyInfo.state != null
       ? {
@@ -486,12 +486,13 @@ async function endGameCleanup(roomId: string, game: InternalState) {
   lobbyClient.setLobbyState(roomId, modifiedState);
 
   // boot all players and destroy room
-  console.log("players at end:", game.players);
   setTimeout(() => {
-    game.players.forEach(p => {
-      console.log("disconnecting: ", p.id, roomId, p)
-      server.closeConnection(roomId, p.id, "game has ended, disconnecting players");
+    const playerIds = game.players.map(p => p.id);
+    playerIds.forEach(playerId => {
+      console.log("disconnecting: ", playerId, roomId)
+      server.closeConnection(roomId, playerId, "game has ended, disconnecting players");
     });
-    // TODO: once SDK is ready, destroyRoom()
-  }, 25000)
+    console.log("destroying room: ", roomId);
+    lobbyClient.destroyRoom(roomId);
+  }, 15000)
 }

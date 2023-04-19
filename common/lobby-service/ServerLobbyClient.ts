@@ -21,4 +21,12 @@ export class ServerLobbyClient<
     );
     return lobby as Lobby<LobbyState>;
   }
+
+  async destroyRoom(roomId: string): Promise<void> {
+    return this.roomClient.destroyRoom(
+      this.appId,
+      roomId,
+      { headers: { Authorization: `Bearer ${this.appToken}`, "Content-Type": "application/json" } }
+    );
+  }
 }
