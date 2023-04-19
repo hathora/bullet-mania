@@ -1,6 +1,5 @@
 import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
-import React from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
