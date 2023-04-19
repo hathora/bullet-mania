@@ -16,13 +16,14 @@ interface GameComponentProps {
   connection: HathoraConnection | undefined;
   token: string;
   sessionMetadata: {
-    serverUrl: string;
+    serverUrl?: string;
     winningScore: number;
+    isGameEnd?: boolean;
   };
 }
 export function GameComponent(props: GameComponentProps) {
   const { connection, token, sessionMetadata } = props;
-  if (connection != null) {
+  if (connection != null || sessionMetadata.isGameEnd) {
     const game = new Game(GameConfig);
     game.scene.start(GameScene.NAME, { connection, token, sessionMetadata });
   }

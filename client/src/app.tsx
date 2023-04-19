@@ -30,12 +30,15 @@ function App() {
 
           const res = await lobbyClient.getLobbyInfo(roomId);
 
-          const connect = new HathoraConnection(roomId, connectionDetails);
-          connect.onClose(() => setFailedToConnect(true));
-          setConnection(connect);
+          if (!res.state?.isGameEnd) {
+            const connect = new HathoraConnection(roomId, connectionDetails);
+            connect.onClose(() => setFailedToConnect(true));
+            setConnection(connect);
+          }
           setSessionMetadata({
             serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
             winningScore: res.initialConfig.winningScore,
+            isGameEnd: res.state?.isGameEnd,
           });
           history.pushState({}, "", `/${roomId}`); //update url
         }),
@@ -46,7 +49,7 @@ function App() {
   }
   const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
   const roomIdFromUrl = getRoomIdFromUrl();
-  if (roomIdFromUrl != null && connection == null) {
+  if (roomIdFromUrl != null && connection == null && !sessionMetadata.isGameEnd) {
     joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
@@ -60,7 +63,7 @@ function App() {
             </div>
           ) : (
             <>
-              {connection == null && (
+              {connection == null && !sessionMetadata.isGameEnd && (
                 <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
               )}
               <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />

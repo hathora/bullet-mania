@@ -32,6 +32,7 @@ export type GameState = {
 
 export type LobbyState = {
   playerCount: number;
+  isGameEnd?: boolean;
 };
 
 export type InitialConfig = {
@@ -39,4 +40,4 @@ export type InitialConfig = {
   winningScore: number;
 };
 
-export type SessionMetadata = { serverUrl: string, winningScore: number };
+export type SessionMetadata = { serverUrl?: string, winningScore: number, isGameEnd?: boolean };

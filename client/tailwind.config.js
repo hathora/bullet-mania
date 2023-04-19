@@ -24,6 +24,9 @@ module.exports = {
         sans: ["Oxanium", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Courier New", "monospace"],
       },
+      fontSize: {
+        xxs: "0.7rem",
+      },
     },
   },
   plugins: [],

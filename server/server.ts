@@ -126,10 +126,14 @@ type InternalBullet = {
 //   - physics: our "physics" engine (detect-collisions library)
 //   - players: an array containing all connected players to a room
 //   - bullets: an array containing all bullets currently in the air for a given room
+//   - winningScore: a number set at creation to determine winner
+//   - isGameEnd: a boolean to track if game has ended
 type InternalState = {
   physics: System;
   players: InternalPlayer[];
   bullets: InternalBullet[];
+  winningScore: number;
+  isGameEnd: boolean;
 };
 
 // A map which the server uses to contain all room's InternalState instances
@@ -153,12 +157,15 @@ const store: Application = {
       const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
 
       if (!rooms.has(roomId)) {
-        rooms.set(roomId, initializeRoom());
+        rooms.set(roomId, initializeRoom(lobbyInfo.initialConfig.winningScore, lobbyInfo.state?.isGameEnd || false));
       }
       const game = rooms.get(roomId)!;
 
       if (game.players.length === lobbyInfo.initialConfig.capacity) {
         throw new Error("room is full");
+      }
+      if (game.isGameEnd) {
+        throw new Error("game has ended");
       }
       // Make sure the player hasn't already spawned
       if (!game.players.some((player) => player.id === userId)) {
@@ -308,7 +315,7 @@ console.log(`Server listening on port ${port}`);
 setInterval(() => {
   rooms.forEach((game, roomId) => {
     // Tick each room's game
-    tick(game, TICK_INTERVAL_MS / 1000);
+    tick(roomId, game, TICK_INTERVAL_MS / 1000);
 
     // Send the state updates to each client connected to that room
     broadcastStateUpdate(roomId);
@@ -316,7 +323,8 @@ setInterval(() => {
 }, TICK_INTERVAL_MS);
 
 // The frame-by-frame logic of your game should live in it's server's tick function. This is often a place to check for collisions, compute score, and so forth
-function tick(game: InternalState, deltaMs: number) {
+async function tick(roomId: string, game: InternalState, deltaMs: number) {
+  let highScore = 0;
   // Move each player with a direction set
   game.players.forEach((player) => {
     player.body.x += PLAYER_SPEED * player.direction.x * deltaMs;
@@ -330,7 +338,18 @@ function tick(game: InternalState, deltaMs: number) {
     if (player.dashCooldown && player.dashCooldown < Date.now()) {
       player.dashCooldown = undefined;
     }
+
+    // calc high score (used for end game)
+    if (player.score > highScore) {
+      highScore = player.score;
+    }
   });
+
+  // Check if game has ended, update state if so
+  if (highScore >= game.winningScore && !game.isGameEnd) {
+    game.isGameEnd = true;
+    endGameCleanup(roomId, game);
+  }
 
   // Move all active bullets along a path based on their radian angle
   game.bullets.forEach((bullet) => {
@@ -405,7 +424,7 @@ function broadcastStateUpdate(roomId: RoomId) {
   server.broadcastMessage(roomId, Buffer.from(JSON.stringify(msg), "utf8"));
 }
 
-function initializeRoom() {
+function initializeRoom(winningScore: number, isGameEnd: boolean) {
   const physics = new System();
   const tileSize = map.tileSize;
   const top = map.top * tileSize;
@@ -431,6 +450,8 @@ function initializeRoom() {
     physics,
     players: [],
     bullets: [],
+    winningScore,
+    isGameEnd,
   };
 }
 
@@ -446,4 +467,32 @@ function getAppToken() {
     throw new Error("APP_TOKEN not set");
   }
   return token;
+}
+
+async function endGameCleanup(roomId: string, game: InternalState) {
+  // Update lobby state (so new players can't join)
+  const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
+  const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
+  const modifiedState: LobbyState =
+    lobbyInfo.state != null
+      ? {
+        ...lobbyInfo.state,
+        isGameEnd: true
+      }
+      : {
+        playerCount: game.players.length,
+        isGameEnd: true
+      };
+  lobbyClient.setLobbyState(roomId, modifiedState);
+
+  // boot all players and destroy room
+  setTimeout(() => {
+    const playerIds = game.players.map(p => p.id);
+    playerIds.forEach(playerId => {
+      console.log("disconnecting: ", playerId, roomId)
+      server.closeConnection(roomId, playerId, "game has ended, disconnecting players");
+    });
+    console.log("destroying room: ", roomId);
+    lobbyClient.destroyRoom(roomId);
+  }, 15000)
 }

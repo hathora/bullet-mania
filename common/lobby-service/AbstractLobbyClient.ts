@@ -13,7 +13,7 @@ import { poll } from "./util";
 export abstract class AbstractLobbyClient<LobbyState extends object = object, InitialConfig extends object = object> {
   protected appId: string;
   protected lobbyClient: LobbyV2ApiInterface;
-  private roomClient: RoomV1ApiInterface;
+  protected roomClient: RoomV1ApiInterface;
 
   constructor(appId: string) {
     const endpoint = process.env.HATHORA_API_HOST ?? "https://api.hathora.dev";
