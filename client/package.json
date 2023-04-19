@@ -13,12 +13,10 @@
     "phaser": "^3.55.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "use-interval": "^1.4.0",
-    "@hathora/hathora-cloud-sdk": "^0.0.2",
-    "typescript-memoize": "^1.1.1"
+    "use-interval": "^1.4.0"
   },
   "devDependencies": {
-    "@types/node": "^18.6.3",
+    "@types/node": "^18.15.11",
     "@types/react": "^18.0.34",
     "@types/react-dom": "^18.0.11",
     "eslint": "^8.3.0",

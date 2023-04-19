@@ -10,8 +10,14 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
+    "outDir": "dist",
     "types": [
       "vite/client"
-    ]
-  }
+    ],
+  },
+  "references": [
+    {
+      "path": "../common"
+    }
+  ]
 }

@@ -7,6 +7,12 @@
     "moduleResolution": "node",
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "experimentalDecorators": true
-  }
+    "experimentalDecorators": true,
+    "outDir": "dist"
+  },
+  "references": [
+    {
+      "path": "../common"
+    }
+  ]
 }
