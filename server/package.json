@@ -6,7 +6,9 @@
   "dependencies": {
     "@hathora/server-sdk": "^1.0.0",
     "detect-collisions": "^6.4.2",
-    "dotenv": "^16.0.2"
+    "dotenv": "^16.0.2",
+    "@hathora/hathora-cloud-sdk": "^0.0.2",
+    "typescript-memoize": "^1.1.1"
   },
   "devDependencies": {
     "@types/node": "^18.7.16",
