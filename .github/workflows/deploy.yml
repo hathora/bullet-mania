@@ -2,7 +2,7 @@ name: Deploy
 on:
   push:
     branches:
-      - develop 
+      - develop
 
 jobs:
   server:
@@ -22,6 +22,7 @@ jobs:
         working-directory: ./client
     steps:
       - uses: actions/checkout@v2
+      - run: cd ../common && npm ci && npx tsc
       - run: npm install -g surge
       - run: npm ci
       - run: HATHORA_APP_ID=app-122d530a-ab60-4597-95d8-fabeecfe3c1b npm run build

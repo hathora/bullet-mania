@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "noEmit": true,
     "module": "esnext",
     "strict": true,
     "target": "esnext",
@@ -9,5 +8,13 @@
     "isolatedModules": true,
     "experimentalDecorators": true,
     "resolveJsonModule": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "incremental": true,
+    "noEmitOnError": true,
+    "skipLibCheck": true,
+    "outDir": "dist"
   }
 }
