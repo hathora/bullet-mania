@@ -4,7 +4,7 @@ import { HathoraClient, HathoraConnection } from "@hathora/client-sdk";
 
 import { Bullet, SessionMetadata, GameState, Player } from "../../../common/types";
 import { ClientMessageType, ServerMessageType } from "../../../common/messages";
-import { map } from "../../../common/map";
+import map from "../../../common/map.json";
 
 const BULLETS_MAX = 3;
 

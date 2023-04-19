@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
 import { Direction, GameState, InitialConfig, LobbyState } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
-import { map } from "../common/map";
+import map from "../common/map.json" assert { type: "json" };
 
 import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
 
