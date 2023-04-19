@@ -26,7 +26,7 @@ export class ServerLobbyClient<
     return this.roomClient.destroyRoom(
       this.appId,
       roomId,
-      { headers: { Authorization: `Bearer ${this.appToken}`, "Content-Type": "application/json" } }
+      { headers: { Authorization: `Bearer ${this.appToken}` } }
     );
   }
 }
