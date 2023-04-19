@@ -17,7 +17,7 @@ export class ServerLobbyClient<
       this.appId,
       roomId,
       { state },
-      { headers: { Authorization: `Bearer ${this.appToken}` } }
+      { headers: { Authorization: `Bearer ${this.appToken}`, "Content-Type": "application/json" } }
     );
     return lobby as Lobby<LobbyState>;
   }
