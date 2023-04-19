@@ -46,7 +46,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
             <th className="w-24 py-1 text-sm font-medium border-r border-secondary-700">Room ID</th>
             <th className="w-16 py-1 text-sm font-medium border-r border-secondary-700">Spots</th>
             <th className="w-56 py-1 text-sm font-medium border-r border-secondary-700">Details</th>
-            <th className="w-28 py-1 text-sm font-medium"> </th>
+            <th className="w-20 py-1 text-sm font-medium"> </th>
           </tr>
         </thead>
         <tbody
@@ -101,7 +101,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     </div>
                   </div>
                 </td>
-                <td className={"w-16"}>
+                <td className={"w-20"}>
                   {lobby.state?.isGameEnd ? (
                     <div className={"leading-4"}>GAME ENDED</div>
                   ) : (
