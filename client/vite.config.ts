@@ -3,7 +3,7 @@ import { defineConfig, loadEnv } from "vite";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, "../", "");
   return {
-    build: { target: "esnext", rollupOptions: { external: ["@hathora/hathora-cloud-sdk"]  },
+    build: { target: "esnext", rollupOptions: { external: ["@hathora/hathora-cloud-sdk"] } },
     publicDir: "src/assets",
     server: { host: "0.0.0.0" },
     clearScreen: false,
