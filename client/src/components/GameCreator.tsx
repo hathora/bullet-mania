@@ -14,11 +14,10 @@ import { BulletButton } from "./BulletButton";
 interface GameCreatorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   playerToken: Token;
-  joinRoom: (roomId: string) => void;
   setGoogleIdToken: (idToken: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
-  const { lobbyClient, playerToken, joinRoom, setGoogleIdToken } = props;
+  const { lobbyClient, playerToken, setGoogleIdToken } = props;
   const [visibility, setVisibility] = React.useState<"Public" | "Private" | "Local">("Public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
@@ -69,7 +68,7 @@ export function GameCreator(props: GameCreatorProps) {
                 setIsLoading(true);
                 try {
                   const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
-                  await joinRoom(lobby.roomId);
+                  window.location.href = `/${lobby.roomId}`; //update url
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
                 } finally {

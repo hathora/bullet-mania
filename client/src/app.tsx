@@ -1,5 +1,5 @@
 import ReactDOM from "react-dom/client";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { HathoraConnection } from "@hathora/client-sdk";
 
@@ -23,63 +23,65 @@ function App() {
   const [failedToConnect, setFailedToConnect] = useState(false);
   const [roomIdNotFound, setRoomIdNotFound] = useState<string | undefined>(undefined);
 
-  const joinRoom = useCallback(
-    (lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>) => (roomId: string) =>
-      lobbyClient
-        .getConnectionDetailsForLobby(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
-        .then(async (connectionDetails) => {
-          setRoomIdNotFound(undefined);
-          if (connection != null) {
-            connection.disconnect(1000);
-          }
-
-          try {
-            const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
-
-            if (!lobbyInfo.state?.isGameEnd) {
-              const connect = new HathoraConnection(roomId, connectionDetails);
-              connect.onClose(async () => {
-                // If game has ended, we want updated lobby state
-                const updatedLobbyInfo = await lobbyClient.getLobbyInfo(roomId);
-                setSessionMetadata({
-                  serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
-                  region: updatedLobbyInfo.region,
-                  roomId: updatedLobbyInfo.roomId,
-                  capacity: updatedLobbyInfo.initialConfig.capacity,
-                  winningScore: updatedLobbyInfo.initialConfig.winningScore,
-                  isGameEnd: updatedLobbyInfo.state?.isGameEnd,
-                  winningPlayer: updatedLobbyInfo.state?.winningPlayer,
-                });
-                setFailedToConnect(true);
-              });
-              setConnection(connect);
-            }
-            setSessionMetadata({
-              serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
-              region: lobbyInfo.region,
-              roomId: lobbyInfo.roomId,
-              capacity: lobbyInfo.initialConfig.capacity,
-              winningScore: lobbyInfo.initialConfig.winningScore,
-              isGameEnd: lobbyInfo.state?.isGameEnd,
-              winningPlayer: lobbyInfo.state?.winningPlayer,
-            });
-            history.pushState({}, "", `/${roomId}`); //update url
-          } catch (e) {
-            setRoomIdNotFound(roomId);
-          }
-        })
-        .catch(() => {
-          setRoomIdNotFound(roomId);
-        }),
-    [connection]
-  );
   if (appId == null || token == null) {
-    return <div>loading...</div>;
+    return <div>Loading...</div>;
   }
   const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
   const roomIdFromUrl = getRoomIdFromUrl();
-  if (roomIdFromUrl != null && connection == null && !sessionMetadata.isGameEnd) {
-    joinRoom(lobbyClient)(roomIdFromUrl);
+  if (
+    roomIdFromUrl != null &&
+    sessionMetadata.roomId != roomIdFromUrl &&
+    roomIdNotFound == null &&
+    !failedToConnect &&
+    !sessionMetadata.isGameEnd
+  ) {
+    //START
+    lobbyClient
+      .getConnectionDetailsForLobby(roomIdFromUrl, { host: "localhost", port: 4000, transportType: "tcp" as const })
+      .then(async (connectionDetails) => {
+        setRoomIdNotFound(undefined);
+        if (connection != null) {
+          connection.disconnect(1000);
+        }
+
+        try {
+          const lobbyInfo = await lobbyClient.getLobbyInfo(roomIdFromUrl);
+
+          if (!lobbyInfo.state?.isGameEnd) {
+            const connect = new HathoraConnection(roomIdFromUrl, connectionDetails);
+            connect.onClose(async () => {
+              // If game has ended, we want updated lobby state
+              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(roomIdFromUrl);
+              setSessionMetadata({
+                serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+                region: updatedLobbyInfo.region,
+                roomId: updatedLobbyInfo.roomId,
+                capacity: updatedLobbyInfo.initialConfig.capacity,
+                winningScore: updatedLobbyInfo.initialConfig.winningScore,
+                isGameEnd: updatedLobbyInfo.state?.isGameEnd,
+                winningPlayer: updatedLobbyInfo.state?.winningPlayer,
+              });
+              setFailedToConnect(true);
+            });
+            setConnection(connect);
+          }
+          setSessionMetadata({
+            serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+            region: lobbyInfo.region,
+            roomId: lobbyInfo.roomId,
+            capacity: lobbyInfo.initialConfig.capacity,
+            winningScore: lobbyInfo.initialConfig.winningScore,
+            isGameEnd: lobbyInfo.state?.isGameEnd,
+            winningPlayer: lobbyInfo.state?.winningPlayer,
+          });
+        } catch (e) {
+          setRoomIdNotFound(roomIdFromUrl);
+        }
+      })
+      .catch(() => {
+        setRoomIdNotFound(roomIdFromUrl);
+      });
+    //END
   }
   return (
     <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
@@ -112,7 +114,6 @@ function App() {
                 {connection == null && !sessionMetadata.isGameEnd && (
                   <LobbySelector
                     lobbyClient={lobbyClient}
-                    joinRoom={joinRoom(lobbyClient)}
                     playerToken={token}
                     roomIdNotFound={roomIdNotFound}
                     setGoogleIdToken={setGoogleIdToken}
