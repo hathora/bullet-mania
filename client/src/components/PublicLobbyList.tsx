@@ -104,8 +104,18 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                       <span>GAME ENDED</span>
                     </div>
                   ) : (
-                    <button className={"mt-2"} onClick={() => joinRoom(lobby.roomId)}>
-                      <BulletButton text={"JOIN!"} />
+                    <button
+                      className={"mt-2"}
+                      onClick={() => {
+                        if (lobby.state && lobby.state.playerCount < lobby.initialConfig.capacity) {
+                          joinRoom(lobby.roomId);
+                        }
+                      }}
+                    >
+                      <BulletButton
+                        disabled={lobby.state && lobby.state.playerCount >= lobby.initialConfig.capacity}
+                        text={"JOIN!"}
+                      />
                     </button>
                   )}
                 </td>

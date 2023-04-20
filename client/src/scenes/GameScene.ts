@@ -287,7 +287,7 @@ export class GameScene extends Scene {
       this.connection?.writeJson({ type: ClientMessageType.Shoot });
     });
     setTimeout(() => {
-      // this.setPreloaderPercentage(1);
+      this.setPreloaderPercentage(1);
     }, 400);
   }
 

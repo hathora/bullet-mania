@@ -9,9 +9,13 @@ interface BulletButtonProps {
 export function BulletButton(props: BulletButtonProps) {
   const { text, disabled, large, xlarge } = props;
   return (
-    <div className={`relative group ${disabled ? "text-brand-400" : "text-brand-500 hover:text-brand-600"}`}>
+    <div
+      className={`relative group ${
+        disabled ? "text-secondary-900 cursor-not-allowed" : "text-brand-500 hover:text-brand-600"
+      }`}
+    >
       <div
-        className={`absolute text-secondary-400 group-hover:text-secondary-300 ${
+        className={`absolute text-secondary-400 ${disabled ? "" : "group-hover:text-secondary-300"}  ${
           xlarge
             ? "max-w-[100px] text-center leading-4 left-[36px] top-[6px]"
             : large
