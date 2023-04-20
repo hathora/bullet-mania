@@ -13,3 +13,58 @@
         clip-path: inset(0 -1ch 0 0)
     }
 }
+
+.preloader {
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.9);
+
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.55, visibility 0.55;
+}
+
+.preloader img {
+    margin-bottom: 64px;
+}
+
+.preloader.off {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.preloader__bar {
+    width: 500px;
+    height: 8px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 2px;
+    border: solid 1px #FFF;
+    border-radius: 5px;
+    background-color: transparent;
+    overflow: hidden;
+
+    transition: transform 0.55;
+}
+
+.preloader.off .preloader__bar {
+    transform: translateY(30px);
+}
+
+.preloader__bar-inner {
+    width: 0%;
+    height: 100%;
+    background-color: #FFF;
+
+    transition: width 0.35s;
+}

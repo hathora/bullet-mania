@@ -171,11 +171,13 @@ const store: Application = {
       if (!game.players.some((player) => player.id === userId)) {
         const newState: LobbyState =
           lobbyInfo.state != null
-            ? lobbyInfo.state
+            ? {
+              ...lobbyInfo.state,
+              playerCount: game.players.length + 1,
+            }
             : {
-                playerCount: game.players.length + 1,
-              };
-        newState.playerCount = game.players.length + 1;
+              playerCount: game.players.length + 1,
+            };
         const state = await lobbyClient.setLobbyState(roomId, newState);
         // Then create a physics body for the player
         const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
@@ -221,11 +223,13 @@ const store: Application = {
       const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
       const newState: LobbyState =
         lobbyInfo.state != null
-          ? lobbyInfo.state
+          ? {
+            ...lobbyInfo.state,
+            playerCount: game.players.length,
+          }
           : {
-              playerCount: game.players.length,
-            };
-      newState.playerCount = game.players.length;
+            playerCount: game.players.length,
+          };
       await lobbyClient.setLobbyState(roomId, newState);
     } catch (err) {
       console.log("failed to connect to room: ", err);
@@ -325,6 +329,7 @@ setInterval(() => {
 // The frame-by-frame logic of your game should live in it's server's tick function. This is often a place to check for collisions, compute score, and so forth
 async function tick(roomId: string, game: InternalState, deltaMs: number) {
   let highScore = 0;
+  let highScorePlayer = '';
   // Move each player with a direction set
   game.players.forEach((player) => {
     player.body.x += PLAYER_SPEED * player.direction.x * deltaMs;
@@ -342,13 +347,14 @@ async function tick(roomId: string, game: InternalState, deltaMs: number) {
     // calc high score (used for end game)
     if (player.score > highScore) {
       highScore = player.score;
+      highScorePlayer = player.id;
     }
   });
 
   // Check if game has ended, update state if so
   if (highScore >= game.winningScore && !game.isGameEnd) {
     game.isGameEnd = true;
-    endGameCleanup(roomId, game);
+    endGameCleanup(roomId, game, highScorePlayer);
   }
 
   // Move all active bullets along a path based on their radian angle
@@ -469,7 +475,7 @@ function getAppToken() {
   return token;
 }
 
-async function endGameCleanup(roomId: string, game: InternalState) {
+async function endGameCleanup(roomId: string, game: InternalState, winningPlayer: string) {
   // Update lobby state (so new players can't join)
   const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
   const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
@@ -477,13 +483,15 @@ async function endGameCleanup(roomId: string, game: InternalState) {
     lobbyInfo.state != null
       ? {
         ...lobbyInfo.state,
-        isGameEnd: true
+        isGameEnd: true,
+        winningPlayer
       }
       : {
         playerCount: game.players.length,
-        isGameEnd: true
+        isGameEnd: true,
+        winningPlayer
       };
-  lobbyClient.setLobbyState(roomId, modifiedState);
+  await lobbyClient.setLobbyState(roomId, modifiedState);
 
   // boot all players and destroy room
   setTimeout(() => {
@@ -494,5 +502,5 @@ async function endGameCleanup(roomId: string, game: InternalState) {
     });
     console.log("destroying room: ", roomId);
     lobbyClient.destroyRoom(roomId);
-  }, 15000)
+  }, 10000)
 }

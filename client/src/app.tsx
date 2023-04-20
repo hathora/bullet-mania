@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
+import { Region } from "../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -11,6 +12,7 @@ import { LobbySelector } from "./components/LobbySelector";
 import { HathoraLogo } from "./components/HathoraLogo";
 import { GameComponent, GameConfig } from "./components/GameComponent";
 import { ExplanationText } from "./components/ExplanationText";
+import { BulletButton } from "./components/BulletButton";
 
 function App() {
   const appId = process.env.HATHORA_APP_ID;
@@ -18,29 +20,55 @@ function App() {
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({ serverUrl: "", winningScore: 15 });
   const [failedToConnect, setFailedToConnect] = useState(false);
+  const [roomIdNotFound, setRoomIdNotFound] = useState<string | undefined>(undefined);
 
   const joinRoom = useCallback(
     (lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>) => (roomId: string) =>
       lobbyClient
         .getConnectionDetailsForLobby(roomId, { host: "localhost", port: 4000, transportType: "tcp" as const })
         .then(async (connectionDetails) => {
+          setRoomIdNotFound(undefined);
           if (connection != null) {
             connection.disconnect(1000);
           }
 
-          const res = await lobbyClient.getLobbyInfo(roomId);
+          try {
+            const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
 
-          if (!res.state?.isGameEnd) {
-            const connect = new HathoraConnection(roomId, connectionDetails);
-            connect.onClose(() => setFailedToConnect(true));
-            setConnection(connect);
+            if (!lobbyInfo.state?.isGameEnd) {
+              const connect = new HathoraConnection(roomId, connectionDetails);
+              connect.onClose(async () => {
+                // If game has ended, we want updated lobby state
+                const updatedLobbyInfo = await lobbyClient.getLobbyInfo(roomId);
+                setSessionMetadata({
+                  serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+                  region: updatedLobbyInfo.region,
+                  roomId: updatedLobbyInfo.roomId,
+                  capacity: updatedLobbyInfo.initialConfig.capacity,
+                  winningScore: updatedLobbyInfo.initialConfig.winningScore,
+                  isGameEnd: updatedLobbyInfo.state?.isGameEnd,
+                  winningPlayer: updatedLobbyInfo.state?.winningPlayer,
+                });
+                setFailedToConnect(true);
+              });
+              setConnection(connect);
+            }
+            setSessionMetadata({
+              serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+              region: lobbyInfo.region,
+              roomId: lobbyInfo.roomId,
+              capacity: lobbyInfo.initialConfig.capacity,
+              winningScore: lobbyInfo.initialConfig.winningScore,
+              isGameEnd: lobbyInfo.state?.isGameEnd,
+              winningPlayer: lobbyInfo.state?.winningPlayer,
+            });
+            history.pushState({}, "", `/${roomId}`); //update url
+          } catch (e) {
+            setRoomIdNotFound(roomId);
           }
-          setSessionMetadata({
-            serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
-            winningScore: res.initialConfig.winningScore,
-            isGameEnd: res.state?.isGameEnd,
-          });
-          history.pushState({}, "", `/${roomId}`); //update url
+        })
+        .catch(() => {
+          setRoomIdNotFound(roomId);
         }),
     [connection]
   );
@@ -55,22 +83,43 @@ function App() {
   return (
     <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
       <div className="w-fit mx-auto">
-        <HathoraLogo />
-        <div style={{ width: GameConfig.width, height: GameConfig.height }}>
+        <div className={"flex justify-center items-end"}>
+          <HathoraLogo />
+          <div className={"ml-4 text-hathoraSecondary-400 text-xl text-baseline"}>SAMPLE GAME</div>
+        </div>
+        <div className={"mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
           {failedToConnect ? (
-            <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center">
-              Failed to connect to server
+            <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center text-secondary-400 text-center">
+              Connection was closed
+              <br />
+              {sessionMetadata.isGameEnd ? (
+                <>
+                  <div className={"text-secondary-600"}>Game has ended</div>
+                  <div className={"text-secondary-600"}>{sessionMetadata.winningPlayer} won!</div>
+                </>
+              ) : (
+                <span className={"text-secondary-600"}>Game is full</span>
+              )}
+              <br />
+              <a href={"/"} className={"mt-2"}>
+                <BulletButton text={"Return to Lobby"} xlarge />
+              </a>
             </div>
           ) : (
             <>
               {connection == null && !sessionMetadata.isGameEnd && (
-                <LobbySelector lobbyClient={lobbyClient} joinRoom={joinRoom(lobbyClient)} playerToken={token} />
+                <LobbySelector
+                  lobbyClient={lobbyClient}
+                  joinRoom={joinRoom(lobbyClient)}
+                  playerToken={token}
+                  roomIdNotFound={roomIdNotFound}
+                />
               )}
               <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />
             </>
           )}
         </div>
-        <Socials />
+        <Socials roomId={sessionMetadata.roomId} />
         <ExplanationText />
       </div>
     </div>

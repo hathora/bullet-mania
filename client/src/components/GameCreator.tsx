@@ -70,7 +70,7 @@ export function GameCreator(props: GameCreatorProps) {
           <BulletButton text={"CREATE!"} disabled={isLoading} large />
         </button>
         {isLoading && (
-          <div className={"absolute ml-40 text-secondary-700 inline-flex items-center loading-dots-animation"}>
+          <div className={"absolute ml-40 text-brand-500 inline-flex items-center loading-dots-animation"}>
             Starting...
           </div>
         )}

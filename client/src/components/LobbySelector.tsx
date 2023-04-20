@@ -11,13 +11,19 @@ interface LobbySelectorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   joinRoom: (roomId: string) => void;
   playerToken: string;
+  roomIdNotFound: string | undefined;
 }
 
 export function LobbySelector(props: LobbySelectorProps) {
-  const { lobbyClient, joinRoom, playerToken } = props;
+  const { lobbyClient, joinRoom, playerToken, roomIdNotFound } = props;
   const [privateLobbyID, setPrivateLobbyID] = React.useState<string>("");
   return (
-    <div className="bg-[url('/splash.png')] h-full flex flex-col p-1">
+    <div className="bg-[url('/splash.png')] h-full flex flex-col p-1 relative">
+      {roomIdNotFound && (
+        <div className={"absolute left-1/2 -translate-x-1/2 text-red-500 font-semibold"}>
+          Room not found: {roomIdNotFound}
+        </div>
+      )}
       <div className={"flex items-center justify-center mt-6 mb-4"}>
         <img src="lobby_header.png" alt="logo" className="" />
       </div>
