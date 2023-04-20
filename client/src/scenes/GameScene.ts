@@ -9,6 +9,9 @@ import map from "../../../common/map.json";
 const BULLETS_MAX = 3;
 
 export class GameScene extends Scene {
+  private preloaderContainer!: HTMLDivElement;
+  private preloaderBar!: HTMLDivElement;
+
   // A variable to represent our RoomConnection instance
   private connection: HathoraConnection | undefined;
   private token: string | undefined;
@@ -93,13 +96,29 @@ export class GameScene extends Scene {
     this.currentUserID = currentUser.id;
   }
 
+  bindPreloaderDOM() {
+    this.preloaderContainer = document.querySelector(".preloader") as HTMLDivElement;
+    this.preloaderBar = this.preloaderContainer.querySelector(".preloader__bar-inner") as HTMLDivElement;
+    this.preloaderContainer.classList.remove("off");
+  }
+
+  setPreloaderPercentage(p: number) {
+    if (p === 1) {
+      this.preloaderContainer.classList.add("off");
+    }
+
+    this.preloaderBar.style.width = `${p * 100}%`;
+  }
+
   create() {
+    this.bindPreloaderDOM();
     const tileSize = map.tileSize;
     const top = map.top * tileSize;
     const left = map.left * tileSize;
     const bottom = map.bottom * tileSize;
     const right = map.right * tileSize;
 
+    this.setPreloaderPercentage(0.1);
     // Render grass
     this.add.tileSprite(left, top, right - left, bottom - top, "floor").setOrigin(0, 0);
 
@@ -111,18 +130,26 @@ export class GameScene extends Scene {
       this.add.tileSprite(x * tileSize, y * tileSize, width * tileSize, height * tileSize, "wall_blue").setOrigin(0, 0);
     });
 
+    this.setPreloaderPercentage(0.2);
     // Set the main camera's background colour and bounding box
     this.cameras.main.setBounds(map.left, map.top, right - left, bottom - top);
 
     // Display metadata
+    const _roomId = this.add
+      .text(300, 4, `Room ID:${this.sessionMetadata?.roomId ?? ""}`, { color: "white" })
+      .setAlpha(0.8)
+      .setScrollFactor(0);
     const _serverUrl = this.add
       .text(4, 4, this.sessionMetadata?.serverUrl ?? "", { color: "white" })
+      .setAlpha(0.8)
       .setScrollFactor(0);
+    const _region = this.add.text(4, 20, this.sessionMetadata?.region ?? "", { color: "white" }).setScrollFactor(0);
 
     // Ping indicator
-    const pingText = this.add.text(4, 20, "Ping:", { color: "white" }).setScrollFactor(0);
+    const pingText = this.add.text(4, 36, "Ping:", { color: "white" }).setScrollFactor(0);
     const pings: number[] = [];
 
+    this.setPreloaderPercentage(0.3);
     // Dash indicator
     this.dash = this.add.text(670, this.scale.height - 40, "Dash: READY", { color: "white" }).setScrollFactor(0);
     this.add.text(670, this.scale.height - 24, "(SPACEBAR)", { color: "white" }).setScrollFactor(0);
@@ -132,6 +159,7 @@ export class GameScene extends Scene {
     for (let i = 0; i < BULLETS_MAX; i++) {
       this.ammos.set(i, this.add.image(60 + 16 * i, this.scale.height - 32, "bullet").setScrollFactor(0));
     }
+    this.setPreloaderPercentage(0.4);
     this.reloading = this.add
       .text(56, this.scale.height - 40, "RELOADING", { color: "white" })
       .setVisible(false)
@@ -141,9 +169,10 @@ export class GameScene extends Scene {
       .text(this.scale.width / 2 - 60, 280, "Press [R] to respawn", { color: "white" })
       .setScrollFactor(0)
       .setVisible(false);
+    this.setPreloaderPercentage(0.5);
 
     this.endText = this.add
-      .text(this.scale.width / 2 - 160, 220, "GAME OVER - Winning score reached", {
+      .text(this.scale.width / 2 - 210, 220, "GAME OVER - Winning score reached", {
         color: "#ecf5f5",
         fontSize: "20px",
         backgroundColor: "#9A282A",
@@ -152,13 +181,14 @@ export class GameScene extends Scene {
       .setScrollFactor(0)
       .setVisible(this.sessionMetadata?.isGameEnd || false);
     this.disconnectText = this.add
-      .text(this.scale.width / 2 - 100, 260, "Match will disconnect shortly", {
+      .text(this.scale.width / 2 - 140, 260, "Match will disconnect shortly", {
         color: "#ecf5f5",
         backgroundColor: "#9A282A",
         padding: { x: 4, y: 2 },
       })
       .setScrollFactor(0)
       .setVisible(false);
+    this.setPreloaderPercentage(0.6);
 
     this.connection?.onMessageJson((msg) => {
       switch (msg.type) {
@@ -180,6 +210,7 @@ export class GameScene extends Scene {
           break;
       }
     });
+    this.setPreloaderPercentage(0.7);
 
     this.token != null ? this.connection?.connect(this.token) : {};
 
@@ -201,6 +232,7 @@ export class GameScene extends Scene {
       x: 0,
       y: 0,
     };
+    this.setPreloaderPercentage(0.8);
 
     const handleKeyEvt = () => {
       const direction = {
@@ -243,15 +275,20 @@ export class GameScene extends Scene {
         this.connection?.writeJson({ type: ClientMessageType.Respawn });
       }
     };
+    this.setPreloaderPercentage(0.9);
 
     this.input.keyboard.on("keydown", handleKeyEvt);
     this.input.keyboard.on("keyup", handleKeyEvt);
 
+    this.setPreloaderPercentage(0.95);
     // Handle mouse-click input
     this.input.on(Phaser.Input.Events.POINTER_DOWN, () => {
       // If the connection is open, send through click events
       this.connection?.writeJson({ type: ClientMessageType.Shoot });
     });
+    setTimeout(() => {
+      // this.setPreloaderPercentage(1);
+    }, 400);
   }
 
   update() {
@@ -299,7 +336,7 @@ export class GameScene extends Scene {
       .forEach((player, index) => {
         if (
           this.sessionMetadata?.winningScore &&
-          player.score >= this.sessionMetadata?.winningScore &&
+          player.score >= this.sessionMetadata.winningScore &&
           this.endText &&
           this.disconnectText
         ) {
@@ -460,30 +497,6 @@ export class GameScene extends Scene {
       if (!newSprites.has(id)) {
         sprite.destroy();
         oldSprites.delete(id);
-      }
-    });
-  }
-
-  private syncTexts<T>(oldTexts: Map<T, Phaser.GameObjects.Text>, newTexts: Map<T, Phaser.GameObjects.Text>) {
-    newTexts.forEach((textObj, id) => {
-      if (oldTexts.has(id)) {
-        const oldText = oldTexts.get(id);
-        if (oldText != null) {
-          oldText.x = textObj.x;
-          oldText.y = textObj.y;
-          oldText.rotation = textObj.rotation;
-          oldText.visible = textObj.visible;
-          oldText.text = textObj.text;
-        }
-      } else {
-        this.add.existing(textObj);
-        oldTexts.set(id, textObj);
-      }
-    });
-    oldTexts.forEach((textObj, id) => {
-      if (!newTexts.has(id)) {
-        textObj.destroy();
-        oldTexts.delete(id);
       }
     });
   }

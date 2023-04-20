@@ -4,15 +4,26 @@ interface BulletButtonProps {
   text: string;
   disabled?: boolean;
   large?: boolean;
+  xlarge?: boolean;
 }
 export function BulletButton(props: BulletButtonProps) {
-  const { text, disabled, large } = props;
+  const { text, disabled, large, xlarge } = props;
   return (
-    <div className={`relative ${disabled ? "text-brand-400" : "text-brand-500 hover:text-brand-600"}`}>
-      <div className={`absolute text-secondary-400 ${large ? "left-[29px] top-[4px]" : "left-[22px]"}`}>{text}</div>
+    <div className={`relative group ${disabled ? "text-brand-400" : "text-brand-500 hover:text-brand-600"}`}>
+      <div
+        className={`absolute text-secondary-400 group-hover:text-secondary-300 ${
+          xlarge
+            ? "max-w-[100px] text-center leading-4 left-[36px] top-[6px]"
+            : large
+            ? "left-[29px] top-[4px]"
+            : "left-[22px]"
+        }`}
+      >
+        {text}
+      </div>
       <svg
-        width={large ? "120" : "90"}
-        height={large ? "32" : "24"}
+        width={xlarge ? "180" : large ? "120" : "90"}
+        height={xlarge ? "48" : large ? "32" : "24"}
         viewBox="0 0 54 20"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

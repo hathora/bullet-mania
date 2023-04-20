@@ -27,7 +27,6 @@ export abstract class AbstractLobbyClient<LobbyState extends object = object, In
     return lobbies as Lobby<LobbyState, InitialConfig>[];
   }
 
-  @Memoize()
   async getLobbyInfo(roomId: string): Promise<Lobby<LobbyState, InitialConfig>> {
     const res = await this.lobbyClient.getLobbyInfo(this.appId, roomId);
     return res as Lobby<LobbyState, InitialConfig>;

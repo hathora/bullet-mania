@@ -25,17 +25,14 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   const { lobbyClient, joinRoom } = props;
   const lobbies = useLobbies(lobbyClient);
   const [readyRooms, setReadyRooms] = React.useState<Set<string>>(new Set());
-  //BUG! this waits until all lobbies are ready before updating the list, rather than rendering
-  //the ready lobbies as they become ready. not good if we hit scale!
   useEffect(() => {
-    Promise.all(
-      lobbies.map(async (l) => {
-        await lobbyClient.getConnectionDetailsForLobby(l.roomId);
-        return l.roomId;
-      })
-    )
-      .then((rooms) => new Set(rooms))
-      .then(setReadyRooms);
+    lobbies.forEach(async (l) => {
+      // Ensure that lobby is ready for connections before adding to visible lobby list
+      await lobbyClient.getConnectionDetailsForLobby(l.roomId);
+      setReadyRooms((prev) => {
+        return new Set([...prev, l.roomId]);
+      });
+    });
   }, [lobbies, lobbyClient]);
   return (
     <LobbyPageCard className={""}>
@@ -103,7 +100,9 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                 </td>
                 <td className={"w-20"}>
                   {lobby.state?.isGameEnd ? (
-                    <div className={"leading-4"}>GAME ENDED</div>
+                    <div className={"leading-4 mt-0.5"}>
+                      <span>GAME ENDED</span>
+                    </div>
                   ) : (
                     <button className={"mt-2"} onClick={() => joinRoom(lobby.roomId)}>
                       <BulletButton text={"JOIN!"} />

@@ -1,3 +1,5 @@
+import {Region} from "@hathora/hathora-cloud-sdk";
+
 export type Direction = {
   x: number;
   y: number;
@@ -33,6 +35,7 @@ export type GameState = {
 export type LobbyState = {
   playerCount: number;
   isGameEnd?: boolean;
+  winningPlayer?: string;
 };
 
 export type InitialConfig = {
@@ -40,4 +43,4 @@ export type InitialConfig = {
   winningScore: number;
 };
 
-export type SessionMetadata = { serverUrl?: string, winningScore: number, isGameEnd?: boolean };
+export type SessionMetadata = { serverUrl?: string, roomId?: string, region?: Region, capacity?: number, winningScore: number, isGameEnd?: boolean, winningPlayer?: string };

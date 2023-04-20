@@ -27,5 +27,15 @@ export function GameComponent(props: GameComponentProps) {
     const game = new Game(GameConfig);
     game.scene.start(GameScene.NAME, { connection, token, sessionMetadata });
   }
-  return <div id="game-content"></div>;
+  return (
+    <div id="game-content" className="relative">
+      <div className="preloader off">
+        <img src="lobby_header.png" alt="Hathora" />
+
+        <div className="preloader__bar">
+          <div className="preloader__bar-inner"></div>
+        </div>
+      </div>
+    </div>
+  );
 }
