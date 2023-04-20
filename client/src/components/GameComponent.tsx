@@ -14,7 +14,7 @@ export const GameConfig = {
 
 interface GameComponentProps {
   connection: HathoraConnection | undefined;
-  token: string;
+  token: string | undefined;
   sessionMetadata: {
     serverUrl?: string;
     winningScore: number;
@@ -23,7 +23,7 @@ interface GameComponentProps {
 }
 export function GameComponent(props: GameComponentProps) {
   const { connection, token, sessionMetadata } = props;
-  if (connection != null || sessionMetadata.isGameEnd) {
+  if ((token != null && connection != null) || sessionMetadata.isGameEnd) {
     const game = new Game(GameConfig);
     game.scene.start(GameScene.NAME, { connection, token, sessionMetadata });
   }

@@ -1,4 +1,5 @@
 import React from "react";
+import { GoogleLogin } from "@react-oauth/google";
 
 import { InitialConfig, LobbyState } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
@@ -12,11 +13,12 @@ import { BulletButton } from "./BulletButton";
 
 interface GameCreatorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
-  playerToken: string;
+  playerToken: string | undefined;
   joinRoom: (roomId: string) => void;
+  setGoogleIdToken: (idToken: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
-  const { lobbyClient, playerToken, joinRoom } = props;
+  const { lobbyClient, playerToken, joinRoom, setGoogleIdToken } = props;
   const [visibility, setVisibility] = React.useState<"Public" | "Private" | "Local">("Public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
@@ -52,23 +54,33 @@ export function GameCreator(props: GameCreatorProps) {
         onSelect={(s) => setWinningScore(Number(s))}
       />
       <div className={"mb-3 flex items-center justify-center"}>
-        <button
-          onClick={async () => {
-            if (!isLoading) {
-              setIsLoading(true);
-              try {
-                const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
-                await joinRoom(lobby.roomId);
-              } catch (e) {
-                setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
-              } finally {
-                setIsLoading(false);
-              }
+        {playerToken == null ? (
+          <GoogleLogin
+            onSuccess={(credentialResponse) =>
+              credentialResponse.credential != null
+                ? setGoogleIdToken(credentialResponse.credential)
+                : console.error("invalid response from Google Oauth")
             }
-          }}
-        >
-          <BulletButton text={"CREATE!"} disabled={isLoading} large />
-        </button>
+          />
+        ) : (
+          <button
+            onClick={async () => {
+              if (!isLoading) {
+                setIsLoading(true);
+                try {
+                  const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
+                  await joinRoom(lobby.roomId);
+                } catch (e) {
+                  setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
+                } finally {
+                  setIsLoading(false);
+                }
+              }
+            }}
+          >
+            <BulletButton text={"CREATE!"} disabled={isLoading} large />
+          </button>
+        )}
         {isLoading && (
           <div className={"absolute ml-40 text-brand-500 inline-flex items-center loading-dots-animation"}>
             Starting...

@@ -1,9 +1,9 @@
 import ReactDOM from "react-dom/client";
 import React, { useCallback, useEffect, useState } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
-import { Region } from "../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -16,7 +16,8 @@ import { BulletButton } from "./components/BulletButton";
 
 function App() {
   const appId = process.env.HATHORA_APP_ID;
-  const token = useAuthToken(appId);
+  const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();
+  const token = useAuthToken(appId, googleIdToken);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({ serverUrl: "", winningScore: 15 });
   const [failedToConnect, setFailedToConnect] = useState(false);
@@ -72,7 +73,7 @@ function App() {
         }),
     [connection]
   );
-  if (appId == null || token == null) {
+  if (appId == null) {
     return <div>loading...</div>;
   }
   const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
@@ -81,72 +82,78 @@ function App() {
     joinRoom(lobbyClient)(roomIdFromUrl);
   }
   return (
-    <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
-      <div className="w-fit mx-auto">
-        <div className={"flex justify-center items-end"}>
-          <HathoraLogo />
-          <div className={"ml-4 text-hathoraSecondary-400 text-xl text-baseline"}>SAMPLE GAME</div>
+    <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
+      <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
+        <div className="w-fit mx-auto">
+          <div className={"flex justify-center items-end"}>
+            <HathoraLogo />
+            <div className={"ml-4 text-hathoraSecondary-400 text-xl text-baseline"}>SAMPLE GAME</div>
+          </div>
+          <div className={"mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
+            {failedToConnect ? (
+              <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center text-secondary-400 text-center">
+                Connection was closed
+                <br />
+                {sessionMetadata.isGameEnd ? (
+                  <>
+                    <div className={"text-secondary-600"}>Game has ended</div>
+                    <div className={"text-secondary-600"}>{sessionMetadata.winningPlayer} won!</div>
+                  </>
+                ) : (
+                  <span className={"text-secondary-600"}>Game is full</span>
+                )}
+                <br />
+                <a href={"/"} className={"mt-2"}>
+                  <BulletButton text={"Return to Lobby"} xlarge />
+                </a>
+              </div>
+            ) : (
+              <>
+                {connection == null && !sessionMetadata.isGameEnd && (
+                  <LobbySelector
+                    lobbyClient={lobbyClient}
+                    joinRoom={joinRoom(lobbyClient)}
+                    playerToken={token}
+                    roomIdNotFound={roomIdNotFound}
+                    setGoogleIdToken={setGoogleIdToken}
+                  />
+                )}
+                <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />
+              </>
+            )}
+          </div>
+          <Socials roomId={sessionMetadata.roomId} />
+          <ExplanationText />
         </div>
-        <div className={"mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
-          {failedToConnect ? (
-            <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center text-secondary-400 text-center">
-              Connection was closed
-              <br />
-              {sessionMetadata.isGameEnd ? (
-                <>
-                  <div className={"text-secondary-600"}>Game has ended</div>
-                  <div className={"text-secondary-600"}>{sessionMetadata.winningPlayer} won!</div>
-                </>
-              ) : (
-                <span className={"text-secondary-600"}>Game is full</span>
-              )}
-              <br />
-              <a href={"/"} className={"mt-2"}>
-                <BulletButton text={"Return to Lobby"} xlarge />
-              </a>
-            </div>
-          ) : (
-            <>
-              {connection == null && !sessionMetadata.isGameEnd && (
-                <LobbySelector
-                  lobbyClient={lobbyClient}
-                  joinRoom={joinRoom(lobbyClient)}
-                  playerToken={token}
-                  roomIdNotFound={roomIdNotFound}
-                />
-              )}
-              <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />
-            </>
-          )}
-        </div>
-        <Socials roomId={sessionMetadata.roomId} />
-        <ExplanationText />
       </div>
-    </div>
+    </GoogleOAuthProvider>
   );
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
-function useAuthToken(appId: string | undefined): string | undefined {
+function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): string | undefined {
   const [token, setToken] = React.useState<string | undefined>();
   useEffect(() => {
     if (appId != null) {
       const authClient = new AuthClient(appId);
-      getToken(authClient).then(setToken);
+      getToken(authClient, googleIdToken).then(setToken);
     }
-  }, [appId]);
+  }, [appId, googleIdToken]);
   return token;
 }
 
 // The getToken function first checks sessionStorage to see if there is an existing token, and if there is returns it. If not, it logs the user into a new session and updates the sessionStorage key.
-async function getToken(client: AuthClient): Promise<string> {
+async function getToken(client: AuthClient, googleIdToken: string | undefined): Promise<string | undefined> {
   const maybeToken = sessionStorage.getItem("topdown-shooter-token");
   if (maybeToken !== null) {
     return maybeToken;
   }
-  const token = await client.loginAnonymous();
+  if (googleIdToken == null) {
+    return undefined;
+  }
+  const token = await client.loginGoogle(googleIdToken);
   sessionStorage.setItem("topdown-shooter-token", token);
   return token;
 }
