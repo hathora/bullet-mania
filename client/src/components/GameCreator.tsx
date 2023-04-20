@@ -1,7 +1,7 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
 
-import { InitialConfig, LobbyState } from "../../../common/types";
+import { GoogleToken, InitialConfig, LobbyState, Token } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
 
@@ -13,7 +13,7 @@ import { BulletButton } from "./BulletButton";
 
 interface GameCreatorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
-  playerToken: string | undefined;
+  playerToken: Token;
   joinRoom: (roomId: string) => void;
   setGoogleIdToken: (idToken: string) => void;
 }
@@ -54,7 +54,7 @@ export function GameCreator(props: GameCreatorProps) {
         onSelect={(s) => setWinningScore(Number(s))}
       />
       <div className={"mb-3 flex items-center justify-center"}>
-        {playerToken == null ? (
+        {!Token.isGoogleToken(playerToken) ? (
           <GoogleLogin
             onSuccess={(credentialResponse) =>
               credentialResponse.credential != null
@@ -68,7 +68,7 @@ export function GameCreator(props: GameCreatorProps) {
               if (!isLoading) {
                 setIsLoading(true);
                 try {
-                  const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
+                  const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
                   await joinRoom(lobby.roomId);
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
@@ -92,19 +92,19 @@ export function GameCreator(props: GameCreatorProps) {
   );
 }
 
-function getLobby(
+function createLobby(
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>,
-  playerToken: string,
+  playerToken: GoogleToken,
   region: Region,
   initialConfig: InitialConfig,
   visibility: "Public" | "Private" | "Local"
 ) {
   switch (visibility) {
     case "Public":
-      return lobbyClient.createPublicLobby(playerToken, region, initialConfig);
+      return lobbyClient.createPublicLobby(playerToken.value, region, initialConfig);
     case "Private":
-      return lobbyClient.createPrivateLobby(playerToken, region, initialConfig);
+      return lobbyClient.createPrivateLobby(playerToken.value, region, initialConfig);
     case "Local":
-      return lobbyClient.createLocalLobby(playerToken, region, initialConfig);
+      return lobbyClient.createLocalLobby(playerToken.value, region, initialConfig);
   }
 }

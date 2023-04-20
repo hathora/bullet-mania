@@ -1,6 +1,6 @@
 import React from "react";
 
-import { InitialConfig, LobbyState } from "../../../common/types";
+import { InitialConfig, LobbyState, Token } from "../../../common/types";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
 
 import { PublicLobbyList } from "./PublicLobbyList";
@@ -10,7 +10,7 @@ import { GameCreator } from "./GameCreator";
 interface LobbySelectorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   joinRoom: (roomId: string) => void;
-  playerToken: string | undefined;
+  playerToken: Token;
   setGoogleIdToken: (idToken: string) => void;
   roomIdNotFound: string | undefined;
 }

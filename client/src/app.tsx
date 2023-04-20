@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
+import { SessionMetadata, InitialConfig, LobbyState, Token } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
@@ -73,7 +73,7 @@ function App() {
         }),
     [connection]
   );
-  if (appId == null) {
+  if (appId == null || token == null) {
     return <div>loading...</div>;
   }
   const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
@@ -133,8 +133,8 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
-function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): string | undefined {
-  const [token, setToken] = React.useState<string | undefined>();
+function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): Token | undefined {
+  const [token, setToken] = React.useState<Token | undefined>();
   useEffect(() => {
     if (appId != null) {
       const authClient = new AuthClient(appId);
@@ -145,17 +145,23 @@ function useAuthToken(appId: string | undefined, googleIdToken: string | undefin
 }
 
 // The getToken function first checks sessionStorage to see if there is an existing token, and if there is returns it. If not, it logs the user into a new session and updates the sessionStorage key.
-async function getToken(client: AuthClient, googleIdToken: string | undefined): Promise<string | undefined> {
+async function getToken(client: AuthClient, googleIdToken: string | undefined): Promise<Token> {
   const maybeToken = sessionStorage.getItem("topdown-shooter-token");
-  if (maybeToken !== null) {
-    return maybeToken;
+  const maybeTokenType = sessionStorage.getItem("topdown-shooter-token-type");
+  if (maybeToken !== null && maybeTokenType != null) {
+    return {
+      type: maybeTokenType,
+      value: maybeToken,
+    } as Token;
   }
   if (googleIdToken == null) {
-    return undefined;
+    const token = await client.loginAnonymous();
+    return { value: token, type: "anonymous" };
   }
   const token = await client.loginGoogle(googleIdToken);
   sessionStorage.setItem("topdown-shooter-token", token);
-  return token;
+  sessionStorage.setItem("topdown-shooter-token-type", "google");
+  return { value: token, type: "google" };
 }
 
 function getRoomIdFromUrl(): string | undefined {
