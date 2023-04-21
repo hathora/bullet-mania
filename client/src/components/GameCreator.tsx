@@ -1,9 +1,11 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
 
-import { GoogleToken, InitialConfig, LobbyState, Token } from "../../../common/types";
+import { GoogleToken, LOCAL_CONNECTION_DETAILS, Token } from "../utils";
+import { InitialConfig, LobbyState } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
+import { Lobby } from "../../../common/lobby-service/Lobby";
 
 import { MultiSelect } from "./MultiSelect";
 import { LobbyPageCard } from "./LobbyPageCard";
@@ -69,7 +71,7 @@ export function GameCreator(props: GameCreatorProps) {
                 try {
                   const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
                   // Wait until lobby connection details are ready before redirect player to match
-                  await lobbyClient.getConnectionDetailsForLobby(lobby.roomId);
+                  await lobbyClient.getConnectionDetailsForLobby(lobby.roomId, LOCAL_CONNECTION_DETAILS);
                   window.location.href = `/${lobby.roomId}`; //update url
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
@@ -99,7 +101,7 @@ function createLobby(
   region: Region,
   initialConfig: InitialConfig,
   visibility: "Public" | "Private" | "Local"
-) {
+): Promise<Lobby<LobbyState, InitialConfig>> {
   switch (visibility) {
     case "Public":
       return lobbyClient.createPublicLobby(playerToken.value, region, initialConfig);

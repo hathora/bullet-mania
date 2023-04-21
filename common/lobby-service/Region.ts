@@ -1,14 +1,4 @@
-export const Region = {
-  Seattle: 'Seattle',
-  WashingtonDc: 'Washington_DC',
-  Chicago: 'Chicago',
-  London: 'London',
-  Frankfurt: 'Frankfurt',
-  Mumbai: 'Mumbai',
-  Singapore: 'Singapore',
-  Tokyo: 'Tokyo',
-  Sydney: 'Sydney',
-  SaoPaulo: 'Sao_Paulo',
-} as const;
+import { Region as SdkRegion } from "@hathora/hathora-cloud-sdk";
 
-export type Region = (typeof Region)[keyof typeof Region];
+export const Region = SdkRegion;
+export type Region = SdkRegion;

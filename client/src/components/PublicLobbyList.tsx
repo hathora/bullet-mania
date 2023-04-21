@@ -7,6 +7,7 @@ dayjs.extend(relativeTime);
 
 import { ClockIcon, TrophyIcon, UserIcon, UsersIcon } from "@heroicons/react/24/outline";
 
+import { LOCAL_CONNECTION_DETAILS } from "../utils";
 import { InitialConfig, LobbyState } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
@@ -27,7 +28,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   useEffect(() => {
     lobbies.forEach(async (l) => {
       // Ensure that lobby is ready for connections before adding to visible lobby list
-      await lobbyClient.getConnectionDetailsForLobby(l.roomId);
+      await lobbyClient.getConnectionDetailsForLobby(l.roomId, LOCAL_CONNECTION_DETAILS);
       setReadyRooms((prev) => {
         return new Set([...prev, l.roomId]);
       });
@@ -71,7 +72,9 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                 >
                   <div className={"flex items-center justify-center gap-1"}>
                     <UsersIcon className="h-4 w-4 text-secondary-700" />
-                    {`${lobby.state?.playerCount ?? 0}/${lobby.initialConfig.capacity}`}
+                    {`${lobby.state ? Object.keys(lobby.state.playerNicknameMap).length : 0}/${
+                      lobby.initialConfig.capacity
+                    }`}
                   </div>
                 </td>
                 <td
@@ -89,7 +92,8 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     </div>
                     <div className={"flex items-center"}>
                       <UserIcon className="h-4 w-4 text-secondary-700 text-xxs" />
-                      {lobby.createdBy}
+                      {lobby.state?.playerNicknameMap[lobby.createdBy] &&
+                        `${lobby.state.playerNicknameMap[lobby.createdBy]}`}
                     </div>
                     <div className={"flex items-center gap-1 text-xxs"}>
                       <TrophyIcon className="h-4 w-4 text-secondary-700" />
@@ -106,13 +110,19 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     <button
                       className={"mt-2"}
                       onClick={() => {
-                        if (lobby.state && lobby.state.playerCount < lobby.initialConfig.capacity) {
+                        if (
+                          lobby.state &&
+                          Object.keys(lobby.state.playerNicknameMap).length < lobby.initialConfig.capacity
+                        ) {
                           window.location.href = `/${lobby.roomId}`; //update url
                         }
                       }}
                     >
                       <BulletButton
-                        disabled={lobby.state && lobby.state.playerCount >= lobby.initialConfig.capacity}
+                        disabled={
+                          lobby.state &&
+                          Object.keys(lobby.state.playerNicknameMap).length >= lobby.initialConfig.capacity
+                        }
                         text={"JOIN!"}
                       />
                     </button>
