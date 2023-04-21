@@ -103,6 +103,7 @@ type PhysicsBody = Body & { oType: BodyType };
 // A type which defines the properties of a player used internally on the server (not sent to client)
 type InternalPlayer = {
   id: UserId;
+  nickname?: string;
   body: PhysicsBody;
   direction: Direction;
   angle: number;
@@ -134,6 +135,7 @@ type InternalState = {
   bullets: InternalBullet[];
   winningScore: number;
   isGameEnd: boolean;
+  winningPlayerId?: UserId;
 };
 
 // A map which the server uses to contain all room's InternalState instances
@@ -169,16 +171,6 @@ const store: Application = {
       }
       // Make sure the player hasn't already spawned
       if (!game.players.some((player) => player.id === userId)) {
-        const newState: LobbyState =
-          lobbyInfo.state != null
-            ? {
-              ...lobbyInfo.state,
-              playerCount: game.players.length + 1,
-            }
-            : {
-              playerCount: game.players.length + 1,
-            };
-        const state = await lobbyClient.setLobbyState(roomId, newState);
         // Then create a physics body for the player
         const spawn = SPAWN_POSITIONS[Math.floor(Math.random() * SPAWN_POSITIONS.length)];
         const body = game.physics.createCircle(spawn, PLAYER_RADIUS);
@@ -194,6 +186,7 @@ const store: Application = {
           score: 0,
           sprite: Math.floor(Math.random() * PLAYER_SPRITES_COUNT),
         });
+        await updateLobbyState(game, roomId);
       }
     } catch (err) {
       console.log("failed to connect to room: ", err);
@@ -218,19 +211,7 @@ const store: Application = {
     }
 
     try {
-      //remove player from lobby state
-      const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.HATHORA_APP_ID!);
-      const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
-      const newState: LobbyState =
-        lobbyInfo.state != null
-          ? {
-            ...lobbyInfo.state,
-            playerCount: game.players.length,
-          }
-          : {
-            playerCount: game.players.length,
-          };
-      await lobbyClient.setLobbyState(roomId, newState);
+      await updateLobbyState(game, roomId);
     } catch (err) {
       console.log("failed to connect to room: ", err);
     }
@@ -251,9 +232,12 @@ const store: Application = {
 
     // Parse out the data string being sent from the client
     const message: ClientMessage = JSON.parse(Buffer.from(data).toString("utf8"));
-
     // Handle the various message types, specific to this game
-    if (message.type === ClientMessageType.SetDirection) {
+
+    if (message.type === ClientMessageType.SetNickname) {
+      player.nickname = message.nickname;
+      updateLobbyState(game, roomId);
+    } else if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAngle) {
       player.angle = message.angle;
@@ -329,7 +313,7 @@ setInterval(() => {
 // The frame-by-frame logic of your game should live in it's server's tick function. This is often a place to check for collisions, compute score, and so forth
 async function tick(roomId: string, game: InternalState, deltaMs: number) {
   let highScore = 0;
-  let highScorePlayer = '';
+  let highScorePlayer = "";
   // Move each player with a direction set
   game.players.forEach((player) => {
     player.body.x += PLAYER_SPEED * player.direction.x * deltaMs;
@@ -406,6 +390,7 @@ function broadcastStateUpdate(roomId: RoomId) {
   const state: GameState = {
     players: game.players.map((player) => ({
       id: player.id,
+      nickname: player.nickname ?? player.id,
       position: { x: player.body.x, y: player.body.y },
       aimAngle: player.angle,
       isDead: player.isDead,
@@ -475,32 +460,30 @@ function getAppToken() {
   return token;
 }
 
-async function endGameCleanup(roomId: string, game: InternalState, winningPlayer: string) {
+async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
   // Update lobby state (so new players can't join)
+  game.winningPlayerId = winningPlayerId;
   const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
-  const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
-  const modifiedState: LobbyState =
-    lobbyInfo.state != null
-      ? {
-        ...lobbyInfo.state,
-        isGameEnd: true,
-        winningPlayer
-      }
-      : {
-        playerCount: game.players.length,
-        isGameEnd: true,
-        winningPlayer
-      };
-  await lobbyClient.setLobbyState(roomId, modifiedState);
+  await updateLobbyState(game, roomId);
 
   // boot all players and destroy room
   setTimeout(() => {
-    const playerIds = game.players.map(p => p.id);
-    playerIds.forEach(playerId => {
-      console.log("disconnecting: ", playerId, roomId)
+    const playerIds = game.players.map((p) => p.id);
+    playerIds.forEach((playerId) => {
+      console.log("disconnecting: ", playerId, roomId);
       server.closeConnection(roomId, playerId, "game has ended, disconnecting players");
     });
     console.log("destroying room: ", roomId);
     lobbyClient.destroyRoom(roomId);
-  }, 10000)
+  }, 10000);
+}
+
+async function updateLobbyState(game: InternalState, roomId: string) {
+  const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.HATHORA_APP_ID!);
+  const lobbyState: LobbyState = {
+    playerNicknameMap: Object.fromEntries(game.players.map((player) => [player.id, player.nickname ?? player.id])),
+    isGameEnd: game.isGameEnd,
+    winningPlayerId: game.winningPlayerId,
+  };
+  return await lobbyClient.setLobbyState(roomId, lobbyState);
 }

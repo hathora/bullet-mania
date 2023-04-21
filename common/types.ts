@@ -12,6 +12,7 @@ export type Position = {
 
 export type Player = {
   id: string;
+  nickname: string;
   position: Position;
   aimAngle: number;
   isDead: boolean;
@@ -33,9 +34,9 @@ export type GameState = {
 };
 
 export type LobbyState = {
-  playerCount: number;
+  playerNicknameMap: { [playerId: string]: string };
   isGameEnd?: boolean;
-  winningPlayer?: string;
+  winningPlayerId?: string;
 };
 
 export type InitialConfig = {
@@ -44,31 +45,13 @@ export type InitialConfig = {
 };
 
 export type SessionMetadata = {
-  serverUrl?: string;
-  roomId?: string;
-  region?: Region;
-  capacity?: number;
+  serverUrl: string;
+  roomId: string;
+  region: Region;
+  capacity: number;
   winningScore: number;
-  isGameEnd?: boolean;
-  winningPlayer?: string;
-};
-
-export type Token = GoogleToken | AnonymousToken;
-
-export interface GoogleToken {
-  type: "google";
-  value: string;
-}
-interface AnonymousToken {
-  type: "anonymous";
-  value: string;
-}
-
-export const Token = {
-  isGoogleToken(token: Token): token is GoogleToken {
-    return token.type === "google";
-  },
-  isAnonymousToken(token: Token): token is AnonymousToken {
-    return token.type === "anonymous";
-  },
+  isGameEnd: boolean;
+  winningPlayerId?: string;
+  playerNicknameMap: { [playerId: string]: string };
+  creatorId: string;
 };

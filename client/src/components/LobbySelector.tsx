@@ -1,6 +1,7 @@
 import React from "react";
 
-import { InitialConfig, LobbyState, Token } from "../../../common/types";
+import { Token } from "../utils";
+import { InitialConfig, LobbyState } from "../../../common/types";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
 
 import { PublicLobbyList } from "./PublicLobbyList";
@@ -36,7 +37,7 @@ export function LobbySelector(props: LobbySelectorProps) {
           <LobbyPageCard>
             <Header className="mt-3 mb-1">Join Game</Header>
             <input
-              className="px-4 py-2 bg-secondary-600 rounded placeholder:text-secondary-800 text-secondary-800 cursor-pointer mb-3"
+              className="px-4 py-2 bg-secondary-600 rounded placeholder:text-secondary-800 text-secondary-800 cursor-text mb-3"
               name="gameCode"
               placeholder="ENTER ROOM CODE"
               value={privateLobbyID}

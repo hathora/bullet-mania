@@ -330,6 +330,16 @@ export class GameScene extends Scene {
       )
     );
 
+    //set nickname for this player if it isn't set yet
+    state.players
+      .filter((p) => p.id === this.currentUserID && p.nickname !== sessionStorage.getItem("topdown-shooter-nickname"))
+      .forEach(() => {
+        this.connection?.writeJson({
+          type: ClientMessageType.SetNickname,
+          nickname: sessionStorage.getItem("topdown-shooter-nickname"),
+        });
+      });
+
     // calc leaderboard
     state.players
       .sort((a, b) => b.score - a.score)
@@ -341,20 +351,26 @@ export class GameScene extends Scene {
           this.disconnectText
         ) {
           this.endText.visible = true;
-          this.endText.text = `GAME OVER - ${player.id} wins (${player.score} kills)`;
+          this.endText.text = `GAME OVER - ${player.nickname} wins (${player.score} kills)`;
           this.disconnectText.visible = true;
         }
         // update leaderboard text
         if (this.leaderBoard.has(player.id)) {
           const existing = this.leaderBoard.get(player.id);
           if (existing) {
-            existing.text = `${player.id}: ${player.score}`;
+            existing.text = `${player.nickname}: ${player.score}`;
             existing.setY(4 + 20 * index);
           }
         } else {
-          const newScore = new Phaser.GameObjects.Text(this, 640, 4 + 20 * index, `${player.id}: ${player.score}`, {
-            color: player.id === this.currentUserID ? "green" : "white",
-          }).setScrollFactor(0);
+          const newScore = new Phaser.GameObjects.Text(
+            this,
+            640,
+            4 + 20 * index,
+            `${player.nickname}: ${player.score}`,
+            {
+              color: player.id === this.currentUserID ? "green" : "white",
+            }
+          ).setScrollFactor(0);
           this.add.existing(newScore);
           this.leaderBoard.set(player.id, newScore);
         }
@@ -366,6 +382,7 @@ export class GameScene extends Scene {
         const existing = this.playersName.get(player.id);
         if (existing) {
           existing.visible = !player.isDead;
+          existing.text = player.nickname;
           existing.x = player.position.x - 48;
           existing.y = player.position.y - 34;
         }
@@ -374,7 +391,7 @@ export class GameScene extends Scene {
           this,
           player.position.x - 48,
           player.position.y - 34,
-          `${player.id}`,
+          `${player.nickname}`,
           {
             color: player.id === this.currentUserID ? "green" : "white",
           }
@@ -518,6 +535,7 @@ function lerp(from: GameState, to: GameState, pctElapsed: number): GameState {
 function lerpPlayer(from: Player, to: Player, pctElapsed: number): Player {
   return {
     id: to.id,
+    nickname: from.nickname,
     position: {
       x: from.position.x + (to.position.x - from.position.x) * pctElapsed,
       y: from.position.y + (to.position.y - from.position.y) * pctElapsed,
