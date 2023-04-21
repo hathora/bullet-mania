@@ -68,6 +68,8 @@ export function GameCreator(props: GameCreatorProps) {
                 setIsLoading(true);
                 try {
                   const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
+                  // Wait until lobby connection details are ready before redirect player to match
+                  await lobbyClient.getConnectionDetailsForLobby(lobby.roomId);
                   window.location.href = `/${lobby.roomId}`; //update url
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
