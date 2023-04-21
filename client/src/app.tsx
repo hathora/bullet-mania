@@ -111,7 +111,7 @@ function App() {
               </div>
             ) : (
               <>
-                {connection == null && !sessionMetadata.isGameEnd && (
+                {connection == null && !sessionMetadata.isGameEnd && !roomIdFromUrl && (
                   <LobbySelector
                     lobbyClient={lobbyClient}
                     playerToken={token}
