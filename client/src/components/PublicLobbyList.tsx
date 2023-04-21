@@ -18,11 +18,10 @@ import { BulletButton } from "./BulletButton";
 
 interface PublicLobbyListProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
-  joinRoom: (roomId: string) => void;
 }
 
 export function PublicLobbyList(props: PublicLobbyListProps) {
-  const { lobbyClient, joinRoom } = props;
+  const { lobbyClient } = props;
   const lobbies = useLobbies(lobbyClient);
   const [readyRooms, setReadyRooms] = React.useState<Set<string>>(new Set());
   useEffect(() => {
@@ -108,7 +107,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                       className={"mt-2"}
                       onClick={() => {
                         if (lobby.state && lobby.state.playerCount < lobby.initialConfig.capacity) {
-                          joinRoom(lobby.roomId);
+                          window.location.href = `/${lobby.roomId}`; //update url
                         }
                       }}
                     >

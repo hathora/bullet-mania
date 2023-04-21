@@ -1,4 +1,4 @@
-import {Region} from "@hathora/hathora-cloud-sdk";
+import { Region } from "@hathora/hathora-cloud-sdk";
 
 export type Direction = {
   x: number;
@@ -43,4 +43,32 @@ export type InitialConfig = {
   winningScore: number;
 };
 
-export type SessionMetadata = { serverUrl?: string, roomId?: string, region?: Region, capacity?: number, winningScore: number, isGameEnd?: boolean, winningPlayer?: string };
+export type SessionMetadata = {
+  serverUrl?: string;
+  roomId?: string;
+  region?: Region;
+  capacity?: number;
+  winningScore: number;
+  isGameEnd?: boolean;
+  winningPlayer?: string;
+};
+
+export type Token = GoogleToken | AnonymousToken;
+
+export interface GoogleToken {
+  type: "google";
+  value: string;
+}
+interface AnonymousToken {
+  type: "anonymous";
+  value: string;
+}
+
+export const Token = {
+  isGoogleToken(token: Token): token is GoogleToken {
+    return token.type === "google";
+  },
+  isAnonymousToken(token: Token): token is AnonymousToken {
+    return token.type === "anonymous";
+  },
+};

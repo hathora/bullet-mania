@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 interface SocialProps {
-  roomId: string;
+  roomId: string | undefined;
 }
 export function Socials({ roomId }: SocialProps) {
   const [showCopied, setShowCopied] = useState(false);
