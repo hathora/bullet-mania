@@ -3,7 +3,6 @@
     "esModuleInterop": true,
     "module": "esnext",
     "strict": true,
-    "noEmit": true,
     "target": "esnext",
     "moduleResolution": "node",
     "isolatedModules": true,
