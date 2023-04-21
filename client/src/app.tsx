@@ -35,7 +35,6 @@ function App() {
     !failedToConnect &&
     !sessionMetadata.isGameEnd
   ) {
-    //START
     lobbyClient
       .getConnectionDetailsForLobby(roomIdFromUrl, { host: "localhost", port: 4000, transportType: "tcp" as const })
       .then(async (connectionDetails) => {
@@ -81,7 +80,6 @@ function App() {
       .catch(() => {
         setRoomIdNotFound(roomIdFromUrl);
       });
-    //END
   }
   return (
     <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
