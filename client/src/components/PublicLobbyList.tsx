@@ -76,7 +76,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                   </div>
                 </td>
                 <td
-                  className={`w-56 col-span-2 flex justify-center px-0.5 py-0.5 text-xs border-r ${
+                  className={`w-56 col-span-2 flex justify-around px-0.5 py-0.5 text-xs border-r ${
                     index % 2 === 0 ? "border-secondary-400" : "border-secondary-600"
                   }`}
                 >
