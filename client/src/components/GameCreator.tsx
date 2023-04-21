@@ -1,6 +1,7 @@
 import React from "react";
+import { GoogleLogin } from "@react-oauth/google";
 
-import { InitialConfig, LobbyState } from "../../../common/types";
+import { GoogleToken, InitialConfig, LobbyState, Token } from "../../../common/types";
 import { Region } from "../../../common/lobby-service/Region";
 import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
 
@@ -12,11 +13,11 @@ import { BulletButton } from "./BulletButton";
 
 interface GameCreatorProps {
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
-  playerToken: string;
-  joinRoom: (roomId: string) => void;
+  playerToken: Token;
+  setGoogleIdToken: (idToken: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
-  const { lobbyClient, playerToken, joinRoom } = props;
+  const { lobbyClient, playerToken, setGoogleIdToken } = props;
   const [visibility, setVisibility] = React.useState<"Public" | "Private" | "Local">("Public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
@@ -52,23 +53,35 @@ export function GameCreator(props: GameCreatorProps) {
         onSelect={(s) => setWinningScore(Number(s))}
       />
       <div className={"mb-3 flex items-center justify-center"}>
-        <button
-          onClick={async () => {
-            if (!isLoading) {
-              setIsLoading(true);
-              try {
-                const lobby = await getLobby(lobbyClient, playerToken, region, initialConfig, visibility);
-                await joinRoom(lobby.roomId);
-              } catch (e) {
-                setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
-              } finally {
-                setIsLoading(false);
-              }
+        {!Token.isGoogleToken(playerToken) ? (
+          <GoogleLogin
+            onSuccess={(credentialResponse) =>
+              credentialResponse.credential != null
+                ? setGoogleIdToken(credentialResponse.credential)
+                : console.error("invalid response from Google Oauth")
             }
-          }}
-        >
-          <BulletButton text={"CREATE!"} disabled={isLoading} large />
-        </button>
+          />
+        ) : (
+          <button
+            onClick={async () => {
+              if (!isLoading) {
+                setIsLoading(true);
+                try {
+                  const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
+                  // Wait until lobby connection details are ready before redirect player to match
+                  await lobbyClient.getConnectionDetailsForLobby(lobby.roomId);
+                  window.location.href = `/${lobby.roomId}`; //update url
+                } catch (e) {
+                  setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
+                } finally {
+                  setIsLoading(false);
+                }
+              }
+            }}
+          >
+            <BulletButton text={"CREATE!"} disabled={isLoading} large />
+          </button>
+        )}
         {isLoading && (
           <div className={"absolute ml-40 text-brand-500 inline-flex items-center loading-dots-animation"}>
             Starting...
@@ -80,19 +93,19 @@ export function GameCreator(props: GameCreatorProps) {
   );
 }
 
-function getLobby(
+function createLobby(
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>,
-  playerToken: string,
+  playerToken: GoogleToken,
   region: Region,
   initialConfig: InitialConfig,
   visibility: "Public" | "Private" | "Local"
 ) {
   switch (visibility) {
     case "Public":
-      return lobbyClient.createPublicLobby(playerToken, region, initialConfig);
+      return lobbyClient.createPublicLobby(playerToken.value, region, initialConfig);
     case "Private":
-      return lobbyClient.createPrivateLobby(playerToken, region, initialConfig);
+      return lobbyClient.createPrivateLobby(playerToken.value, region, initialConfig);
     case "Local":
-      return lobbyClient.createLocalLobby(playerToken, region, initialConfig);
+      return lobbyClient.createLocalLobby(playerToken.value, region, initialConfig);
   }
 }
