@@ -92,8 +92,11 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     </div>
                     <div className={"flex items-center"}>
                       <UserIcon className="h-4 w-4 text-secondary-700 text-xxs" />
-                      {lobby.state?.playerNicknameMap[lobby.createdBy] &&
-                        `${lobby.state.playerNicknameMap[lobby.createdBy]}`}
+                      {lobby.state?.playerNicknameMap[lobby.createdBy] ? (
+                        `${lobby.state.playerNicknameMap[lobby.createdBy]}`
+                      ) : (
+                        <span className="italic">creator left</span>
+                      )}
                     </div>
                     <div className={"flex items-center gap-1 text-xxs"}>
                       <TrophyIcon className="h-4 w-4 text-secondary-700" />
