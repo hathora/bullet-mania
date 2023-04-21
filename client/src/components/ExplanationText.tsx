@@ -90,10 +90,72 @@ export function ExplanationText() {
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
       </div>
-      <h1 id={"createLobby"} style={h1Style}>
-        Create Lobby
+      <h1 id={"authenticatePlayers"} style={h1Style}>
+        Authenticate Players
       </h1>
+      <p style={pStyle}>Use Hathora’s Auth Client to generate a unique token for players using Google login.</p>
+      <Code>{"import {(AuthV1Api, AuthV1ApiInterface, Configuration)} from \"@hathora/hathora-cloud-sdk\";"}</Code>
+      <h1 id={"createLobby"} style={h1Style}>
+        Create public and private lobbies
+      </h1>
+      <p style={pStyle}>There are 3 types of lobbies that a player can create:</p>
+      <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
+        <li className={"mt-1"}>
+          <strong>Public</strong>: it will be returned the roomId in the public lobby list and any player can join
+        </li>
+        <li className={"mt-1"}>
+          <strong>Private</strong>: the player who created the game must share the roomId with their friends
+        </li>
+        <li className={"mt-1"}>
+          <strong>Local</strong>: for testing with a server running locally
+        </li>
+      </ul>
+      <p style={pStyle}>
+        If you have any specific user input you need to take in to initial your game state then pass it in through the{" "}
+        <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
+      </p>
+      <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
+        <li className={"mt-1"}># of players in the room</li>
+        <li className={"mt-1"}># of kills to win</li>
+      </ul>
+      <h1 id={"connectToLobby"} style={h1Style}>
+        Fetch all public lobbies
+      </h1>
+      <p style={pStyle}>
+        Retrieve a list of active public lobbies so players can coordinate which game to join. The region parameter is
+        optional to filter the list by.
+      </p>
+      <h1 id={"listPublicLobbies"} style={h1Style}>
+        Connect to a public or private lobby
+      </h1>
+      <p style={pStyle}>
+        When a player requests to join, you can retrieve the lobby data to determine state. State is an object that
+        stores the game state set by the server and is passed to all players. In Bullet Mania, the game checks to see if
+        there’s space for another player before sending connection information. Check the code here (TODO: add link).
+      </p>
+      <h1 id={"setLobbyState"} style={h1Style}>
+        Update lobby state on game server
+      </h1>
+      <p style={pStyle}>
+        Use state to pass game data to players. State can only be updated by the server. See how Bullet Mania uses state
+        here (TODO: add link).
+      </p>
+      <h1 id={"appendix"} style={h1Style}>
+        Appendix
+      </h1>
+      <p style={pStyle}></p>
     </div>
+  );
+}
+
+/*
+ * Component used for short code snippet
+ */
+function Code(props: { children: React.ReactNode; className?: string }) {
+  return (
+    <code className={`bg-neutralgray-550 text-hathoraBrand-400 text-sm p-0.5 mt-2 rounded ${props.className}`}>
+      {props.children}
+    </code>
   );
 }
 
