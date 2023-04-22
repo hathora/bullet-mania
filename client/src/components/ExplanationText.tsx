@@ -1,7 +1,17 @@
+import ts from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
+import js from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import React from "react";
 import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 
+import "./rsh-style.css";
+import GitHubIcon from "../assets/github.svg";
+import GithubIcon from "../assets/github.svg";
+
 import { GameConfig } from "./GameComponent";
+
+SyntaxHighlighter.registerLanguage("typescript", ts);
+SyntaxHighlighter.registerLanguage("javascript", js);
 
 export function ExplanationText() {
   return (
@@ -85,8 +95,16 @@ export function ExplanationText() {
           List Public Lobbies{" "}
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
+        <NavButton headingId={"lobbyInfo"} className={"group top-[246px] left-[252px]"}>
+          Get Lobby Info{" "}
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+        </NavButton>
         <NavButton headingId={"createLobby"} className={"group top-[396px] right-[180px]"}>
           Create Lobby{" "}
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+        </NavButton>
+        <NavButton headingId={"connectionInfo"} className={"group top-[500px] right-[240px]"}>
+          Get Connection Info{" "}
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
       </div>
@@ -94,7 +112,27 @@ export function ExplanationText() {
         Authenticate Players
       </h1>
       <p style={pStyle}>Use Hathora’s Auth Client to generate a unique token for players using Google login.</p>
-      <Code>{"import {(AuthV1Api, AuthV1ApiInterface, Configuration)} from \"@hathora/hathora-cloud-sdk\";"}</Code>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Import auth client from <Code>@hathora/hathora-cloud-sdk</Code>
+      </p>
+      <CodeBlock>
+        {`import {(AuthV1Api, AuthV1ApiInterface, Configuration)} from "@hathora/hathora-cloud-sdk";
+
+let client = new AuthV1Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+      </CodeBlock>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Use auth client to generate player tokens (needed to create rooms)
+      </p>
+      <CodeBlock>
+        {`// arbitrary token & id
+let token = await authClient.loginAnonymous().token;
+
+// integrate with Google
+let token = await authClient.loginGoogle(googleIdToken).token;
+
+// players enter names
+let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`}
+      </CodeBlock>
       <h1 id={"createLobby"} style={h1Style}>
         Create public and private lobbies
       </h1>
@@ -118,32 +156,127 @@ export function ExplanationText() {
         <li className={"mt-1"}># of players in the room</li>
         <li className={"mt-1"}># of kills to win</li>
       </ul>
-      <h1 id={"connectToLobby"} style={h1Style}>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Authenticated players (via client) can create lobbies
+      </p>
+      <CodeBlock>{`lobbyClient.createLobby(
+  playerToken: Token,
+  region: Region,
+  initialConfig: InitialConfig,
+  visibility: "public", "private", "local"
+)`}</CodeBlock>
+      <h1 id={"listPublicLobbies"} style={h1Style}>
         Fetch all public lobbies
       </h1>
       <p style={pStyle}>
         Retrieve a list of active public lobbies so players can coordinate which game to join. The region parameter is
         optional to filter the list by.
       </p>
-      <h1 id={"listPublicLobbies"} style={h1Style}>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>Display all active public rooms</p>
+      <CodeBlock>{`lobbyClient.listActivePublicLobbies(
+  appId: string,
+  region?: Region
+)`}</CodeBlock>
+      <h1 id={"connectToLobby"} style={h1Style}>
         Connect to a public or private lobby
       </h1>
       <p style={pStyle}>
         When a player requests to join, you can retrieve the lobby data to determine state. State is an object that
         stores the game state set by the server and is passed to all players. In Bullet Mania, the game checks to see if
-        there’s space for another player before sending connection information. Check the code here (TODO: add link).
+        there’s space for another player before sending connection information.
       </p>
+      <p style={pStyle}>See how we implemented it for Bullet Mania:</p>
+      <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
+        <li className={"mt-2"}>
+          <Link
+            href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41"}
+            icon={GitHubIcon}
+          >
+            Connecting to a room (client)
+          </Link>
+        </li>
+        <li className={"mt-2"}>
+          <Link
+            href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L166"}
+            icon={GitHubIcon}
+          >
+            Checking player capacity (server)
+          </Link>
+        </li>
+      </ul>
+      <h2 id={"joinLobby"} style={h2Style}>
+        Join a room
+      </h2>
+      <p id={"lobbyInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Fetch lobby information
+      </p>
+      <CodeBlock>{`lobbyClient.getLobbyInfo(
+  appId: string,
+  roomId: string 
+)`}</CodeBlock>
+      <p id={"connectionInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Get connection info (host and port) to route your player
+      </p>
+      <CodeBlock>{`roomService.getConnectionInfo(
+  appId: string,
+  roomId: string
+)`}</CodeBlock>
       <h1 id={"setLobbyState"} style={h1Style}>
         Update lobby state on game server
       </h1>
       <p style={pStyle}>
-        Use state to pass game data to players. State can only be updated by the server. See how Bullet Mania uses state
-        here (TODO: add link).
+        Use lobby state to pass game data to players. State can only be updated by the server.{" "}
+        <Link href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481"} icon={GitHubIcon}>
+          See how Bullet Mania uses lobby state
+        </Link>
+        <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>Update lobby state</p>
+        <CodeBlock>{`lobbyClient.setLobbyState(
+  appId: string,
+  roomId: string,
+  setLobbyStateRequest: SetLobbyStateRequest
+)`}</CodeBlock>
       </p>
       <h1 id={"appendix"} style={h1Style}>
         Appendix
       </h1>
-      <p style={pStyle}></p>
+      <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
+        <li className={"mt-1"}>
+          You need to authenticate players, with either your own identity service (sign with Hathora appSecret) or
+          Hathora auth service, to spin up a room – rateLimiting per user
+        </li>
+        <li className={"mt-1"}>
+          Players can call <Code>{"/lobby/v2/{appId}/create/private"}</Code> or{" "}
+          <Code>{"/lobby/v2/{appId}/create/public"}</Code> to start a match on Hathora
+          <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
+            <li className={"mt-1"}>Private room: copy the returned roomId and share with friends</li>
+            <li className={"mt-1"}>
+              Public room: call on <Code>{"/lobby/v2/{appId}/list/public"}</Code> to list all possible rooms in a
+              particular region and display to your players (region is optional)
+            </li>
+          </ul>
+        </li>
+        <li className={"mt-1"}>List public lobbies</li>
+        <li className={"mt-1"}>
+          Player can connect to room by grabbing all relevant information about a room by specifying appID and roomID on{" "}
+          <Code>{"/lobby/v2/{appId}/info/{roomId}"}</Code>
+          <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
+            <li className={"mt-1"}>
+              Once your player has a roomId they want to join (this can be done via sharing roomId, public lobby
+              listing, or custom matchmaking logic), they can connect to the room with...
+            </li>
+            <li className={"mt-1"}>
+              State: JSON object that you can use to store and share game state information to all players{" "}
+            </li>
+            <li className={"mt-1"}>
+              initialConfig: JSON object that the player who created the room can use to initialize the game
+            </li>
+            <li className={"mt-1"}>createAt: when the room was created</li>
+            <li className={"mt-1"}>createdBy: who create the room</li>
+            <li className={"mt-1"}>Region: where the game server is located</li>
+          </ul>
+        </li>
+        <li className={"mt-1"}>Manually spin down rooms and servers</li>
+      </ul>
     </div>
   );
 }
@@ -160,16 +293,32 @@ function Code(props: { children: React.ReactNode; className?: string }) {
 }
 
 /*
+ * Component used for code block
+ */
+function CodeBlock(props: { children: string | string[]; className?: string }) {
+  return (
+    <div className="container">
+      <SyntaxHighlighter language="javascript" className={"syntax-highlighter"} useInlineStyles={false}>
+        {props.children}
+      </SyntaxHighlighter>
+    </div>
+  );
+}
+
+/*
  * Component used for external links
  */
-function Link(props: { children: React.ReactNode; href: string; className?: string }) {
+function Link(props: { children: React.ReactNode; href: string; className?: string; icon?: string }) {
   return (
     <a
-      className={`font-hathoraBody text-hathoraBrand-500 hover:underline ${props.className}`}
+      className={`font-hathoraBody text-hathoraBrand-500 hover:underline ${props.icon ? "flex items-center" : ""} ${
+        props.className
+      }`}
       href={props.href}
       target={"_blank"}
     >
       {props.children}
+      {props.icon && <img src={props.icon} className={"h4 w-4 ml-1"} />}
     </a>
   );
 }
@@ -223,6 +372,17 @@ const h1Style = {
   color: "#AF64EE",
   marginBottom: "12px",
   marginTop: "28px",
+};
+
+const h2Style = {
+  fontFamily: "Space Grotesk",
+  fontStyle: "normal",
+  fontWeight: 500,
+  fontSize: "22px",
+  lineHeight: "28px",
+  color: "#AF64EE",
+  marginBottom: "10px",
+  marginTop: "20px",
 };
 
 const pStyle = {
