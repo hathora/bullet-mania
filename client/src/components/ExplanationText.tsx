@@ -6,7 +6,6 @@ import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 
 import "./rsh-style.css";
 import GitHubIcon from "../assets/github.svg";
-import GithubIcon from "../assets/github.svg";
 
 import { GameConfig } from "./GameComponent";
 
@@ -16,18 +15,22 @@ SyntaxHighlighter.registerLanguage("javascript", js);
 export function ExplanationText() {
   return (
     <div className={"mt-6"} style={{ width: GameConfig.width }}>
+      <h1 style={h1Style}>Learn how we built Bullet Mania</h1>
+      <Link href={"https://github.com/hathora/topdown-shooter/"} icon={GitHubIcon}>
+        Bullet Mania source code
+      </Link>
+      <p style={textStyle}>
+        We built <strong>Bullet Mania</strong> to showcase how simple it is to build and scale a multiplayer game on{" "}
+        <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Hathora Cloud works well for both new and existing
+        multiplayer games. To learn more about deploying your multiplayer game on Hathora Cloud, check out our{" "}
+        <Link href={"https://hathora.dev/docs/get-started"}>10-minute Get Started guide</Link>.
+      </p>
       <h1 style={h1Style}>What is happening?</h1>
-      <p style={pStyle}>
-        We built <strong>Bullet Mania</strong> to showcase how to build and scale a multiplayer game on{" "}
-        <Link href={"https://hathora.dev/docs/concepts/room-lifecycle"}>Hathora</Link>. Bullet Mania is{" "}
-        <strong>fully open-source</strong>, source code is available{" "}
-        <Link href={"https://github.com/hathora/topdown-shooter"}>here</Link>.
+      <p style={textStyle}>
+        When a player <NavLink headingId={"createLobby"}>creates a public or private room</NavLink>, a game server is
+        dynamically provisioned by Hathora Cloud in the region specified.
       </p>
-      <p style={pStyle}>
-        When a player creates a public or private <Link href={"https://hathora.dev/docs"}>room</Link> via the Hathora
-        Lobby Service, a game server is dynamically provisioned in the region specified.
-      </p>
-      <p style={pStyle}>
+      <p style={textStyle}>
         <strong>Important notes</strong>
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
@@ -41,7 +44,7 @@ export function ExplanationText() {
         <li className={"mt-2"}>Hathora has no fixed costs, pricing is based on active compute usage</li>
       </ul>
       <h1 style={h1Style}>Why is it good?</h1>
-      <p style={pStyle}>As seen in Bullet Mania your players will get good ping times because Hathora has:</p>
+      <p style={textStyle}>As seen in Bullet Mania your players will get good ping times because Hathora has:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
         <li className={"mt-1"}>
           <strong>multi-region server availability</strong> to get players a server closest to them
@@ -50,7 +53,7 @@ export function ExplanationText() {
           <strong>private edge network</strong> that avoids network congestion and ensures an optimal path to the server
         </li>
       </ul>
-      <p style={pStyle}>
+      <p style={textStyle}>
         You get improved performance while reducing operational complexity because you don’t have to worry about:
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
@@ -59,12 +62,12 @@ export function ExplanationText() {
         <li className={"mt-1"}>Paying for idle capacity to manage demand spikes</li>
       </ul>
       <h1 style={h1Style}>How to use Hathora for your game?</h1>
-      <p style={pStyle}>
+      <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
         right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a lightweight Lobby
         Service to spin up and route players to the correct room.
       </p>
-      <p style={pStyle}>With our Lobby Service, integration just takes a few steps:</p>
+      <p style={textStyle}>With our Lobby Service, integration just takes a few steps:</p>
       <ul className={"font-hathoraBody list-decimal ml-6"}>
         <li className={"mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
           <NavLink className={"text-hathoraBrand-50"} headingId={"authenticatePlayers"}>
@@ -111,7 +114,7 @@ export function ExplanationText() {
       <h1 id={"authenticatePlayers"} style={h1Style}>
         Authenticate Players
       </h1>
-      <p style={pStyle}>Use Hathora’s Auth Client to generate a unique token for players using Google login.</p>
+      <p style={textStyle}>Use Hathora’s Auth Client to generate a unique token for players using Google login.</p>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Import auth client from <Code>@hathora/hathora-cloud-sdk</Code>
       </p>
@@ -136,7 +139,7 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
       <h1 id={"createLobby"} style={h1Style}>
         Create public and private lobbies
       </h1>
-      <p style={pStyle}>There are 3 types of lobbies that a player can create:</p>
+      <p style={textStyle}>There are 3 types of lobbies that a player can create:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
         <li className={"mt-1"}>
           <strong>Public</strong>: it will be returned the roomId in the public lobby list and any player can join
@@ -148,7 +151,7 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
           <strong>Local</strong>: for testing with a server running locally
         </li>
       </ul>
-      <p style={pStyle}>
+      <p style={textStyle}>
         If you have any specific user input you need to take in to initial your game state then pass it in through the{" "}
         <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
       </p>
@@ -168,7 +171,7 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
       <h1 id={"listPublicLobbies"} style={h1Style}>
         Fetch all public lobbies
       </h1>
-      <p style={pStyle}>
+      <p style={textStyle}>
         Retrieve a list of active public lobbies so players can coordinate which game to join. The region parameter is
         optional to filter the list by.
       </p>
@@ -180,12 +183,12 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
       <h1 id={"connectToLobby"} style={h1Style}>
         Connect to a public or private lobby
       </h1>
-      <p style={pStyle}>
+      <p style={textStyle}>
         When a player requests to join, you can retrieve the lobby data to determine state. State is an object that
         stores the game state set by the server and is passed to all players. In Bullet Mania, the game checks to see if
         there’s space for another player before sending connection information.
       </p>
-      <p style={pStyle}>See how we implemented it for Bullet Mania:</p>
+      <p style={textStyle}>See how we implemented it for Bullet Mania:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-2"}>
           <Link
@@ -224,7 +227,7 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
       <h1 id={"setLobbyState"} style={h1Style}>
         Update lobby state on game server
       </h1>
-      <p style={pStyle}>
+      <p style={textStyle}>
         Use lobby state to pass game data to players. State can only be updated by the server.{" "}
         <Link href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481"} icon={GitHubIcon}>
           See how Bullet Mania uses lobby state
@@ -311,9 +314,9 @@ function CodeBlock(props: { children: string | string[]; className?: string }) {
 function Link(props: { children: React.ReactNode; href: string; className?: string; icon?: string }) {
   return (
     <a
-      className={`font-hathoraBody text-hathoraBrand-500 hover:underline ${props.icon ? "flex items-center" : ""} ${
-        props.className
-      }`}
+      className={`font-hathoraBody text-hathoraBrand-500 hover:underline ${
+        props.icon ? "inline-flex items-center rounded -ml-2 px-2 py-1 hover:bg-neutralgray-650" : "inline-block"
+      } ${props.className}`}
       href={props.href}
       target={"_blank"}
     >
@@ -385,7 +388,7 @@ const h2Style = {
   marginTop: "20px",
 };
 
-const pStyle = {
+const textStyle = {
   marginTop: "16px",
   fontFamily: "Lato",
   fontSize: "16px",

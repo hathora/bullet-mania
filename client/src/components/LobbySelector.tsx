@@ -25,7 +25,7 @@ export function LobbySelector(props: LobbySelectorProps) {
         </div>
       )}
       <div className={"flex items-center justify-center mt-6 mb-4"}>
-        <img src="lobby_header.png" alt="logo" className="" />
+        <img src="bullet_mania_logo.png" alt="logo" className="" />
       </div>
       <div className="flex overflow-hidden h-full w-full justify-between">
         <div className="grow">
