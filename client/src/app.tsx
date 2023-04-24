@@ -93,9 +93,14 @@ function App() {
     <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
       <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
         <div className="w-fit mx-auto">
-          <div className={"flex justify-center items-end"}>
-            <HathoraLogo />
-            <div className={"ml-4 text-hathoraSecondary-400 text-xl text-baseline"}>SAMPLE GAME</div>
+          <div className={"flex justify-center items-center"}>
+            <div className={"flex justify-center items-end"}>
+              <HathoraLogo />
+              <div className={"mx-3 text-hathoraSecondary-400 text-lg text-baseline"}>PRESENTS</div>
+            </div>
+            <div className={""}>
+              <img src="bullet_mania_logo_light.png" className="h-[60px]" alt="logo" />
+            </div>
           </div>
           <div className={"mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
             {failedToConnect ? (
