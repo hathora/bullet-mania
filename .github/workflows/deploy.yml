@@ -35,6 +35,7 @@ jobs:
           enable-pull-request-comment: false
           deploy-message: "Prod Deploy from GitHub Actions"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-config-path: './client/netlify.toml'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

@@ -114,7 +114,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                       className={"mt-2"}
                       onClick={() => {
                         if (
-                          lobby.state &&
+                          !lobby.state ||
                           Object.keys(lobby.state.playerNicknameMap).length < lobby.initialConfig.capacity
                         ) {
                           window.location.href = `/${lobby.roomId}`; //update url
