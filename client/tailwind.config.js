@@ -51,6 +51,8 @@ module.exports = {
       fontFamily: {
         sans: ["Oxanium", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Courier New", "monospace"],
+        hathora: ["Space Grotesk", "Oxanium", "sans-serif"],
+        hathoraBody: ["Lato", "Oxanium", "sans-serif"],
       },
       fontSize: {
         xxs: "0.7rem",

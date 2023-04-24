@@ -38,6 +38,7 @@ function App() {
     !failedToConnect &&
     !sessionMetadata?.isGameEnd
   ) {
+    // Once we parse roomId from the URL, get connection details to connect player to the server
     lobbyClient
       .getConnectionDetailsForLobby(roomIdFromUrl, LOCAL_CONNECTION_DETAILS)
       .then(async (connectionDetails) => {
