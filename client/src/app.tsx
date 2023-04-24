@@ -3,11 +3,13 @@ import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { SessionMetadata, InitialConfig, LobbyState, Token } from "../../common/types";
+import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
 import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
+import { LOCAL_CONNECTION_DETAILS, Token } from "./utils";
 import { Socials } from "./components/Socials";
+import { NicknameScreen } from "./components/NicknameScreen";
 import { LobbySelector } from "./components/LobbySelector";
 import { HathoraLogo } from "./components/HathoraLogo";
 import { GameComponent, GameConfig } from "./components/GameComponent";
@@ -19,9 +21,10 @@ function App() {
   const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();
   const token = useAuthToken(appId, googleIdToken);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
-  const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata>({ serverUrl: "", winningScore: 15 });
+  const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata | undefined>(undefined);
   const [failedToConnect, setFailedToConnect] = useState(false);
   const [roomIdNotFound, setRoomIdNotFound] = useState<string | undefined>(undefined);
+  const [isNicknameAcked, setIsNicknameAcked] = React.useState<boolean>(false);
 
   if (appId == null || token == null) {
     return <div>Loading...</div>;
@@ -30,14 +33,14 @@ function App() {
   const roomIdFromUrl = getRoomIdFromUrl();
   if (
     roomIdFromUrl != null &&
-    sessionMetadata.roomId != roomIdFromUrl &&
+    sessionMetadata?.roomId != roomIdFromUrl &&
     roomIdNotFound == null &&
     !failedToConnect &&
-    !sessionMetadata.isGameEnd
+    !sessionMetadata?.isGameEnd
   ) {
     // Once we parse roomId from the URL, get connection details to connect player to the server
     lobbyClient
-      .getConnectionDetailsForLobby(roomIdFromUrl, { host: "localhost", port: 4000, transportType: "tcp" as const })
+      .getConnectionDetailsForLobby(roomIdFromUrl, LOCAL_CONNECTION_DETAILS)
       .then(async (connectionDetails) => {
         setRoomIdNotFound(undefined);
         if (connection != null) {
@@ -58,8 +61,10 @@ function App() {
                 roomId: updatedLobbyInfo.roomId,
                 capacity: updatedLobbyInfo.initialConfig.capacity,
                 winningScore: updatedLobbyInfo.initialConfig.winningScore,
-                isGameEnd: updatedLobbyInfo.state?.isGameEnd,
-                winningPlayer: updatedLobbyInfo.state?.winningPlayer,
+                isGameEnd: !!updatedLobbyInfo.state?.isGameEnd,
+                winningPlayerId: updatedLobbyInfo.state?.winningPlayerId,
+                playerNicknameMap: updatedLobbyInfo.state?.playerNicknameMap ?? {},
+                creatorId: updatedLobbyInfo.createdBy,
               });
               setFailedToConnect(true);
             });
@@ -71,8 +76,10 @@ function App() {
             roomId: lobbyInfo.roomId,
             capacity: lobbyInfo.initialConfig.capacity,
             winningScore: lobbyInfo.initialConfig.winningScore,
-            isGameEnd: lobbyInfo.state?.isGameEnd,
-            winningPlayer: lobbyInfo.state?.winningPlayer,
+            isGameEnd: lobbyInfo.state?.isGameEnd ?? false,
+            winningPlayerId: lobbyInfo.state?.winningPlayerId,
+            playerNicknameMap: lobbyInfo.state?.playerNicknameMap ?? {},
+            creatorId: lobbyInfo.createdBy,
           });
         } catch (e) {
           setRoomIdNotFound(roomIdFromUrl);
@@ -100,10 +107,15 @@ function App() {
               <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center text-secondary-400 text-center">
                 Connection was closed
                 <br />
-                {sessionMetadata.isGameEnd ? (
+                {sessionMetadata?.isGameEnd ? (
                   <>
                     <div className={"text-secondary-600"}>Game has ended</div>
-                    <div className={"text-secondary-600"}>{sessionMetadata.winningPlayer} won!</div>
+                    <div className={"text-secondary-600"}>
+                      {`${
+                        sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId ?? ""] ??
+                        sessionMetadata.winningPlayerId
+                      } won!`}
+                    </div>
                   </>
                 ) : (
                   <span className={"text-secondary-600"}>Game is full</span>
@@ -115,19 +127,28 @@ function App() {
               </div>
             ) : (
               <>
-                {connection == null && !sessionMetadata.isGameEnd && !roomIdFromUrl && (
+                {connection == null && !sessionMetadata?.isGameEnd && !roomIdFromUrl ? (
                   <LobbySelector
                     lobbyClient={lobbyClient}
                     playerToken={token}
                     roomIdNotFound={roomIdNotFound}
                     setGoogleIdToken={setGoogleIdToken}
                   />
+                ) : !isNicknameAcked && !sessionMetadata?.isGameEnd ? (
+                  <NicknameScreen sessionMetadata={sessionMetadata} setIsNicknameAcked={setIsNicknameAcked} />
+                ) : (
+                  <></>
                 )}
-                <GameComponent connection={connection} token={token} sessionMetadata={sessionMetadata} />
+                <GameComponent
+                  connection={connection}
+                  token={token}
+                  sessionMetadata={sessionMetadata}
+                  isNicknameAcked={isNicknameAcked}
+                />
               </>
             )}
           </div>
-          <Socials roomId={sessionMetadata.roomId} />
+          <Socials roomId={sessionMetadata?.roomId} />
           <ExplanationText />
         </div>
       </div>
