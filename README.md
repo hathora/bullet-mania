@@ -1,4 +1,5 @@
 # Hathora Topdown Shooter - Bullet Mania
+![Hathora presents Bullet Mania](/client/src/assets/screenshots/banner.png)
 
 ## Overiew 
 
@@ -16,7 +17,7 @@ The game is playable at https://bullet-mania.netlify.app
 
 Lobby            |  Gameplay
 :-------------------------:|:-------------------------:
-![A screenshot of the completed top-down shooter lobby.](/client/src/assets/screenshots/lobby_screenshot.png) |  ![A screenshot of the completed top-down shooter game in action.](/client/src/assets/screenshots/gameplay_screenshot.png)
+![A screenshot of the completed top-down shooter lobby.](/client/src/assets/screenshots/lobby_screenshot.png) |  ![A screenshot of the completed top-down shooter game in action.](/client/src/assets/screenshots/gameplay_screenshot_cropped.png)
 
 Instructions:
 
