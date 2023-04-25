@@ -14,8 +14,9 @@ Additional implementations of the game client are also available for the followi
 
 The game is playable at https://bullet-mania.netlify.app
 
-![A screenshot of the completed top-down shooter lobby.](/client/src/assets/screenshots/lobby_screenshot.png)
-![A screenshot of the completed top-down shooter game in action.](/client/src/assets/screenshots/gameplay_screenshot.png)
+Lobby            |  Gameplay
+:-------------------------:|:-------------------------:
+![A screenshot of the completed top-down shooter lobby.](/client/src/assets/screenshots/lobby_screenshot.png) |  ![A screenshot of the completed top-down shooter game in action.](/client/src/assets/screenshots/gameplay_screenshot.png)
 
 Instructions:
 
