@@ -150,7 +150,7 @@ function useLobbies<S extends object, I extends object>(lobbyClient: PlayerLobby
   return lobbies;
 }
 
-const FLAG_TABLE: Record<Region, string> = {
+export const FLAG_TABLE: Record<Region, string> = {
   Seattle: "🇺🇸",
   Chicago: "🇺🇸",
   London: "🇬🇧",
