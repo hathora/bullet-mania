@@ -3,7 +3,11 @@
 
 ## Overiew 
 
-Multiplayer 2D shooter demo made using [Hathora Buildkits](https://github.com/hathora/buildkits) + [Phaser](http://phaser.io/)
+Multiplayer 2D shooter demo made using:
+  - [Phaser](https://phaser.io/) - Game framework
+  - [Hathora Cloud SDK](https://github.com/hathora/hathora-cloud-sdks) - Server hosting
+  - [Hathora Buildkits](https://github.com/hathora/buildkits) - Network transport
+  - [React](https://react.dev/) - Lobby UI
 
 Assets from [Kenney](https://kenney.nl/assets/top-down-shooter)
 
