@@ -29,17 +29,17 @@ export function GameCreator(props: GameCreatorProps) {
 
   const initialConfig: InitialConfig = { capacity, winningScore };
   return (
-    <LobbyPageCard>
+    <LobbyPageCard className={"pb-1.5"}>
       <Header className="mt-4 mb-2">Create Game</Header>
       <MultiSelect
-        className="mb-3"
+        className="mb-2"
         options={import.meta.env.DEV ? ["public", "private", "local"] : ["public", "private"]}
         selected={visibility}
         onSelect={setVisibility}
       />
-      <Dropdown className="mb-3" width="w-56" options={Object.values(Region)} selected={region} onSelect={setRegion} />
+      <Dropdown className="mb-2" width="w-56" options={Object.values(Region)} selected={region} onSelect={setRegion} />
       <Dropdown
-        className="mb-3"
+        className="mb-2"
         width="w-56"
         options={[1, 2, 3, 4, 5, 6, 7]}
         format={(s) => `${s} players`}
@@ -47,26 +47,34 @@ export function GameCreator(props: GameCreatorProps) {
         onSelect={(s) => setCapacity(Number(s))}
       />
       <Dropdown
-        className="mb-3"
+        className="mb-2"
         width="w-56"
         options={[5, 10, 15, 20, 25]}
         format={(s) => `${s} kills to win`}
         selected={winningScore}
         onSelect={(s) => setWinningScore(Number(s))}
       />
-      <div className={"mb-3 flex items-center justify-center"}>
-        {!Token.isGoogleToken(playerToken) && false ? (
-          <GoogleLogin
-            onSuccess={(credentialResponse) =>
-              credentialResponse.credential != null
-                ? setGoogleIdToken(credentialResponse.credential)
-                : console.error("invalid response from Google Oauth")
-            }
-          />
-        ) : (
+      <div className={"flex flex-col items-center"}>
+        <div className={"mb-2 flex items-center justify-center"}>
+          {!Token.isGoogleToken(playerToken) && (
+            <GoogleLogin
+              onSuccess={(credentialResponse) =>
+                credentialResponse.credential != null
+                  ? setGoogleIdToken(credentialResponse.credential)
+                  : console.error("invalid response from Google Oauth")
+              }
+            />
+          )}
+        </div>
+        <div className={"relative"}>
           <button
             onClick={async () => {
               if (!isLoading) {
+                setError("");
+                if (!Token.isGoogleToken(playerToken) && visibility !== "local") {
+                  setError("Google sign-in is required to create a match");
+                  return;
+                }
                 setIsLoading(true);
                 try {
                   const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
@@ -83,14 +91,14 @@ export function GameCreator(props: GameCreatorProps) {
           >
             <BulletButton text={"CREATE!"} disabled={isLoading} large />
           </button>
-        )}
-        {isLoading && (
-          <div className={"absolute ml-40 text-brand-500 inline-flex items-center loading-dots-animation"}>
-            Starting...
-          </div>
-        )}
+          {isLoading && (
+            <div className={"absolute left-[6.6rem] top-[0.28rem] text-brand-500 loading-dots-animation"}>
+              Starting...
+            </div>
+          )}
+        </div>
       </div>
-      {error && <div className={"mb-3 text-brand-500 text-xs"}>{error}</div>}
+      {error && <div className={"-mt-1 text-brand-500 text-xs"}>{error}</div>}
     </LobbyPageCard>
   );
 }
