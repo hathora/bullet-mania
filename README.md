@@ -1,12 +1,10 @@
-# Hathora Topdown Shooter
+# Hathora Topdown Shooter - Bullet Mania
 
 ## Overiew 
 
 Multiplayer 2D shooter demo made using [Hathora Buildkits](https://github.com/hathora/buildkits) + [Phaser](http://phaser.io/)
 
-Assets from [Kenney](https://kenney.nl/assets/topdown-shooter)
-
-Read step-by-step [tutorial](https://docs.hathora.dev/#/buildkit/tutorial_top_down_shooter) for this implementation
+Assets from [Kenney](https://kenney.nl/assets/top-down-shooter)
 
 Additional implementations of the game client are also available for the following engines:
   - [Unity](https://github.com/hathora/topdown-shooter-unity-client)
@@ -14,14 +12,17 @@ Additional implementations of the game client are also available for the followi
 
 ## Try it
 
-The game is playable at https://hathora-topdown-shooter.surge.sh
+The game is playable at https://bullet-mania.netlify.app
 
-![A screenshot of the completed top-down shooter game in action.](https://user-images.githubusercontent.com/5400947/199274234-ff3a66b4-3528-4be3-b6be-2240d3141846.png)
+![A screenshot of the completed top-down shooter lobby.](/client/src/assets/screenshots/lobby_screenshot.png)
+![A screenshot of the completed top-down shooter game in action.](/client/src/assets/screenshots/gameplay_screenshot.png)
 
 Instructions:
 
-  - WASD to move
-  - Mouse to aim and shoot
+  - **WASD** to move
+  - **Mouse** to aim and shoot
+  - **Spacebar** to dash
+  - **R** to reload
   - Once you are in a game, share the URL to allow others to join
 
 ## Running locally 
@@ -32,8 +33,9 @@ To run locally:
 - Get a Hathora `appId` and `appSecret` via https://console.hathora.dev/
 - Create a .env file at the root with
 ```
-APP_ID=<appId>
+HATHORA_APP_ID=<appId>
 HATHORA_APP_SECRET=<appSecret>
+APP_TOKEN=<appToken>
 ```
 - Start server: inside `server` directory run `npm start` (remember to `npm install` first)
 - Start client: inside `client` directory run `npm start` (remember to `npm install` first)
