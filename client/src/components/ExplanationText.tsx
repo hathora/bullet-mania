@@ -134,22 +134,22 @@ export function ExplanationText() {
         Import auth client from <Code>@hathora/hathora-cloud-sdk</Code>
       </p>
       <CodeBlock>
-        {`import {(AuthV1Api, AuthV1ApiInterface, Configuration)} from "@hathora/hathora-cloud-sdk";
+        {`import {AuthV1Api, Configuration} from "@hathora/hathora-cloud-sdk";
 
-let authClient = new AuthV1Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+let authClient = new AuthV1Api(new Configuration());`}
       </CodeBlock>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Use auth client to generate player tokens (needed to create rooms)
       </p>
       <CodeBlock>
         {`// arbitrary token & id
-let token = await authClient.loginAnonymous().token;
+let { token } = await authClient.loginAnonymous(appId);
 
 // integrate with Google
-let token = await authClient.loginGoogle(googleIdToken).token;
+let { token } = await authClient.loginGoogle(appId, googleIdToken);
 
 // players can enter names
-let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`}
+let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
       </CodeBlock>
       <p style={textStyle}>
         See how we authenticate players in Bullet Mania: {"  "}
@@ -194,20 +194,19 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
         {`import {
   Configuration,
   LobbyV2Api,
-  LobbyV2ApiInterface,
 } from "@hathora/hathora-cloud-sdk";
 
-let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+let lobbyClient = new LobbyV2Api(new Configuration());`}
       </CodeBlock>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Authenticated players (via client) can create lobbies
       </p>
-      <CodeBlock>{`const lobby = await this.lobbyClient.createLobby(
+      <CodeBlock>{`const lobby = await lobbyClient.createLobby(
   appId, // your Hathora application id
   token, // signed player token (see "Authenticate Players" section)
   {
     visibility: "public", // options: ["public", "private", "local"]
-    region: "Seattle"
+    region: "Seattle",
     // custom object that your server code gets access to immediately
     initialConfig: {capacity: 4, winningScore: 10},
   },
@@ -248,15 +247,14 @@ let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev"
       <CodeBlock>{`import {
   Configuration,
   LobbyV2Api,
-  LobbyV2ApiInterface,
 } from "@hathora/hathora-cloud-sdk";
 
-let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));
+let lobbyClient = new LobbyV2Api(new Configuration());
 
-lobbyClient.listActivePublicLobbies(
+const publicLobbies = lobbyClient.listActivePublicLobbies(
   appId, // your Hathora application id
   "Seattle", // (optional) region filter
-)`}</CodeBlock>
+);`}</CodeBlock>
       <p style={textStyle}>
         See how we list lobbies for Bullet Mania: {"  "}
         <Link
@@ -297,13 +295,11 @@ lobbyClient.listActivePublicLobbies(
         {`import {
   Configuration,
   LobbyV2Api,
-  LobbyV2ApiInterface,
   RoomV1Api,
-  RoomV1ApiInterface,
 } from "@hathora/hathora-cloud-sdk";
 
-let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));
-let roomClient = new RoomV1Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+let lobbyClient = new LobbyV2Api(new Configuration());
+let roomClient = new RoomV1Api(new Configuration());`}
       </CodeBlock>
       <p id={"lobbyInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Fetch lobby information, see{" "}
@@ -364,20 +360,19 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
       <CodeBlock>{`import {
   Configuration,
   LobbyV2Api,
-  LobbyV2ApiInterface,
 } from "@hathora/hathora-cloud-sdk";
 
 let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));
 
-// lobbyState is meant to hold custom objects 
-let myCustomLobbyState = { isGameEnd: true,  winningPlayerId: game.winningPlayerId,}
-const lobby = await this.lobbyClient.setLobbyState(
+// lobbyState is meant to hold custom objects
+let myCustomLobbyState = { isGameEnd: true,  winningPlayerId: myGameData.winningPlayerId,}
+const lobby = await lobbyClient.setLobbyState(
   appId,
   roomId,
   { state: myCustomLobbyState },
   // \`appToken\` is the auth token for your Hathora Cloud account
   //  (different than the tokens for your players)
-  { headers: { Authorization: \`Bearer $\{appToken}\`, "Content-Type": "application/json" } }
+  { headers: { Authorization: \`Bearer \${appToken}\`, "Content-Type": "application/json" } }
 );`}</CodeBlock>
       <p style={textStyle}>
         See how Bullet Mania uses <Code>lobbyState</Code>: {"  "}
