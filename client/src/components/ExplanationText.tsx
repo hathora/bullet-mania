@@ -14,7 +14,7 @@ SyntaxHighlighter.registerLanguage("javascript", js);
 
 export function ExplanationText() {
   return (
-    <div className={"mt-6"} style={{ width: GameConfig.width }}>
+    <div className={"mt-6 mb-28"} style={{ width: GameConfig.width }}>
       <h1 style={h1Style}>Learn how we built Bullet Mania</h1>
       <Link href={"https://github.com/hathora/topdown-shooter/"} icon={GitHubIcon}>
         Bullet Mania source code
@@ -43,6 +43,11 @@ export function ExplanationText() {
         <li className={"mt-2"}>Once your game server exits or is idle for 5 minutes, the compute resource goes away</li>
         <li className={"mt-2"}>Hathora has no fixed costs, pricing is based on active compute usage</li>
       </ul>
+      <p style={textStyle} className="italic text-neutralgray-400">
+        To learn more about key concepts in Hathora, check out our docs on{" "}
+        <Link href={"https://hathora.dev/docs/concepts/hathora-entities"}>Hathora Entities</Link> and{" "}
+        <Link href={"https://hathora.dev/docs/concepts/room-lifecycle"}>Room Lifecycle</Link>.
+      </p>
       <h1 style={h1Style}>Why is it good?</h1>
       <p style={textStyle}>As seen in Bullet Mania your players will get good ping times because Hathora has:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
@@ -64,8 +69,18 @@ export function ExplanationText() {
       <h1 style={h1Style}>How to use Hathora for your game?</h1>
       <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
-        right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a lightweight Lobby
-        Service to spin up and route players to the correct room.
+        right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a{" "}
+        <Link href={"https://api.hathora.dev/ui/#/LobbyV2"}>lightweight Lobby Service</Link> to spin up and route
+        players to the correct room.
+      </p>
+      <p style={textStyle}>
+        For Bullet Mania, we created a wrapper around{" "}
+        <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora's Cloud SDK</Link> to
+        centralize all of our code that directly integrate with Hathora's APIs. You can view the code here: {"  "}
+        <Link href={"https://github.com/hathora/topdown-shooter/tree/develop/common/lobby-service"} icon={GitHubIcon}>
+          Bullet Mania's API wrapper
+        </Link>
+        .
       </p>
       <p style={textStyle}>With our Lobby Service, integration just takes a few steps:</p>
       <ul className={"font-hathoraBody list-decimal ml-6"}>
@@ -121,7 +136,7 @@ export function ExplanationText() {
       <CodeBlock>
         {`import {(AuthV1Api, AuthV1ApiInterface, Configuration)} from "@hathora/hathora-cloud-sdk";
 
-let client = new AuthV1Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+let authClient = new AuthV1Api(new Configuration({ basePath: "api.hathora.dev" }));`}
       </CodeBlock>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Use auth client to generate player tokens (needed to create rooms)
@@ -133,9 +148,18 @@ let token = await authClient.loginAnonymous().token;
 // integrate with Google
 let token = await authClient.loginGoogle(googleIdToken).token;
 
-// players enter names
+// players can enter names
 let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`}
       </CodeBlock>
+      <p style={textStyle}>
+        See how we authenticate players in Bullet Mania: {"  "}
+        <Link
+          href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L162"}
+          icon={GitHubIcon}
+        >
+          Bullet Mania authentication
+        </Link>
+      </p>
       <h1 id={"createLobby"} style={h1Style}>
         Create public and private lobbies
       </h1>
@@ -156,130 +180,211 @@ let token = await authClient.loginNickname(this.appId,{nickname:"name"}).token;`
         <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
-        <li className={"mt-1"}># of players in the room</li>
-        <li className={"mt-1"}># of kills to win</li>
+        <li className={"mt-1"}>
+          <Code>capacity</Code>: Max players for a room
+        </li>
+        <li className={"mt-1"}>
+          <Code>winningScore</Code>: Number of kills to win
+        </li>
       </ul>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Import Lobby client from <Code>@hathora/hathora-cloud-sdk</Code>
+      </p>
+      <CodeBlock>
+        {`import {
+  Configuration,
+  LobbyV2Api,
+  LobbyV2ApiInterface,
+} from "@hathora/hathora-cloud-sdk";
+
+let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+      </CodeBlock>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Authenticated players (via client) can create lobbies
       </p>
-      <CodeBlock>{`lobbyClient.createLobby(
-  playerToken: Token,
-  region: Region,
-  initialConfig: InitialConfig,
-  visibility: "public", "private", "local"
+      <CodeBlock>{`const lobby = await this.lobbyClient.createLobby(
+  appId, // your Hathora application id
+  token, // signed player token (see "Authenticate Players" section)
+  {
+    visibility: "public", // options: ["public", "private", "local"]
+    region: "Seattle"
+    // custom object that your server code gets access to immediately
+    initialConfig: {capacity: 4, winningScore: 10},
+  },
+  roomId // (optional) use to set custom roomIds
 )`}</CodeBlock>
+      <p style={textStyle}>
+        See how we create lobbies in Bullet Mania: {"  "}
+        <Link
+          href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/GameCreator.tsx#L98"}
+          icon={GitHubIcon}
+        >
+          Bullet Mania lobby creation (client)
+        </Link>
+      </p>
+      <p style={textStyle}>
+        See how the server consumes <Code>initialConfig</Code>: {"  "}
+        <Link
+          href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168"}
+          icon={GitHubIcon}
+        >
+          Bullet Mania player joins (server)
+        </Link>
+      </p>
       <h1 id={"listPublicLobbies"} style={h1Style}>
         Fetch all public lobbies
       </h1>
       <p style={textStyle}>
-        Retrieve a list of active public lobbies so players can coordinate which game to join. The region parameter is
-        optional to filter the list by.
+        It's easy to retrieve a list of all public lobbies and you can optionally pass a <Code>Region</Code> to filter
+        by.
+      </p>
+      <p style={textStyle}>
+        In Bullet Mania, we kept it simple and display all lobbies (newest at the top) and make it easy for layers to
+        join. For more advanced usage, you can set custom properties via <Code>lobbyState</Code> and use those
+        properties for custom client-side filtering and custom matchmaking logic. For more details on using{" "}
+        <Code>lobbyState</Code>, see <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>.
       </p>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>Display all active public rooms</p>
-      <CodeBlock>{`lobbyClient.listActivePublicLobbies(
-  appId: string,
-  region?: Region
+      <CodeBlock>{`import {
+  Configuration,
+  LobbyV2Api,
+  LobbyV2ApiInterface,
+} from "@hathora/hathora-cloud-sdk";
+
+let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));
+
+lobbyClient.listActivePublicLobbies(
+  appId, // your Hathora application id
+  "Seattle", // (optional) region filter
 )`}</CodeBlock>
+      <p style={textStyle}>
+        See how we list lobbies for Bullet Mania: {"  "}
+        <Link
+          href={
+            "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/PublicLobbyList.tsx#L142"
+          }
+          icon={GitHubIcon}
+        >
+          Bullet Mania public lobbies list
+        </Link>
+      </p>
       <h1 id={"connectToLobby"} style={h1Style}>
         Connect to a public or private lobby
       </h1>
       <p style={textStyle}>
-        When a player requests to join, you can retrieve the lobby data to determine state. State is an object that
-        stores the game state set by the server and is passed to all players. In Bullet Mania, the game checks to see if
-        there’s space for another player before sending connection information.
+        When a player wants to join a room, you can use the <Code>roomId</Code> to get connection details (host and
+        port) to connect your player to the correct server.
       </p>
+      <p style={textStyle}>
+        In many cases, you game may need to run some custom logic before letting a player connect. You can use{" "}
+        <Code>lobbyState</Code> to store relevant data needed for this custom logic.
+      </p>
+      <p style={textStyle}>
+        Once you've gotten your connection details, you can use the network transport of your choice to connect. Some
+        popular options include Socket.io, built-in game engine tooling, and custom solutions. In Bullet Mania, we use
+        Hathora's open-source network transport from:{" "}
+        <Link href={"https://github.com/hathora/buildkits/tree/main/typescript-client-sdk"} icon={GitHubIcon}>
+          hathora/buildkits
+        </Link>
+      </p>
+      <h2 id={"joinLobby"} style={h2Style}>
+        Join a room
+      </h2>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Import Room and Lobby clients from <Code>@hathora/hathora-cloud-sdk</Code>
+      </p>
+      <CodeBlock>
+        {`import {
+  Configuration,
+  LobbyV2Api,
+  LobbyV2ApiInterface,
+  RoomV1Api,
+  RoomV1ApiInterface,
+} from "@hathora/hathora-cloud-sdk";
+
+let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));
+let roomClient = new RoomV1Api(new Configuration({ basePath: "api.hathora.dev" }));`}
+      </CodeBlock>
+      <p id={"lobbyInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Fetch lobby information, see{" "}
+        <Link href={"https://api.hathora.dev/ui/#/LobbyV2/GetLobbyInfo"}>return values for getLobbyInfo()</Link>
+      </p>
+      <CodeBlock>{`// This step is only needed if you want to validate lobbyState before connecting a player
+const lobbyInfo = lobbyClient.getLobbyInfo(
+  appId, // your Hathora application id
+  roomId,
+);
+// lobbyInfo will contain details like lobbyState and initialConfig`}</CodeBlock>
+      <p id={"connectionInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
+        Get connection info (host and port) to route your player
+      </p>
+      <CodeBlock>{`const connectionInfo = roomClient.getConnectionInfo(
+  appId, // your Hathora application id
+  roomId,
+);
+
+// Use your network transport of choice (using hathora/buildkits here)
+import { HathoraConnection } from "@hathora/client-sdk";
+const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
       <p style={textStyle}>See how we implemented it for Bullet Mania:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-2"}>
           <Link
-            href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41"}
+            href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41-L71"}
             icon={GitHubIcon}
           >
             Connecting to a room (client)
           </Link>
         </li>
-        <li className={"mt-2"}>
+        <li className={"mt-0"}>
           <Link
-            href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L166"}
+            href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168"}
             icon={GitHubIcon}
           >
             Checking player capacity (server)
           </Link>
         </li>
       </ul>
-      <h2 id={"joinLobby"} style={h2Style}>
-        Join a room
-      </h2>
-      <p id={"lobbyInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
-        Fetch lobby information
-      </p>
-      <CodeBlock>{`lobbyClient.getLobbyInfo(
-  appId: string,
-  roomId: string 
-)`}</CodeBlock>
-      <p id={"connectionInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
-        Get connection info (host and port) to route your player
-      </p>
-      <CodeBlock>{`roomService.getConnectionInfo(
-  appId: string,
-  roomId: string
-)`}</CodeBlock>
       <h1 id={"setLobbyState"} style={h1Style}>
         Update lobby state on game server
       </h1>
       <p style={textStyle}>
-        Use lobby state to pass game data to players. State can only be updated by the server.{" "}
-        <Link href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481"} icon={GitHubIcon}>
-          See how Bullet Mania uses lobby state
-        </Link>
-        <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>Update lobby state</p>
-        <CodeBlock>{`lobbyClient.setLobbyState(
-  appId: string,
-  roomId: string,
-  setLobbyStateRequest: SetLobbyStateRequest
-)`}</CodeBlock>
+        <Code>lobbyState</Code> is flexible object that is set in by your server code, but is easily accessed in your
+        client code. It can be thought of as a custom blob that is persisted outside of your server.
       </p>
-      <h1 id={"appendix"} style={h1Style}>
-        Appendix
-      </h1>
+      <p style={textStyle}>
+        Some example use cases for <Code>lobbyState</Code>:
+      </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
-        <li className={"mt-1"}>
-          You need to authenticate players, with either your own identity service (sign with Hathora appSecret) or
-          Hathora auth service, to spin up a room – rateLimiting per user
-        </li>
-        <li className={"mt-1"}>
-          Players can call <Code>{"/lobby/v2/{appId}/create/private"}</Code> or{" "}
-          <Code>{"/lobby/v2/{appId}/create/public"}</Code> to start a match on Hathora
-          <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
-            <li className={"mt-1"}>Private room: copy the returned roomId and share with friends</li>
-            <li className={"mt-1"}>
-              Public room: call on <Code>{"/lobby/v2/{appId}/list/public"}</Code> to list all possible rooms in a
-              particular region and display to your players (region is optional)
-            </li>
-          </ul>
-        </li>
-        <li className={"mt-1"}>List public lobbies</li>
-        <li className={"mt-1"}>
-          Player can connect to room by grabbing all relevant information about a room by specifying appID and roomID on{" "}
-          <Code>{"/lobby/v2/{appId}/info/{roomId}"}</Code>
-          <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
-            <li className={"mt-1"}>
-              Once your player has a roomId they want to join (this can be done via sharing roomId, public lobby
-              listing, or custom matchmaking logic), they can connect to the room with...
-            </li>
-            <li className={"mt-1"}>
-              State: JSON object that you can use to store and share game state information to all players{" "}
-            </li>
-            <li className={"mt-1"}>
-              initialConfig: JSON object that the player who created the room can use to initialize the game
-            </li>
-            <li className={"mt-1"}>createAt: when the room was created</li>
-            <li className={"mt-1"}>createdBy: who create the room</li>
-            <li className={"mt-1"}>Region: where the game server is located</li>
-          </ul>
-        </li>
-        <li className={"mt-1"}>Manually spin down rooms and servers</li>
+        <li className={"mt-1"}>player count (to enforce play capacity)</li>
+        <li className={"mt-1"}>persist end game data (like winning player and final scores)</li>
+        <li className={"mt-1"}>custom filtering for available lobbies</li>
       </ul>
+      <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>Update lobbyState</p>
+      <CodeBlock>{`import {
+  Configuration,
+  LobbyV2Api,
+  LobbyV2ApiInterface,
+} from "@hathora/hathora-cloud-sdk";
+
+let lobbyClient = new LobbyV2Api(new Configuration({ basePath: "api.hathora.dev" }));
+
+// lobbyState is meant to hold custom objects 
+let myCustomLobbyState = { isGameEnd: true,  winningPlayerId: game.winningPlayerId,}
+const lobby = await this.lobbyClient.setLobbyState(
+  appId,
+  roomId,
+  { state: myCustomLobbyState },
+  // \`appToken\` is the auth token for your Hathora Cloud account
+  //  (different than the tokens for your players)
+  { headers: { Authorization: \`Bearer $\{appToken}\`, "Content-Type": "application/json" } }
+);`}</CodeBlock>
+      <p style={textStyle}>
+        See how Bullet Mania uses <Code>lobbyState</Code>: {"  "}
+        <Link href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481"} icon={GitHubIcon}>
+          Bullet Mania public lobbies list
+        </Link>
+      </p>
     </div>
   );
 }
@@ -300,7 +405,7 @@ function Code(props: { children: React.ReactNode; className?: string }) {
  */
 function CodeBlock(props: { children: string | string[]; className?: string }) {
   return (
-    <div className="container">
+    <div className="container max-w-[800px] overflow-auto text-sm">
       <SyntaxHighlighter language="javascript" className={"syntax-highlighter"} useInlineStyles={false}>
         {props.children}
       </SyntaxHighlighter>

@@ -21,7 +21,7 @@ export function MultiSelect<T extends string>(props: MultiSelectProps<T>) {
               : "border-transparent bg-secondary-500 text-secondary-800 hover:bg-secondary-600"
           } ${index === 0 ? "rounded-l-lg" : index === options.length - 1 ? "rounded-r-lg" : ""}`}
         >
-          {option}
+          {option.charAt(0).toUpperCase() + option.slice(1)}
         </button>
       ))}
     </div>

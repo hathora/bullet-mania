@@ -13,11 +13,11 @@
     color: #E6E6F2;
     background-color: #191927 !important;
     font-family: 'ui-monospace', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-    font-size: 14px;
-    letter-spacing: 1.5px;
+    font-size: 12px;
+    letter-spacing: 1px;
     border-radius: 8px;
-    padding: 16px 20px;
-    font-weight: 500;
+    padding: 16px 16px;
+    font-weight: 300;
 }
 
 code[class*="language-"],

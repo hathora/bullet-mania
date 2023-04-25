@@ -1,6 +1,7 @@
 import { Region } from "./Region";
 import { Lobby } from "./Lobby";
 import { AbstractLobbyClient } from "./AbstractLobbyClient";
+import {CreateLobbyRequestVisibilityEnum} from "@hathora/hathora-cloud-sdk/src/models/CreateLobbyRequest";
 
 export class PlayerLobbyClient<
   LobbyState extends object = object,
@@ -10,33 +11,14 @@ export class PlayerLobbyClient<
     super(appId);
   }
 
-  async createPrivateLobby(
+  async createLobby(
     playerToken: string,
+    visibility: CreateLobbyRequestVisibilityEnum,
     region: Region,
     initialConfig: InitialConfig,
     roomId?: string
   ): Promise<Lobby<LobbyState, InitialConfig>> {
-    const lobby = await this.lobbyClient.createPrivateLobby(this.appId, playerToken, { region, initialConfig }, roomId);
-    return lobby as Lobby<LobbyState, InitialConfig>;
-  }
-
-  async createPublicLobby(
-    playerToken: string,
-    region: Region,
-    initialConfig: InitialConfig,
-    roomId?: string
-  ): Promise<Lobby<LobbyState, InitialConfig>> {
-    const lobby = await this.lobbyClient.createPublicLobby(this.appId, playerToken, { region, initialConfig }, roomId);
-    return lobby as Lobby<LobbyState, InitialConfig>;
-  }
-
-  async createLocalLobby(
-    playerToken: string,
-    region: Region,
-    initialConfig: InitialConfig,
-    roomId?: string
-  ): Promise<Lobby<LobbyState, InitialConfig>> {
-    const lobby = await this.lobbyClient.createLocalLobby(this.appId, playerToken, { region, initialConfig }, roomId);
+    const lobby = await this.lobbyClient.createLobby(this.appId, playerToken, { visibility, region, initialConfig }, roomId);
     return lobby as Lobby<LobbyState, InitialConfig>;
   }
 }
