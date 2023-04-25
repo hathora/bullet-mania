@@ -13,7 +13,7 @@ import { NicknameScreen } from "./components/NicknameScreen";
 import { LobbySelector } from "./components/LobbySelector";
 import { HathoraLogo } from "./components/HathoraLogo";
 import { GameComponent, GameConfig } from "./components/GameComponent";
-import { ExplanationText } from "./components/ExplanationText";
+import { ExplanationText, NavLink } from "./components/ExplanationText";
 import { BulletButton } from "./components/BulletButton";
 
 function App() {
@@ -92,17 +92,23 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
       <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
-        <div className="w-fit mx-auto">
+        <div className="sm:w-fit mx-auto px-2 sm:px-0">
           <div className={"flex justify-center items-center"}>
-            <div className={"flex justify-center items-end"}>
-              <HathoraLogo />
-              <div className={"mx-3 text-hathoraSecondary-400 text-lg text-baseline"}>PRESENTS</div>
+            <div className={"flex justify-center items-center sm:items-end"}>
+              <div className={"w-[150px] sm:w-[207px]"}>
+                <HathoraLogo />
+              </div>
+              <div className={"mx-3 text-hathoraSecondary-400 text-xs sm:text-lg text-baseline"}>PRESENTS</div>
             </div>
             <div className={""}>
-              <img src="bullet_mania_logo_light.png" className="h-[60px]" alt="logo" />
+              <img src="bullet_mania_logo_light.png" className="h-[40px] sm:h-[60px]" alt="logo" />
             </div>
           </div>
-          <div className={"mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
+          <p className={"visible sm:hidden text-neutralgray-400 text-center mt-3"}>
+            Bullet Mania isn't currently playable on mobile <br />
+            <NavLink headingId={"docsTop"}>Skip to documentation</NavLink>
+          </p>
+          <div className={"sm:mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
             {failedToConnect ? (
               <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center text-secondary-400 text-center">
                 Connection was closed

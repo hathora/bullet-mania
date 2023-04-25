@@ -7,7 +7,7 @@ export function Socials({ roomId }: SocialProps) {
   const [showCopied, setShowCopied] = useState(false);
 
   return (
-    <div className="flex items-left w-full h-full my-4">
+    <div className="flex items-left w-full h-full my-4 px-4 sm:px-0">
       <SocialIcon href="https://discord.gg/hathora" imgSrc="social-media/icon-discord.svg" imgAlt="Discord" />
       <SocialIcon href="https://github.com/hathora" imgSrc="social-media/icon-github.svg" imgAlt="Github" />
       <SocialIcon href="https://twitter.com/HathoraDev" imgSrc="social-media/icon-twitter.svg" imgAlt="Twitter" />

@@ -7,15 +7,15 @@ import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 import "./rsh-style.css";
 import GitHubIcon from "../assets/github.svg";
 
-import { GameConfig } from "./GameComponent";
-
 SyntaxHighlighter.registerLanguage("typescript", ts);
 SyntaxHighlighter.registerLanguage("javascript", js);
 
 export function ExplanationText() {
   return (
-    <div className={"mt-6 mb-28"} style={{ width: GameConfig.width }}>
-      <h1 style={h1Style}>Learn how we built Bullet Mania</h1>
+    <div className={"mt-6 mb-28 p-4 sm:p-0 w-full sm:w-[800px]"}>
+      <h1 id={"docsTop"} style={h1Style}>
+        Learn how we built Bullet Mania
+      </h1>
       <Link href={"https://github.com/hathora/topdown-shooter/"} icon={GitHubIcon}>
         Bullet Mania source code
       </Link>
@@ -434,7 +434,7 @@ function Link(props: { children: React.ReactNode; href: string; className?: stri
 /*
  * Component used to link text to scroll to a specific section
  */
-function NavLink(props: { children: React.ReactNode; headingId: string; className?: string }) {
+export function NavLink(props: { children: React.ReactNode; headingId: string; className?: string }) {
   return (
     <a
       href={`#${props.headingId}`}
