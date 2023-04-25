@@ -20,7 +20,7 @@ interface GameCreatorProps {
 }
 export function GameCreator(props: GameCreatorProps) {
   const { lobbyClient, playerToken, setGoogleIdToken } = props;
-  const [visibility, setVisibility] = React.useState<"Public" | "Private" | "Local">("Public");
+  const [visibility, setVisibility] = React.useState<"public" | "private" | "local">("public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
   const [winningScore, setWinningScore] = React.useState<number>(20);
@@ -33,7 +33,7 @@ export function GameCreator(props: GameCreatorProps) {
       <Header className="mt-4 mb-2">Create Game</Header>
       <MultiSelect
         className="mb-3"
-        options={import.meta.env.DEV ? ["Public", "Private", "Local"] : ["Public", "Private"]}
+        options={import.meta.env.DEV ? ["public", "private", "local"] : ["public", "private"]}
         selected={visibility}
         onSelect={setVisibility}
       />
@@ -55,7 +55,7 @@ export function GameCreator(props: GameCreatorProps) {
         onSelect={(s) => setWinningScore(Number(s))}
       />
       <div className={"mb-3 flex items-center justify-center"}>
-        {!Token.isGoogleToken(playerToken) ? (
+        {!Token.isGoogleToken(playerToken) && false ? (
           <GoogleLogin
             onSuccess={(credentialResponse) =>
               credentialResponse.credential != null
@@ -97,17 +97,10 @@ export function GameCreator(props: GameCreatorProps) {
 
 function createLobby(
   lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>,
-  playerToken: GoogleToken,
+  playerToken: GoogleToken | Token,
   region: Region,
   initialConfig: InitialConfig,
-  visibility: "Public" | "Private" | "Local"
+  visibility: "public" | "private" | "local"
 ): Promise<Lobby<LobbyState, InitialConfig>> {
-  switch (visibility) {
-    case "Public":
-      return lobbyClient.createPublicLobby(playerToken.value, region, initialConfig);
-    case "Private":
-      return lobbyClient.createPrivateLobby(playerToken.value, region, initialConfig);
-    case "Local":
-      return lobbyClient.createLocalLobby(playerToken.value, region, initialConfig);
-  }
+  return lobbyClient.createLobby(playerToken.value, visibility, region, initialConfig);
 }
