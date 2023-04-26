@@ -17,13 +17,13 @@ interface NicknameScreenProps {
 
 export function NicknameScreen(props: NicknameScreenProps) {
   const { sessionMetadata, setIsNicknameAcked } = props;
-  const [nickname, setNickname] = React.useState(sessionStorage.getItem("topdown-shooter-nickname"));
+  const [nickname, setNickname] = React.useState(sessionStorage.getItem("bullet-mania-nickname"));
   const [error, setError] = React.useState<string | undefined>(undefined);
   const inputRef = React.useRef<HTMLInputElement>(null);
   inputRef.current?.focus();
   function handleSubmit() {
     if (nickname && nickname.length > 1 && nickname.length < 20) {
-      sessionStorage.setItem("topdown-shooter-nickname", nickname);
+      sessionStorage.setItem("bullet-mania-nickname", nickname);
       setIsNicknameAcked(true);
     } else {
       setError("Nickname must be between 2 and 20 characters");

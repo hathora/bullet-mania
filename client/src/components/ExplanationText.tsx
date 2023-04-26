@@ -13,15 +13,19 @@ SyntaxHighlighter.registerLanguage("javascript", js);
 
 export function ExplanationText() {
   return (
-    <div className={"mt-6 mb-28 p-4 sm:p-0 w-full sm:w-[800px]"}>
+    <div className={"mt-6 mb-28 p-4 md:p-0 w-full md:w-[800px]"}>
       <h1 id={"docsTop"} style={h1Style}>
-        Learn how we built Bullet Mania
+        Building an infinitely scalable multiplayer game
       </h1>
-      <Link href={"https://github.com/hathora/topdown-shooter/"} icon={GitHubIcon}>
+      <Link href={"https://github.com/hathora/bullet-mania/"} icon={GitHubIcon}>
         Bullet Mania source code
       </Link>
       <p style={textStyle}>
-        We built <strong>Bullet Mania</strong> to showcase how simple it is to build and scale a multiplayer game on{" "}
+        Bullet Mania is an open-sourcem multiplayer 2D top-down shooter. Try it out above by joining a public game or
+        creating a game and sharing a link with friends.
+      </p>
+      <p style={textStyle}>
+        We built Bullet Mania to showcase how simple it is to build and scale a multiplayer game on{" "}
         <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Hathora Cloud works well for both new and existing
         multiplayer games. To learn more about deploying your multiplayer game on Hathora Cloud, check out our{" "}
         <Link href={"https://hathora.dev/docs/get-started"}>10-minute Get Started guide</Link>.
@@ -31,6 +35,9 @@ export function ExplanationText() {
         When a player <NavLink headingId={"createLobby"}>creates a public or private room</NavLink>, a game server is
         dynamically provisioned by Hathora Cloud in the region specified.
       </p>
+      <div className={"flex justify-center"}>
+        <img src={"/screenshots/hathora_lobby_flow.png"} className={"w-[680px]"} />
+      </div>
       <p style={textStyle}>
         <strong>Important notes</strong>
       </p>
@@ -83,8 +90,9 @@ export function ExplanationText() {
       <p style={textStyle}>
         For Bullet Mania, we created a wrapper around{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora Cloud SDK</Link> to
-        centralize all of our code that directly integrate with Hathora APIs. You can view the code here: {"  "}
-        <Link href={"https://github.com/hathora/topdown-shooter/tree/develop/common/lobby-service"} icon={GitHubIcon}>
+        centralize all of our code that directly integrate with Hathora APIs. This allowed us to add in caching and
+        better type-safety. You can view the code here: {"  "}
+        <Link href={"https://github.com/hathora/bullet-mania/tree/develop/common/lobby-service"} icon={GitHubIcon}>
           Bullet Mania's API wrapper
         </Link>
         .
@@ -103,35 +111,37 @@ export function ExplanationText() {
           <NavLink headingId={"listPublicLobbies"}>Fetch all public lobbies</NavLink>
         </li>
         <li className={"mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
-          <NavLink headingId={"connectToLobby"}>Connect to a public or private lobby</NavLink>
+          <NavLink headingId={"connectToLobby"}>Connect to a public or private room</NavLink>
         </li>
         <li className={"mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
           <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>
         </li>
       </ul>
-      <div className={"flex justify-center"}>
-        <p className={"text-neutralgray-500 mt-6 mb-1 ml-1 font-hathoraBody"}>
-          Click on the buttons below to see how each part has been implemented
-        </p>
-      </div>
-      <div className={"relative"}>
-        <img src={"/screenshots/lobby.png"} className={"opacity-50"} />
-        <NavButton headingId={"listPublicLobbies"} className={"group top-[174px] left-[18px]"}>
-          List Public Lobbies{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
-        <NavButton headingId={"lobbyInfo"} className={"group top-[246px] left-[252px]"}>
-          Get Lobby Info{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
-        <NavButton headingId={"createLobby"} className={"group top-[396px] right-[180px]"}>
-          Create Lobby{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
-        <NavButton headingId={"connectionInfo"} className={"group top-[500px] right-[240px]"}>
-          Get Connection Info{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
+      <div className={"hidden md:block"}>
+        <div className={"flex justify-center"}>
+          <p className={"text-neutralgray-500 mt-6 mb-1 ml-1 font-hathoraBody"}>
+            Click on the buttons below to see how each part has been implemented
+          </p>
+        </div>
+        <div className={"relative"}>
+          <img src={"/screenshots/lobby.png"} className={"opacity-50"} />
+          <NavButton headingId={"listPublicLobbies"} className={"group top-[174px] left-[18px]"}>
+            List Public Lobbies{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+          <NavButton headingId={"connectionInfo"} className={"group top-[246px] left-[252px]"}>
+            Get Connection Info{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+          <NavButton headingId={"createLobby"} className={"group top-[396px] right-[180px]"}>
+            Create Lobby{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+          <NavButton headingId={"lobbyInfo"} className={"group top-[500px] right-[240px]"}>
+            Get Lobby Info{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+        </div>
       </div>
       <h1 id={"authenticatePlayers"} style={h1Style}>
         Authenticate Players
@@ -162,7 +172,7 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
         links={[
           {
             linkText: "Bullet Mania authentication",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L162",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L162",
           },
         ]}
       >
@@ -174,21 +184,26 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
       <h1 id={"createLobby"} style={h1Style}>
         Create public and private lobbies
       </h1>
+      <p style={textStyle}>
+        Whenever a lobby is created, Hathora will automatically scale your server instances as needed to meet your
+        game's demand. Even if your game gets an unexpected spike in players, new lobbies and rooms will be created
+        without a hitch.
+      </p>
       <p style={textStyle}>There are 3 types of lobbies that a player can create:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
         <li className={"mt-1"}>
           <strong>Public</strong>: it will be returned the roomId in the public lobby list and any player can join
         </li>
         <li className={"mt-1"}>
-          <strong>Private</strong>: the player who created the game must share the roomId with their friends
+          <strong>Private</strong>: the player who created the room must share the roomId with their friends
         </li>
         <li className={"mt-1"}>
           <strong>Local</strong>: for testing with a server running locally
         </li>
       </ul>
       <p style={textStyle}>
-        If you have any specific user input you need to take in to initial your game state then pass it in through the{" "}
-        <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
+        If you have any specific user input you need to take in to initialize your game state then pass it in through
+        the <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-1"}>
@@ -227,8 +242,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         links={[
           {
             linkText: "Bullet Mania lobby creation (client)",
-            linkHref:
-              "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/GameCreator.tsx#L98",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/GameCreator.tsx#L98",
           },
         ]}
       >
@@ -241,7 +255,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         links={[
           {
             linkText: "Bullet Mania player joins (server)",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L155-L168",
           },
         ]}
       >
@@ -258,7 +272,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         by.
       </p>
       <p style={textStyle}>
-        In Bullet Mania, we kept it simple and display all lobbies (newest at the top) and make it easy for layers to
+        In Bullet Mania, we kept it simple and display all lobbies (newest at the top) and make it easy for players to
         join. For more advanced usage, you can set custom properties via <Code>lobbyState</Code> and use those
         properties for custom client-side filtering and custom matchmaking logic. For more details on using{" "}
         <Code>lobbyState</Code>, see <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>.
@@ -280,7 +294,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
           {
             linkText: "Bullet Mania public lobbies list",
             linkHref:
-              "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/PublicLobbyList.tsx#L142-L151",
+              "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/PublicLobbyList.tsx#L142-L151",
           },
         ]}
       >
@@ -297,7 +311,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
         port) to connect your player to the correct server.
       </p>
       <p style={textStyle}>
-        In many cases, you game may need to run some custom logic before letting a player connect. You can use{" "}
+        In many cases, your room may need to run some custom logic before letting a player connect. You can use{" "}
         <Code>lobbyState</Code> to store relevant data needed for this custom logic.
       </p>
       <p style={textStyle}>
@@ -349,11 +363,11 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         links={[
           {
             linkText: "Connecting to a room (client)",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41-L71",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L41-L71",
           },
           {
             linkText: "Checking player capacity (server)",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L155-L168",
           },
         ]}
       >
@@ -365,7 +379,7 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         Update lobby state on game server
       </h1>
       <p style={textStyle}>
-        <Code>lobbyState</Code> is flexible object that is set in by your server code, but is easily accessed in your
+        <Code>lobbyState</Code> is a flexible object that is set by your server code, but is easily accessed in your
         client code. It can be thought of as a custom blob that is persisted outside of your server.
       </p>
       <p style={textStyle}>
@@ -398,7 +412,7 @@ const lobby = await lobbyClient.setLobbyState(
         links={[
           {
             linkText: "Bullet Mania public lobbies list",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L481",
           },
         ]}
       >
@@ -421,10 +435,10 @@ function BulletManiaCodeLink(props: {
 }) {
   return (
     <div
-      className={`px-2 py-2 mt-3 w-fit rounded flex gap-2 items-center text-sm sm:text-base bg-secondary-950 border border-secondary-500 text-secondary-300 ${props.className}`}
+      className={`px-2 py-2 mt-3 w-fit rounded flex gap-2 items-center text-sm md:text-base bg-secondary-950 border border-secondary-500 text-secondary-300 ${props.className}`}
     >
       <div>
-        <img src="bullet_mania_logo_light.png" className="h-[32px] sm:h-[24px]" alt="logo" />
+        <img src="bullet_mania_logo_light.png" className="h-[32px] md:h-[24px]" alt="logo" />
       </div>
       {props.children} {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
       {props.links.length === 1 ? (
@@ -472,7 +486,7 @@ function Code(props: { children: React.ReactNode; className?: string }) {
  */
 function CodeBlock(props: { children: string | string[]; className?: string }) {
   return (
-    <div className="container max-w-[800px] overflow-auto text-sm">
+    <div className="container md:max-w-[800px] text-sm">
       <SyntaxHighlighter language="javascript" className={"syntax-highlighter"} useInlineStyles={false}>
         {props.children}
       </SyntaxHighlighter>

@@ -332,11 +332,11 @@ export class GameScene extends Scene {
 
     //set nickname for this player if it isn't set yet
     state.players
-      .filter((p) => p.id === this.currentUserID && p.nickname !== sessionStorage.getItem("topdown-shooter-nickname"))
+      .filter((p) => p.id === this.currentUserID && p.nickname !== sessionStorage.getItem("bullet-mania-nickname"))
       .forEach(() => {
         this.connection?.writeJson({
           type: ClientMessageType.SetNickname,
-          nickname: sessionStorage.getItem("topdown-shooter-nickname"),
+          nickname: sessionStorage.getItem("bullet-mania-nickname"),
         });
       });
 
