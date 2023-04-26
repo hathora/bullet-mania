@@ -17,7 +17,7 @@ export function ExplanationText() {
       <h1 id={"docsTop"} style={h1Style}>
         Learn how we built Bullet Mania
       </h1>
-      <Link href={"https://github.com/hathora/topdown-shooter/"} icon={GitHubIcon}>
+      <Link href={"https://github.com/hathora/bullet-mania/"} icon={GitHubIcon}>
         Bullet Mania source code
       </Link>
       <p style={textStyle}>
@@ -84,7 +84,7 @@ export function ExplanationText() {
         For Bullet Mania, we created a wrapper around{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora Cloud SDK</Link> to
         centralize all of our code that directly integrate with Hathora APIs. You can view the code here: {"  "}
-        <Link href={"https://github.com/hathora/topdown-shooter/tree/develop/common/lobby-service"} icon={GitHubIcon}>
+        <Link href={"https://github.com/hathora/bullet-mania/tree/develop/common/lobby-service"} icon={GitHubIcon}>
           Bullet Mania's API wrapper
         </Link>
         .
@@ -162,7 +162,7 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
         links={[
           {
             linkText: "Bullet Mania authentication",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L162",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L162",
           },
         ]}
       >
@@ -187,8 +187,8 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
         </li>
       </ul>
       <p style={textStyle}>
-        If you have any specific user input you need to take in to initial your game state then pass it in through the{" "}
-        <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
+        If you have any specific user input you need to take in to initialize your game state then pass it in through
+        the <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-1"}>
@@ -227,8 +227,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         links={[
           {
             linkText: "Bullet Mania lobby creation (client)",
-            linkHref:
-              "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/GameCreator.tsx#L98",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/GameCreator.tsx#L98",
           },
         ]}
       >
@@ -241,7 +240,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         links={[
           {
             linkText: "Bullet Mania player joins (server)",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L155-L168",
           },
         ]}
       >
@@ -258,7 +257,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         by.
       </p>
       <p style={textStyle}>
-        In Bullet Mania, we kept it simple and display all lobbies (newest at the top) and make it easy for layers to
+        In Bullet Mania, we kept it simple and display all lobbies (newest at the top) and make it easy for players to
         join. For more advanced usage, you can set custom properties via <Code>lobbyState</Code> and use those
         properties for custom client-side filtering and custom matchmaking logic. For more details on using{" "}
         <Code>lobbyState</Code>, see <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>.
@@ -280,7 +279,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
           {
             linkText: "Bullet Mania public lobbies list",
             linkHref:
-              "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/PublicLobbyList.tsx#L142-L151",
+              "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/PublicLobbyList.tsx#L142-L151",
           },
         ]}
       >
@@ -349,11 +348,11 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         links={[
           {
             linkText: "Connecting to a room (client)",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41-L71",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L41-L71",
           },
           {
             linkText: "Checking player capacity (server)",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L155-L168",
           },
         ]}
       >
@@ -398,7 +397,7 @@ const lobby = await lobbyClient.setLobbyState(
         links={[
           {
             linkText: "Bullet Mania public lobbies list",
-            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481",
+            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L481",
           },
         ]}
       >

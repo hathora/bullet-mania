@@ -178,8 +178,8 @@ function useAuthToken(appId: string | undefined, googleIdToken: string | undefin
 
 // The getToken function first checks sessionStorage to see if there is an existing token, and if there is returns it. If not, it logs the user into a new session and updates the sessionStorage key.
 async function getToken(client: AuthClient, googleIdToken: string | undefined): Promise<Token> {
-  const maybeToken = sessionStorage.getItem("topdown-shooter-token");
-  const maybeTokenType = sessionStorage.getItem("topdown-shooter-token-type");
+  const maybeToken = sessionStorage.getItem("bullet-mania-token");
+  const maybeTokenType = sessionStorage.getItem("bullet-mania-token-type");
   if (maybeToken !== null && maybeTokenType != null) {
     return {
       type: maybeTokenType,
@@ -191,8 +191,8 @@ async function getToken(client: AuthClient, googleIdToken: string | undefined): 
     return { value: token, type: "anonymous" };
   }
   const token = await client.loginGoogle(googleIdToken);
-  sessionStorage.setItem("topdown-shooter-token", token);
-  sessionStorage.setItem("topdown-shooter-token-type", "google");
+  sessionStorage.setItem("bullet-mania-token", token);
+  sessionStorage.setItem("bullet-mania-token-type", "google");
   return { value: token, type: "google" };
 }
 
