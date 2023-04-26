@@ -5,6 +5,7 @@ import React from "react";
 import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 
 import "./rsh-style.css";
+import GitHubRedIcon from "../assets/github_red.svg";
 import GitHubIcon from "../assets/github.svg";
 
 SyntaxHighlighter.registerLanguage("typescript", ts);
@@ -48,7 +49,7 @@ export function ExplanationText() {
         <Link href={"https://hathora.dev/docs/concepts/hathora-entities"}>Hathora Entities</Link> and{" "}
         <Link href={"https://hathora.dev/docs/concepts/room-lifecycle"}>Room Lifecycle</Link>.
       </p>
-      <h1 style={h1Style}>Why is it good?</h1>
+      <h1 style={h1Style}>Why use Hathora for multiplayer games?</h1>
       <p style={textStyle}>As seen in Bullet Mania your players will get good ping times because Hathora has:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
         <li className={"mt-1"}>
@@ -70,13 +71,19 @@ export function ExplanationText() {
       <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
         right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a{" "}
-        <Link href={"https://api.hathora.dev/ui/#/LobbyV2"}>lightweight Lobby Service</Link> to spin up and route
-        players to the correct room.
+        <Link href={"https://api.hathora.dev/ui/#/LobbyV2"}>lightweight Lobby Service</Link> to make integration even
+        easier (spin up and route players to the correct room).
       </p>
       <p style={textStyle}>
+        Integration is simple, you first need to install and import our{" "}
+        <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora Cloud SDK</Link> to
+        easily interface with our <Link href="https://api.hathora.dev/ui/">Hathora Cloud API</Link>.
+      </p>
+      <CodeBlock>{'import HathoraCloud from "@hathora/hathora-cloud-sdk";'}</CodeBlock>
+      <p style={textStyle}>
         For Bullet Mania, we created a wrapper around{" "}
-        <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora's Cloud SDK</Link> to
-        centralize all of our code that directly integrate with Hathora's APIs. You can view the code here: {"  "}
+        <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora Cloud SDK</Link> to
+        centralize all of our code that directly integrate with Hathora APIs. You can view the code here: {"  "}
         <Link href={"https://github.com/hathora/topdown-shooter/tree/develop/common/lobby-service"} icon={GitHubIcon}>
           Bullet Mania's API wrapper
         </Link>
@@ -151,15 +158,19 @@ let { token } = await authClient.loginGoogle(appId, googleIdToken);
 // players can enter names
 let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
       </CodeBlock>
-      <p style={textStyle}>
-        See how we authenticate players in Bullet Mania: {"  "}
-        <Link
-          href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L162"}
-          icon={GitHubIcon}
-        >
-          Bullet Mania authentication
-        </Link>
-      </p>
+      <BulletManiaCodeLink
+        links={[
+          {
+            linkText: "Bullet Mania authentication",
+            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L162",
+          },
+        ]}
+      >
+        <p className="inline">
+          See how we authenticate players in Bullet Mania
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 stroke-2 inline" />
+        </p>
+      </BulletManiaCodeLink>
       <h1 id={"createLobby"} style={h1Style}>
         Create public and private lobbies
       </h1>
@@ -212,24 +223,33 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
   },
   roomId // (optional) use to set custom roomIds
 )`}</CodeBlock>
-      <p style={textStyle}>
-        See how we create lobbies in Bullet Mania: {"  "}
-        <Link
-          href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/GameCreator.tsx#L98"}
-          icon={GitHubIcon}
-        >
-          Bullet Mania lobby creation (client)
-        </Link>
-      </p>
-      <p style={textStyle}>
-        See how the server consumes <Code>initialConfig</Code>: {"  "}
-        <Link
-          href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168"}
-          icon={GitHubIcon}
-        >
-          Bullet Mania player joins (server)
-        </Link>
-      </p>
+      <BulletManiaCodeLink
+        links={[
+          {
+            linkText: "Bullet Mania lobby creation (client)",
+            linkHref:
+              "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/GameCreator.tsx#L98",
+          },
+        ]}
+      >
+        <p className="inline">
+          See how we create lobbies in Bullet Mania
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 stroke-2 inline" />
+        </p>
+      </BulletManiaCodeLink>
+      <BulletManiaCodeLink
+        links={[
+          {
+            linkText: "Bullet Mania player joins (server)",
+            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168",
+          },
+        ]}
+      >
+        <p className="inline">
+          See how the server consumes <Code>initialConfig</Code>
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 stroke-2 inline" />
+        </p>
+      </BulletManiaCodeLink>
       <h1 id={"listPublicLobbies"} style={h1Style}>
         Fetch all public lobbies
       </h1>
@@ -255,17 +275,20 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
   appId, // your Hathora application id
   "Seattle", // (optional) region filter
 );`}</CodeBlock>
-      <p style={textStyle}>
-        See how we list lobbies for Bullet Mania: {"  "}
-        <Link
-          href={
-            "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/PublicLobbyList.tsx#L142"
-          }
-          icon={GitHubIcon}
-        >
-          Bullet Mania public lobbies list
-        </Link>
-      </p>
+      <BulletManiaCodeLink
+        links={[
+          {
+            linkText: "Bullet Mania public lobbies list",
+            linkHref:
+              "https://github.com/hathora/topdown-shooter/blob/develop/client/src/components/PublicLobbyList.tsx#L142-L151",
+          },
+        ]}
+      >
+        <p className="inline">
+          See how we list lobbies for Bullet Mania
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 stroke-2 inline" />
+        </p>
+      </BulletManiaCodeLink>
       <h1 id={"connectToLobby"} style={h1Style}>
         Connect to a public or private lobby
       </h1>
@@ -322,25 +345,22 @@ const lobbyInfo = lobbyClient.getLobbyInfo(
 // Use your network transport of choice (using hathora/buildkits here)
 import { HathoraConnection } from "@hathora/client-sdk";
 const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
-      <p style={textStyle}>See how we implemented it for Bullet Mania:</p>
-      <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
-        <li className={"mt-2"}>
-          <Link
-            href={"https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41-L71"}
-            icon={GitHubIcon}
-          >
-            Connecting to a room (client)
-          </Link>
-        </li>
-        <li className={"mt-0"}>
-          <Link
-            href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168"}
-            icon={GitHubIcon}
-          >
-            Checking player capacity (server)
-          </Link>
-        </li>
-      </ul>
+      <BulletManiaCodeLink
+        links={[
+          {
+            linkText: "Connecting to a room (client)",
+            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/client/src/app.tsx#L41-L71",
+          },
+          {
+            linkText: "Checking player capacity (server)",
+            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L155-L168",
+          },
+        ]}
+      >
+        <p className="inline">
+          <p>See how we implemented it for Bullet Mania:</p>
+        </p>
+      </BulletManiaCodeLink>
       <h1 id={"setLobbyState"} style={h1Style}>
         Update lobby state on game server
       </h1>
@@ -374,12 +394,64 @@ const lobby = await lobbyClient.setLobbyState(
   //  (different than the tokens for your players)
   { headers: { Authorization: \`Bearer \${appToken}\`, "Content-Type": "application/json" } }
 );`}</CodeBlock>
-      <p style={textStyle}>
-        See how Bullet Mania uses <Code>lobbyState</Code>: {"  "}
-        <Link href={"https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481"} icon={GitHubIcon}>
-          Bullet Mania public lobbies list
+      <BulletManiaCodeLink
+        links={[
+          {
+            linkText: "Bullet Mania public lobbies list",
+            linkHref: "https://github.com/hathora/topdown-shooter/blob/develop/server/server.ts#L481",
+          },
+        ]}
+      >
+        <p className="inline">
+          See how Bullet Mania uses <Code>lobbyState</Code>
+          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 stroke-2 inline" />
+        </p>
+      </BulletManiaCodeLink>
+    </div>
+  );
+}
+
+function BulletManiaCodeLink(props: {
+  links: {
+    linkText: string;
+    linkHref: string;
+  }[];
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`px-2 py-2 mt-3 w-fit rounded flex gap-2 items-center text-sm sm:text-base bg-secondary-950 border border-secondary-500 text-secondary-300 ${props.className}`}
+    >
+      <div>
+        <img src="bullet_mania_logo_light.png" className="h-[32px] sm:h-[24px]" alt="logo" />
+      </div>
+      {props.children} {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
+      {props.links.length === 1 ? (
+        <Link
+          href={props.links[0].linkHref}
+          color="text-brand-400"
+          hoverColor="hover:bg-secondary-900"
+          icon={GitHubRedIcon}
+        >
+          {props.links[0].linkText}
         </Link>
-      </p>
+      ) : (
+        <ul className={"list-disc ml-6 text-brand-400"}>
+          {props.links.map((link) => (
+            <li>
+              <Link
+                href={link.linkHref}
+                color="text-brand-400"
+                hoverColor="hover:bg-secondary-900"
+                icon={GitHubRedIcon}
+              >
+                {link.linkText}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -411,11 +483,22 @@ function CodeBlock(props: { children: string | string[]; className?: string }) {
 /*
  * Component used for external links
  */
-function Link(props: { children: React.ReactNode; href: string; className?: string; icon?: string }) {
+function Link(props: {
+  children: React.ReactNode;
+  href: string;
+  color?: string;
+  hoverColor?: string;
+  className?: string;
+  icon?: string;
+}) {
   return (
     <a
-      className={`font-hathoraBody text-hathoraBrand-500 hover:underline ${
-        props.icon ? "inline-flex items-center rounded -ml-2 px-2 py-1 hover:bg-neutralgray-650" : "inline-block"
+      className={`font-hathoraBody ${props.color ? props.color : "text-hathoraBrand-500"} hover:underline ${
+        props.icon
+          ? `inline-flex items-center rounded -ml-2 px-2 py-1 ${
+              props.hoverColor ? props.hoverColor : "hover:bg-neutralgray-650"
+            }`
+          : "inline-block"
       } ${props.className}`}
       href={props.href}
       target={"_blank"}
