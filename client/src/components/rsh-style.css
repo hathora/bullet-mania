@@ -7,10 +7,18 @@
     margin-left: -10px;
 }
 
+@media (max-width: 768px) {
+    .container {
+        width: 100%;
+        min-width: 300px;
+    }
+}
+
 .container > .syntax-highlighter {
     width:100%;
     height: 100%;
     color: #E6E6F2;
+    overflow: auto;
     background-color: #191927 !important;
     font-family: 'ui-monospace', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
     font-size: 12px;

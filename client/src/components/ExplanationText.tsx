@@ -13,15 +13,19 @@ SyntaxHighlighter.registerLanguage("javascript", js);
 
 export function ExplanationText() {
   return (
-    <div className={"mt-6 mb-28 p-4 sm:p-0 w-full sm:w-[800px]"}>
+    <div className={"mt-6 mb-28 p-4 md:p-0 w-full md:w-[800px]"}>
       <h1 id={"docsTop"} style={h1Style}>
-        Learn how we built Bullet Mania
+        Building an infinitely scalable multiplayer game
       </h1>
       <Link href={"https://github.com/hathora/bullet-mania/"} icon={GitHubIcon}>
         Bullet Mania source code
       </Link>
       <p style={textStyle}>
-        We built <strong>Bullet Mania</strong> to showcase how simple it is to build and scale a multiplayer game on{" "}
+        Bullet Mania is an open-sourcem multiplayer 2D top-down shooter. Try it out above by joining a public game or
+        creating a game and sharing a link with friends.
+      </p>
+      <p style={textStyle}>
+        We built Bullet Mania to showcase how simple it is to build and scale a multiplayer game on{" "}
         <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Hathora Cloud works well for both new and existing
         multiplayer games. To learn more about deploying your multiplayer game on Hathora Cloud, check out our{" "}
         <Link href={"https://hathora.dev/docs/get-started"}>10-minute Get Started guide</Link>.
@@ -86,7 +90,8 @@ export function ExplanationText() {
       <p style={textStyle}>
         For Bullet Mania, we created a wrapper around{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora Cloud SDK</Link> to
-        centralize all of our code that directly integrate with Hathora APIs. You can view the code here: {"  "}
+        centralize all of our code that directly integrate with Hathora APIs. This allowed us to add in caching and
+        better type-safety. You can view the code here: {"  "}
         <Link href={"https://github.com/hathora/bullet-mania/tree/develop/common/lobby-service"} icon={GitHubIcon}>
           Bullet Mania's API wrapper
         </Link>
@@ -112,29 +117,31 @@ export function ExplanationText() {
           <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>
         </li>
       </ul>
-      <div className={"flex justify-center"}>
-        <p className={"text-neutralgray-500 mt-6 mb-1 ml-1 font-hathoraBody"}>
-          Click on the buttons below to see how each part has been implemented
-        </p>
-      </div>
-      <div className={"relative"}>
-        <img src={"/screenshots/lobby.png"} className={"opacity-50"} />
-        <NavButton headingId={"listPublicLobbies"} className={"group top-[174px] left-[18px]"}>
-          List Public Lobbies{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
-        <NavButton headingId={"connectionInfo"} className={"group top-[246px] left-[252px]"}>
-          Get Connection Info{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
-        <NavButton headingId={"createLobby"} className={"group top-[396px] right-[180px]"}>
-          Create Lobby{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
-        <NavButton headingId={"lobbyInfo"} className={"group top-[500px] right-[240px]"}>
-          Get Lobby Info{" "}
-          <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
-        </NavButton>
+      <div className={"hidden md:block"}>
+        <div className={"flex justify-center"}>
+          <p className={"text-neutralgray-500 mt-6 mb-1 ml-1 font-hathoraBody"}>
+            Click on the buttons below to see how each part has been implemented
+          </p>
+        </div>
+        <div className={"relative"}>
+          <img src={"/screenshots/lobby.png"} className={"opacity-50"} />
+          <NavButton headingId={"listPublicLobbies"} className={"group top-[174px] left-[18px]"}>
+            List Public Lobbies{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+          <NavButton headingId={"connectionInfo"} className={"group top-[246px] left-[252px]"}>
+            Get Connection Info{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+          <NavButton headingId={"createLobby"} className={"group top-[396px] right-[180px]"}>
+            Create Lobby{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+          <NavButton headingId={"lobbyInfo"} className={"group top-[500px] right-[240px]"}>
+            Get Lobby Info{" "}
+            <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
+          </NavButton>
+        </div>
       </div>
       <h1 id={"authenticatePlayers"} style={h1Style}>
         Authenticate Players
@@ -177,6 +184,11 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
       <h1 id={"createLobby"} style={h1Style}>
         Create public and private lobbies
       </h1>
+      <p style={textStyle}>
+        Whenever a lobby is created, Hathora will automatically scale your server instances as needed to meet your
+        game's demand. Even if your game gets an unexpected spike in players, new lobbies and rooms will be created
+        without a hitch.
+      </p>
       <p style={textStyle}>There are 3 types of lobbies that a player can create:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
         <li className={"mt-1"}>
@@ -423,10 +435,10 @@ function BulletManiaCodeLink(props: {
 }) {
   return (
     <div
-      className={`px-2 py-2 mt-3 w-fit rounded flex gap-2 items-center text-sm sm:text-base bg-secondary-950 border border-secondary-500 text-secondary-300 ${props.className}`}
+      className={`px-2 py-2 mt-3 w-fit rounded flex gap-2 items-center text-sm md:text-base bg-secondary-950 border border-secondary-500 text-secondary-300 ${props.className}`}
     >
       <div>
-        <img src="bullet_mania_logo_light.png" className="h-[32px] sm:h-[24px]" alt="logo" />
+        <img src="bullet_mania_logo_light.png" className="h-[32px] md:h-[24px]" alt="logo" />
       </div>
       {props.children} {/* eslint-disable-next-line @typescript-eslint/no-unnecessary-condition */}
       {props.links.length === 1 ? (
@@ -474,7 +486,7 @@ function Code(props: { children: React.ReactNode; className?: string }) {
  */
 function CodeBlock(props: { children: string | string[]; className?: string }) {
   return (
-    <div className="container max-w-[800px] overflow-auto text-sm">
+    <div className="container md:max-w-[800px] text-sm">
       <SyntaxHighlighter language="javascript" className={"syntax-highlighter"} useInlineStyles={false}>
         {props.children}
       </SyntaxHighlighter>

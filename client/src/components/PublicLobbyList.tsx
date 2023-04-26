@@ -36,7 +36,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   }, [lobbies, lobbyClient]);
   return (
     <LobbyPageCard className={""}>
-      <Header className="mt-4 mb-2">Join Public Lobby</Header>
+      <Header className="mt-4 mb-2">Join Public Game</Header>
       <table className="w-full mb-4 border border-secondary-700 rounded-sm">
         <thead className={"flex w-full border-b border-secondary-700"}>
           <tr className="flex w-full bg-secondary-500 text-secondary-800">
