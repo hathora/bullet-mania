@@ -1,7 +1,7 @@
-# Hathora Topdown Shooter - Bullet Mania
+# Bullet Mania
 ![Hathora presents Bullet Mania](/client/src/assets/screenshots/banner.png)
 
-## Overiew 
+## Overview 
 
 Multiplayer 2D shooter demo made using:
   - [Phaser](https://phaser.io/) - Game framework
