@@ -95,9 +95,9 @@ function App() {
         <div className="sm:w-fit mx-auto px-2 sm:px-0">
           <div className={"flex justify-center items-center"}>
             <div className={"flex justify-center items-center sm:items-end"}>
-              <div className={"w-[150px] sm:w-[207px]"}>
+              <a href="https://hathora.dev" className={"w-[150px] sm:w-[207px]"}>
                 <HathoraLogo />
-              </div>
+              </a>
               <div className={"mx-3 text-hathoraSecondary-400 text-xs sm:text-lg text-baseline"}>PRESENTS</div>
             </div>
             <div className={""}>

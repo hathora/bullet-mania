@@ -31,6 +31,9 @@ export function ExplanationText() {
         When a player <NavLink headingId={"createLobby"}>creates a public or private room</NavLink>, a game server is
         dynamically provisioned by Hathora Cloud in the region specified.
       </p>
+      <div className={"flex justify-center"}>
+        <img src={"/screenshots/hathora_lobby_flow.png"} className={"w-[680px]"} />
+      </div>
       <p style={textStyle}>
         <strong>Important notes</strong>
       </p>
@@ -103,7 +106,7 @@ export function ExplanationText() {
           <NavLink headingId={"listPublicLobbies"}>Fetch all public lobbies</NavLink>
         </li>
         <li className={"mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
-          <NavLink headingId={"connectToLobby"}>Connect to a public or private lobby</NavLink>
+          <NavLink headingId={"connectToLobby"}>Connect to a public or private room</NavLink>
         </li>
         <li className={"mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
           <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>
@@ -120,16 +123,16 @@ export function ExplanationText() {
           List Public Lobbies{" "}
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
-        <NavButton headingId={"lobbyInfo"} className={"group top-[246px] left-[252px]"}>
-          Get Lobby Info{" "}
+        <NavButton headingId={"connectionInfo"} className={"group top-[246px] left-[252px]"}>
+          Get Connection Info{" "}
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
         <NavButton headingId={"createLobby"} className={"group top-[396px] right-[180px]"}>
           Create Lobby{" "}
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
-        <NavButton headingId={"connectionInfo"} className={"group top-[500px] right-[240px]"}>
-          Get Connection Info{" "}
+        <NavButton headingId={"lobbyInfo"} className={"group top-[500px] right-[240px]"}>
+          Get Lobby Info{" "}
           <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
         </NavButton>
       </div>
@@ -180,7 +183,7 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
           <strong>Public</strong>: it will be returned the roomId in the public lobby list and any player can join
         </li>
         <li className={"mt-1"}>
-          <strong>Private</strong>: the player who created the game must share the roomId with their friends
+          <strong>Private</strong>: the player who created the room must share the roomId with their friends
         </li>
         <li className={"mt-1"}>
           <strong>Local</strong>: for testing with a server running locally
@@ -296,7 +299,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
         port) to connect your player to the correct server.
       </p>
       <p style={textStyle}>
-        In many cases, you game may need to run some custom logic before letting a player connect. You can use{" "}
+        In many cases, your room may need to run some custom logic before letting a player connect. You can use{" "}
         <Code>lobbyState</Code> to store relevant data needed for this custom logic.
       </p>
       <p style={textStyle}>
@@ -364,7 +367,7 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         Update lobby state on game server
       </h1>
       <p style={textStyle}>
-        <Code>lobbyState</Code> is flexible object that is set in by your server code, but is easily accessed in your
+        <Code>lobbyState</Code> is a flexible object that is set by your server code, but is easily accessed in your
         client code. It can be thought of as a custom blob that is persisted outside of your server.
       </p>
       <p style={textStyle}>
