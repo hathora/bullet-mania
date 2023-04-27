@@ -8,13 +8,14 @@ import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient"
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
 import { LOCAL_CONNECTION_DETAILS, Token } from "./utils";
-import { Socials } from "./components/Socials";
-import { NicknameScreen } from "./components/NicknameScreen";
-import { LobbySelector } from "./components/LobbySelector";
-import { HathoraLogo } from "./components/HathoraLogo";
+import { Socials } from "./components/website/Socials";
+import { HathoraLogo } from "./components/website/HathoraLogo";
+import { Footer } from "./components/website/Footer";
+import { ExplanationText, NavLink } from "./components/website/ExplanationText";
+import { NicknameScreen } from "./components/lobby/NicknameScreen";
+import { LobbySelector } from "./components/lobby/LobbySelector";
+import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
-import { ExplanationText, NavLink } from "./components/ExplanationText";
-import { BulletButton } from "./components/BulletButton";
 
 function App() {
   const appId = process.env.HATHORA_APP_ID;
@@ -91,7 +92,7 @@ function App() {
   }
   return (
     <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
-      <div className="py-5" style={{ backgroundColor: "#0E0E1B" }}>
+      <div className="py-5 overflow-hidden" style={{ backgroundColor: "#0E0E1B" }}>
         <div className="md:w-fit mx-auto px-2 md:px-0">
           <div className={"flex justify-center items-center"}>
             <div className={"flex justify-center items-center md:items-end"}>
@@ -158,6 +159,7 @@ function App() {
           <ExplanationText />
         </div>
       </div>
+      <Footer />
     </GoogleOAuthProvider>
   );
 }

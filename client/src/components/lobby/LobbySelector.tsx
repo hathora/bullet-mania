@@ -1,8 +1,8 @@
 import React from "react";
 
-import { Token } from "../utils";
-import { InitialConfig, LobbyState } from "../../../common/types";
-import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
+import { Token } from "../../utils";
+import { InitialConfig, LobbyState } from "../../../../common/types";
+import { PlayerLobbyClient } from "../../../../common/lobby-service/PlayerLobbyClient";
 
 import { PublicLobbyList } from "./PublicLobbyList";
 import { LobbyPageCard } from "./LobbyPageCard";
