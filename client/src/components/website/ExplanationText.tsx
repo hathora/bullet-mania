@@ -13,7 +13,7 @@ SyntaxHighlighter.registerLanguage("javascript", js);
 
 export function ExplanationText() {
   return (
-    <div className={"mt-6 mb-28 p-4 md:p-0 w-full md:w-[800px]"}>
+    <div className={"mt-6 mb-24 p-4 md:p-0 w-full md:w-[800px]"}>
       <h1 id={"docsTop"} style={h1Style}>
         <a href="#docsTop">Building an infinitely scalable multiplayer game</a>
       </h1>

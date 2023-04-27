@@ -70,3 +70,23 @@ html{scroll-behavior:smooth}
 
     transition: width 0.35s;
 }
+@media (min-width: 768px) {
+    .footer_shadow {
+        right: auto;
+        left: -125px;
+    }
+}
+.footer_shadow {
+    width: 250px;
+    height: 250px;
+    position: absolute;
+    right: -125px;
+    bottom: -125px;
+    border-radius: 50%;
+    background: rgb(175, 100, 238);
+    mix-blend-mode: hard-light;
+    opacity: 0.4;
+    filter: blur(70.6396px);
+    transform: matrix(-0.86, -0.49, 0.51, -0.87, 0, 0);
+    z-index: 0;
+}
