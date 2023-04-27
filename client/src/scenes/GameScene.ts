@@ -426,6 +426,19 @@ export class GameScene extends Scene {
         this.playersAmmo.set(player.id, newLabel);
       }
     });
+    // clean up if player has left
+    for (const [key, value] of this.playersName.entries()) {
+      if (!state.players.find((p) => p.id === key)) {
+        // delete player name label
+        value.destroy();
+        this.playersName.delete(key);
+        // delete other global indicators
+        this.playersAmmo.get(key)?.destroy();
+        this.playersAmmo.delete(key);
+        this.leaderBoard.get(key)?.destroy();
+        this.leaderBoard.delete(key);
+      }
+    }
 
     // sync ammo indicator and score
     const player = state.players.find((p) => p.id === this.currentUserID);

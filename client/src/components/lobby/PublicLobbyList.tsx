@@ -138,7 +138,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
               ))
           ) : (
             <tr className={"text-secondary-800 text-sm py-2"}>
-              No active games, try creating a game and sharing the link!
+              No active games, try <strong>creating a game</strong> and <strong>sharing the link!</strong>
             </tr>
           )}
         </tbody>
