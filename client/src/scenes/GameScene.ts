@@ -203,7 +203,7 @@ export class GameScene extends Scene {
         case ServerMessageType.PingResponse:
           // Update ping text
           pings.push(Date.now() - msg.id);
-          if (pings.length > 10) {
+          if (pings.length > 2) {
             pings.shift();
           }
           pingText.text = `Ping: ${[...pings].sort((a, b) => a - b)[Math.floor(pings.length / 2)]}`;
