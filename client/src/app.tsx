@@ -1,13 +1,13 @@
 import ReactDOM from "react-dom/client";
 import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
-import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
+import { SessionMetadata, LobbyState } from "../../common/types";
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
-import { LOCAL_CONNECTION_DETAILS, Token } from "./utils";
+import { isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
 import { HathoraLogo } from "./components/website/HathoraLogo";
 import { Footer } from "./components/website/Footer";
@@ -16,6 +16,9 @@ import { NicknameScreen } from "./components/lobby/NicknameScreen";
 import { LobbySelector } from "./components/lobby/LobbySelector";
 import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
+
+const lobbyClient = new LobbyV2Api();
+const roomClient = new RoomV1Api();
 
 function App() {
   const appId = process.env.HATHORA_APP_ID;
@@ -30,7 +33,6 @@ function App() {
   if (appId == null || token == null) {
     return <div>Loading...</div>;
   }
-  const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
   const roomIdFromUrl = getRoomIdFromUrl();
   if (
     roomIdFromUrl != null &&
@@ -40,31 +42,31 @@ function App() {
     !sessionMetadata?.isGameEnd
   ) {
     // Once we parse roomId from the URL, get connection details to connect player to the server
-    lobbyClient
-      .getConnectionDetailsForLobby(roomIdFromUrl, LOCAL_CONNECTION_DETAILS)
-      .then(async (connectionDetails) => {
+    isReadyForConnect(roomClient, lobbyClient, roomIdFromUrl)
+      .then(async ({ connectionInfo, lobbyInfo }) => {
         setRoomIdNotFound(undefined);
         if (connection != null) {
           connection.disconnect(1000);
         }
 
         try {
-          const lobbyInfo = await lobbyClient.getLobbyInfo(roomIdFromUrl);
+          const lobbyState = lobbyInfo.state as LobbyState | undefined;
 
-          if (!lobbyInfo.state?.isGameEnd) {
-            const connect = new HathoraConnection(roomIdFromUrl, connectionDetails);
+          if (!lobbyState || !lobbyState.isGameEnd) {
+            const connect = new HathoraConnection(roomIdFromUrl, connectionInfo);
             connect.onClose(async () => {
               // If game has ended, we want updated lobby state
-              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(roomIdFromUrl);
+              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(process.env.HATHORA_APP_ID, roomIdFromUrl);
+              const updatedLobbyState = updatedLobbyInfo.state as LobbyState | undefined;
               setSessionMetadata({
-                serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+                serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
                 region: updatedLobbyInfo.region,
                 roomId: updatedLobbyInfo.roomId,
                 capacity: updatedLobbyInfo.initialConfig.capacity,
                 winningScore: updatedLobbyInfo.initialConfig.winningScore,
-                isGameEnd: !!updatedLobbyInfo.state?.isGameEnd,
-                winningPlayerId: updatedLobbyInfo.state?.winningPlayerId,
-                playerNicknameMap: updatedLobbyInfo.state?.playerNicknameMap ?? {},
+                isGameEnd: !!updatedLobbyState?.isGameEnd,
+                winningPlayerId: updatedLobbyState?.winningPlayerId,
+                playerNicknameMap: updatedLobbyState?.playerNicknameMap || {},
                 creatorId: updatedLobbyInfo.createdBy,
               });
               setFailedToConnect(true);
@@ -72,14 +74,14 @@ function App() {
             setConnection(connect);
           }
           setSessionMetadata({
-            serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+            serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
             region: lobbyInfo.region,
             roomId: lobbyInfo.roomId,
             capacity: lobbyInfo.initialConfig.capacity,
             winningScore: lobbyInfo.initialConfig.winningScore,
-            isGameEnd: lobbyInfo.state?.isGameEnd ?? false,
-            winningPlayerId: lobbyInfo.state?.winningPlayerId,
-            playerNicknameMap: lobbyInfo.state?.playerNicknameMap ?? {},
+            isGameEnd: lobbyState?.isGameEnd ?? false,
+            winningPlayerId: lobbyState?.winningPlayerId,
+            playerNicknameMap: lobbyState?.playerNicknameMap || {},
             creatorId: lobbyInfo.createdBy,
           });
         } catch (e) {
@@ -119,7 +121,7 @@ function App() {
                     <div className={"text-secondary-600"}>Game has ended</div>
                     <div className={"text-secondary-600"}>
                       {`${
-                        sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId ?? ""] ??
+                        sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId] ??
                         sessionMetadata.winningPlayerId
                       } won!`}
                     </div>

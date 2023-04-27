@@ -21,7 +21,7 @@ export function ExplanationText() {
         Bullet Mania source code
       </Link>
       <p style={textStyle}>
-        Bullet Mania is an open-sourcem multiplayer 2D top-down shooter. Try it out above by joining a public game or
+        Bullet Mania is an open-source multiplayer 2D top-down shooter. Try it out above by joining a public game or
         creating a game and sharing a link with friends.
       </p>
       <p style={textStyle}>
@@ -372,9 +372,7 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
           },
         ]}
       >
-        <p className="inline">
-          <p>See how we implemented it for Bullet Mania:</p>
-        </p>
+        <p className="inline">See how we implemented it for Bullet Mania:</p>
       </BulletManiaCodeLink>
       <h1 id={"setLobbyState"} style={h1Style}>
         <a href="#setLobbyState">Update lobby state on game server</a>
@@ -454,7 +452,7 @@ function BulletManiaCodeLink(props: {
       ) : (
         <ul className={"list-disc ml-6 text-brand-400"}>
           {props.links.map((link) => (
-            <li>
+            <li key={link.linkHref}>
               <Link
                 href={link.linkHref}
                 color="text-brand-400"

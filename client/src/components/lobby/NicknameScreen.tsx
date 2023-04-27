@@ -1,9 +1,8 @@
 import React from "react";
-import dayjs from "dayjs";
 import { UsersIcon } from "@heroicons/react/24/solid";
-import { ClockIcon, TrophyIcon, UserIcon } from "@heroicons/react/24/outline";
+import { TrophyIcon, UserIcon } from "@heroicons/react/24/outline";
 
-import { SessionMetadata } from "../../../common/types";
+import { SessionMetadata } from "../../../../common/types";
 
 import { FLAG_TABLE } from "./PublicLobbyList";
 import { LobbyPageCard } from "./LobbyPageCard";
@@ -38,17 +37,21 @@ export function NicknameScreen(props: NicknameScreenProps) {
       <div className="flex overflow-hidden h-full w-full justify-center">
         <LobbyPageCard className="w-[300px] h-fit">
           <Header className="mt-3 mb-1">Join Game</Header>
-          <div className="px-4 py-2 rounded placeholder:text-secondary-800 text-secondary-800 cursor-pointer mb-3">
+          <div className="px-4 py-2 rounded placeholder:text-secondary-800 text-secondary-800 mb-3">
             <div>Room Code: {sessionMetadata?.roomId}</div>
             <div className={"text-sm text-secondary-700 mb-4"}>{sessionMetadata?.serverUrl}</div>
             <div className={"mx-auto grid grid-cols-2 grid-rows-2 gap-x-1"}>
               <div className={"flex items-center gap-1 text-xxs"}>
                 <UserIcon className="h-4 w-4 text-secondary-700 text-xxs" />
                 host:
-                {sessionMetadata?.playerNicknameMap[sessionMetadata.creatorId] ? (
+                {sessionMetadata && sessionMetadata.playerNicknameMap[sessionMetadata.creatorId] ? (
                   `${sessionMetadata.playerNicknameMap[sessionMetadata.creatorId]}`
                 ) : (
-                  <span className="italic">{sessionMetadata?.creatorId}</span>
+                  <span className="italic">
+                    {sessionMetadata?.playerNicknameMap && Object.keys(sessionMetadata.playerNicknameMap).length > 0
+                      ? "host left"
+                      : "connecting"}
+                  </span>
                 )}
               </div>
               <div className={"flex items-center text-xxs"}>
@@ -92,24 +95,5 @@ export function NicknameScreen(props: NicknameScreenProps) {
         </LobbyPageCard>
       </div>
     </div>
-  );
-}
-
-function makePretty(sessionMetadata: SessionMetadata | undefined) {
-  return (
-    sessionMetadata && (
-      <>
-        {sessionMetadata.playerNicknameMap[sessionMetadata.creatorId] && (
-          <div>Creator: {sessionMetadata.playerNicknameMap[sessionMetadata.creatorId]}</div>
-        )}
-        <div>Room Code: {sessionMetadata.roomId}</div>
-        <div>Region: {sessionMetadata.region}</div>
-        <div>Capacity: {sessionMetadata.capacity}</div>
-        <div>Winning Score: {sessionMetadata.winningScore}</div>
-        {Object.keys(sessionMetadata.playerNicknameMap).length > 0 && (
-          <div>Players: {Object.values(sessionMetadata.playerNicknameMap).join(", ")}</div>
-        )}
-      </>
-    )
   );
 }

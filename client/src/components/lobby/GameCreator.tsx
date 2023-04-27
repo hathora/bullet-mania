@@ -1,11 +1,10 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
+import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 
-import { GoogleToken, LOCAL_CONNECTION_DETAILS, Token } from "../../utils";
-import { InitialConfig, LobbyState } from "../../../../common/types";
+import { isReadyForConnect, Token } from "../../utils";
+import { InitialConfig } from "../../../../common/types";
 import { Region } from "../../../../common/lobby-service/Region";
-import { PlayerLobbyClient } from "../../../../common/lobby-service/PlayerLobbyClient";
-import { Lobby } from "../../../../common/lobby-service/Lobby";
 
 import { MultiSelect } from "./MultiSelect";
 import { LobbyPageCard } from "./LobbyPageCard";
@@ -13,13 +12,15 @@ import { Header } from "./Header";
 import { Dropdown } from "./Dropdown";
 import { BulletButton } from "./BulletButton";
 
+const lobbyClient = new LobbyV2Api();
+const roomClient = new RoomV1Api();
+
 interface GameCreatorProps {
-  lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   playerToken: Token;
   setGoogleIdToken: (idToken: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
-  const { lobbyClient, playerToken, setGoogleIdToken } = props;
+  const { playerToken, setGoogleIdToken } = props;
   const [visibility, setVisibility] = React.useState<"public" | "private" | "local">("public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
@@ -77,9 +78,13 @@ export function GameCreator(props: GameCreatorProps) {
                 }
                 setIsLoading(true);
                 try {
-                  const lobby = await createLobby(lobbyClient, playerToken, region, initialConfig, visibility);
+                  const lobby = await lobbyClient.createLobby(process.env.HATHORA_APP_ID, playerToken.value, {
+                    visibility,
+                    region,
+                    initialConfig,
+                  });
                   // Wait until lobby connection details are ready before redirect player to match
-                  await lobbyClient.getConnectionDetailsForLobby(lobby.roomId, LOCAL_CONNECTION_DETAILS);
+                  await isReadyForConnect(roomClient, lobbyClient, lobby.roomId);
                   window.location.href = `/${lobby.roomId}`; //update url
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
@@ -101,14 +106,4 @@ export function GameCreator(props: GameCreatorProps) {
       {error && <div className={"-mt-1 text-brand-500 text-xs"}>{error}</div>}
     </LobbyPageCard>
   );
-}
-
-function createLobby(
-  lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>,
-  playerToken: GoogleToken | Token,
-  region: Region,
-  initialConfig: InitialConfig,
-  visibility: "public" | "private" | "local"
-): Promise<Lobby<LobbyState, InitialConfig>> {
-  return lobbyClient.createLobby(playerToken.value, visibility, region, initialConfig);
 }

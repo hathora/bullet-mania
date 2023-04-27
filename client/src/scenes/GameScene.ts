@@ -448,7 +448,7 @@ export class GameScene extends Scene {
       }
       if (player.dashCooldown) {
         if (this.dash) {
-          this.dash.text = `Dash: ${Math.max(0, (player.dashCooldown - Date.now()) / 1000)}s`;
+          this.dash.text = `Dash: ${Math.max(0, (player.dashCooldown - Date.now()) / 1000).toFixed(1)}s`;
         }
       } else {
         if (this.dash) {
@@ -460,7 +460,7 @@ export class GameScene extends Scene {
       if (this.reloading) {
         this.reloading.visible = !!player.isReloading;
         if (player.isReloading) {
-          this.reloading.text = `${Math.max(0, ((player.isReloading || 0) - Date.now()) / 1000)}s`;
+          this.reloading.text = `${Math.max(0, ((player.isReloading || 0) - Date.now()) / 1000).toFixed(1)}s`;
         }
       }
     }

@@ -9,6 +9,7 @@ import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } fr
 import map from "../common/map.json" assert { type: "json" };
 
 import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
+import {LobbyV2Api} from "@hathora/hathora-cloud-sdk";
 
 /**
  * TODO: remove this lmao
@@ -478,12 +479,17 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
   }, 10000);
 }
 
+const lobbyClient = new LobbyV2Api();
+
 async function updateLobbyState(game: InternalState, roomId: string) {
-  const lobbyClient = new ServerLobbyClient<LobbyState>(getAppToken(), process.env.HATHORA_APP_ID!);
   const lobbyState: LobbyState = {
     playerNicknameMap: Object.fromEntries(game.players.map((player) => [player.id, player.nickname ?? player.id])),
     isGameEnd: game.isGameEnd,
     winningPlayerId: game.winningPlayerId,
   };
-  return await lobbyClient.setLobbyState(roomId, lobbyState);
+  return await lobbyClient.setLobbyState(process.env.HATHORA_APP_ID!,
+    roomId,
+    {state:lobbyState},
+    { headers: { Authorization: `Bearer ${getAppToken()}`, "Content-Type": "application/json" } }
+  );
 }
