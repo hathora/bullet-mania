@@ -8,13 +8,13 @@ import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient"
 import { AuthClient } from "../../common/lobby-service/AuthClient";
 
 import { LOCAL_CONNECTION_DETAILS, Token } from "./utils";
-import { Socials } from "./components/Socials";
-import { NicknameScreen } from "./components/NicknameScreen";
-import { LobbySelector } from "./components/LobbySelector";
-import { HathoraLogo } from "./components/HathoraLogo";
+import { Socials } from "./components/website/Socials";
+import { HathoraLogo } from "./components/website/HathoraLogo";
+import { ExplanationText, NavLink } from "./components/website/ExplanationText";
+import { NicknameScreen } from "./components/lobby/NicknameScreen";
+import { LobbySelector } from "./components/lobby/LobbySelector";
+import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
-import { ExplanationText, NavLink } from "./components/ExplanationText";
-import { BulletButton } from "./components/BulletButton";
 
 function App() {
   const appId = process.env.HATHORA_APP_ID;

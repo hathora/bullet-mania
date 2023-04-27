@@ -5,8 +5,8 @@ import React from "react";
 import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 
 import "./rsh-style.css";
-import GitHubRedIcon from "../assets/github_red.svg";
-import GitHubIcon from "../assets/github.svg";
+import GitHubRedIcon from "../../assets/github_red.svg";
+import GitHubIcon from "../../assets/github.svg";
 
 SyntaxHighlighter.registerLanguage("typescript", ts);
 SyntaxHighlighter.registerLanguage("javascript", js);
@@ -15,7 +15,7 @@ export function ExplanationText() {
   return (
     <div className={"mt-6 mb-28 p-4 md:p-0 w-full md:w-[800px]"}>
       <h1 id={"docsTop"} style={h1Style}>
-        Building an infinitely scalable multiplayer game
+        <a href="#docsTop">Building an infinitely scalable multiplayer game</a>
       </h1>
       <Link href={"https://github.com/hathora/bullet-mania/"} icon={GitHubIcon}>
         Bullet Mania source code
@@ -137,14 +137,14 @@ export function ExplanationText() {
             Create Lobby{" "}
             <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
           </NavButton>
-          <NavButton headingId={"lobbyInfo"} className={"group top-[500px] right-[240px]"}>
+          <NavButton headingId={"joinLobby"} className={"group top-[500px] right-[240px]"}>
             Get Lobby Info{" "}
             <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
           </NavButton>
         </div>
       </div>
       <h1 id={"authenticatePlayers"} style={h1Style}>
-        Authenticate Players
+        <a href="#authenticatePlayers">Authenticate Players</a>
       </h1>
       <p style={textStyle}>Use Hathora’s Auth Client to generate a unique token for players using Google login.</p>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
@@ -182,12 +182,12 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
         </p>
       </BulletManiaCodeLink>
       <h1 id={"createLobby"} style={h1Style}>
-        Create public and private lobbies
+        <a href="#createLobby">Create public and private lobbies</a>
       </h1>
       <p style={textStyle}>
-        Whenever a lobby is created, Hathora will automatically scale your server instances as needed to meet your
-        game's demand. Even if your game gets an unexpected spike in players, new lobbies and rooms will be created
-        without a hitch.
+        Whenever a lobby is created, Hathora will provision a new instance of your game server on demand so that you're
+        running exactly the right amount of game instances you need. Even if your game gets an unexpected spike in
+        players, new lobbies will be created without a hitch.
       </p>
       <p style={textStyle}>There are 3 types of lobbies that a player can create:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
@@ -242,7 +242,8 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         links={[
           {
             linkText: "Bullet Mania lobby creation (client)",
-            linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/GameCreator.tsx#L98",
+            linkHref:
+              "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L80-L83",
           },
         ]}
       >
@@ -265,7 +266,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());`}
         </p>
       </BulletManiaCodeLink>
       <h1 id={"listPublicLobbies"} style={h1Style}>
-        Fetch all public lobbies
+        <a href="#listPublicLobbies">Fetch all public lobbies</a>
       </h1>
       <p style={textStyle}>
         It's easy to retrieve a list of all public lobbies and you can optionally pass a <Code>Region</Code> to filter
@@ -294,7 +295,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
           {
             linkText: "Bullet Mania public lobbies list",
             linkHref:
-              "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/PublicLobbyList.tsx#L142-L151",
+              "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/PublicLobbyList.tsx#L142-L151",
           },
         ]}
       >
@@ -304,7 +305,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
         </p>
       </BulletManiaCodeLink>
       <h1 id={"connectToLobby"} style={h1Style}>
-        Connect to a public or private lobby
+        <a href="#connectToLobby">Connect to a public or private lobby</a>
       </h1>
       <p style={textStyle}>
         When a player wants to join a room, you can use the <Code>roomId</Code> to get connection details (host and
@@ -323,7 +324,7 @@ const publicLobbies = lobbyClient.listActivePublicLobbies(
         </Link>
       </p>
       <h2 id={"joinLobby"} style={h2Style}>
-        Join a room
+        <a href="#joinLobby">Join a room</a>
       </h2>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
         Import Room and Lobby clients from <Code>@hathora/hathora-cloud-sdk</Code>
@@ -339,7 +340,7 @@ let lobbyClient = new LobbyV2Api(new Configuration());
 let roomClient = new RoomV1Api(new Configuration());`}
       </CodeBlock>
       <p id={"lobbyInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
-        Fetch lobby information, see{" "}
+        <a href="#lobbyInfo">Fetch lobby information, see</a>{" "}
         <Link href={"https://api.hathora.dev/ui/#/LobbyV2/GetLobbyInfo"}>return values for getLobbyInfo()</Link>
       </p>
       <CodeBlock>{`// This step is only needed if you want to validate lobbyState before connecting a player
@@ -349,7 +350,7 @@ const lobbyInfo = lobbyClient.getLobbyInfo(
 );
 // lobbyInfo will contain details like lobbyState and initialConfig`}</CodeBlock>
       <p id={"connectionInfo"} className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>
-        Get connection info (host and port) to route your player
+        <a href="#connectionInfo">Get connection info (host and port) to route your player</a>
       </p>
       <CodeBlock>{`const connectionInfo = roomClient.getConnectionInfo(
   appId, // your Hathora application id
@@ -376,7 +377,7 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         </p>
       </BulletManiaCodeLink>
       <h1 id={"setLobbyState"} style={h1Style}>
-        Update lobby state on game server
+        <a href="#setLobbyState">Update lobby state on game server</a>
       </h1>
       <p style={textStyle}>
         <Code>lobbyState</Code> is a flexible object that is set by your server code, but is easily accessed in your
@@ -530,12 +531,6 @@ export function NavLink(props: { children: React.ReactNode; headingId: string; c
   return (
     <a
       href={`#${props.headingId}`}
-      onClick={(e) => {
-        e.preventDefault();
-        document.querySelector(`#${props.headingId}`)?.scrollIntoView({
-          behavior: "smooth",
-        });
-      }}
       className={`font-hathoraBody text-hathoraBrand-500 hover:underline  ${props.className}`}
     >
       {props.children}
@@ -550,12 +545,6 @@ function NavButton(props: { children: React.ReactNode; headingId: string; classN
   return (
     <a
       href={`#${props.headingId}`}
-      onClick={(e) => {
-        e.preventDefault();
-        document.querySelector(`#${props.headingId}`)?.scrollIntoView({
-          behavior: "smooth",
-        });
-      }}
       className={`absolute w-[160px] py-2 rounded bg-neutralgray-700 transition duration-400 group hover:bg-hathoraBrand-500 hover:text-neutralgray-700 font-semibold flex items-center justify-center font-hathora text-xs text-hathoraBrand-500 ${props.className}`}
     >
       {props.children}

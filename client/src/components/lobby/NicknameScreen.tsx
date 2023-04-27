@@ -37,7 +37,7 @@ export function NicknameScreen(props: NicknameScreenProps) {
       </div>
       <div className="flex overflow-hidden h-full w-full justify-center">
         <LobbyPageCard className="w-[300px] h-fit">
-          <Header className="mt-3 mb-1">Joining...</Header>
+          <Header className="mt-3 mb-1">Join Game</Header>
           <div className="px-4 py-2 rounded placeholder:text-secondary-800 text-secondary-800 cursor-pointer mb-3">
             <div>Room Code: {sessionMetadata?.roomId}</div>
             <div className={"text-sm text-secondary-700 mb-4"}>{sessionMetadata?.serverUrl}</div>

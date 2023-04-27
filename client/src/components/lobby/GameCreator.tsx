@@ -1,11 +1,11 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
 
-import { GoogleToken, LOCAL_CONNECTION_DETAILS, Token } from "../utils";
-import { InitialConfig, LobbyState } from "../../../common/types";
-import { Region } from "../../../common/lobby-service/Region";
-import { PlayerLobbyClient } from "../../../common/lobby-service/PlayerLobbyClient";
-import { Lobby } from "../../../common/lobby-service/Lobby";
+import { GoogleToken, LOCAL_CONNECTION_DETAILS, Token } from "../../utils";
+import { InitialConfig, LobbyState } from "../../../../common/types";
+import { Region } from "../../../../common/lobby-service/Region";
+import { PlayerLobbyClient } from "../../../../common/lobby-service/PlayerLobbyClient";
+import { Lobby } from "../../../../common/lobby-service/Lobby";
 
 import { MultiSelect } from "./MultiSelect";
 import { LobbyPageCard } from "./LobbyPageCard";

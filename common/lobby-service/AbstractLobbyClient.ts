@@ -16,10 +16,9 @@ export abstract class AbstractLobbyClient<LobbyState extends object = object, In
   protected roomClient: RoomV1ApiInterface;
 
   constructor(appId: string) {
-    const endpoint = process.env.HATHORA_API_HOST ?? "https://api.hathora.dev";
     this.appId = appId;
-    this.lobbyClient = new LobbyV2Api(new Configuration({ basePath: endpoint }));
-    this.roomClient = new RoomV1Api(new Configuration({ basePath: endpoint }));
+    this.lobbyClient = new LobbyV2Api(new Configuration());
+    this.roomClient = new RoomV1Api(new Configuration());
   }
 
   async listActivePublicLobbies(region?: Region): Promise<Lobby<LobbyState, InitialConfig>[]> {

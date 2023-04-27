@@ -5,8 +5,7 @@ export class AuthClient {
   private appId: string;
 
   constructor(appId: string) {
-    const endpoint = process.env.HATHORA_API_HOST ?? "https://api.hathora.dev";
-    this.client = new AuthV1Api(new Configuration({ basePath: endpoint }));
+    this.client = new AuthV1Api(new Configuration());
     this.appId = appId;
   }
 
