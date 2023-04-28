@@ -1,22 +1,19 @@
 import React from "react";
 
 import { Token } from "../../utils";
-import { InitialConfig, LobbyState } from "../../../../common/types";
-import { PlayerLobbyClient } from "../../../../common/lobby-service/PlayerLobbyClient";
 
 import { PublicLobbyList } from "./PublicLobbyList";
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
 import { GameCreator } from "./GameCreator";
+
 interface LobbySelectorProps {
-  lobbyClient: PlayerLobbyClient<LobbyState, InitialConfig>;
   playerToken: Token;
   setGoogleIdToken: (idToken: string) => void;
   roomIdNotFound: string | undefined;
 }
-
 export function LobbySelector(props: LobbySelectorProps) {
-  const { lobbyClient, playerToken, setGoogleIdToken, roomIdNotFound } = props;
+  const { playerToken, setGoogleIdToken, roomIdNotFound } = props;
   const [privateLobbyID, setPrivateLobbyID] = React.useState<string>("");
   return (
     <div className="bg-[url('/splash.png')] h-full flex flex-col p-1 relative">
@@ -30,10 +27,10 @@ export function LobbySelector(props: LobbySelectorProps) {
       </div>
       <div className="flex overflow-hidden h-full w-full justify-between">
         <div className="grow">
-          <PublicLobbyList lobbyClient={lobbyClient} />
+          <PublicLobbyList />
         </div>
         <div className="flex flex-col grow w-[240px]">
-          <GameCreator lobbyClient={lobbyClient} playerToken={playerToken} setGoogleIdToken={setGoogleIdToken} />
+          <GameCreator playerToken={playerToken} setGoogleIdToken={setGoogleIdToken} />
           <LobbyPageCard>
             <Header className="mt-3 mb-1">Join Game</Header>
             <input

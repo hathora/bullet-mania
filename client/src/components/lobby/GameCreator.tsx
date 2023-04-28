@@ -1,10 +1,9 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
+import { LobbyV2Api, RoomV1Api, Region } from "@hathora/hathora-cloud-sdk";
 
 import { isReadyForConnect, Token } from "../../utils";
 import { InitialConfig } from "../../../../common/types";
-import { Region } from "../../../../common/lobby-service/Region";
 
 import { MultiSelect } from "./MultiSelect";
 import { LobbyPageCard } from "./LobbyPageCard";

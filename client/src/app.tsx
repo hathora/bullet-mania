@@ -1,11 +1,10 @@
 import ReactDOM from "react-dom/client";
 import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
+import { AuthV1Api, LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { SessionMetadata, LobbyState } from "../../common/types";
-import { AuthClient } from "../../common/lobby-service/AuthClient";
 
 import { isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
@@ -17,20 +16,20 @@ import { LobbySelector } from "./components/lobby/LobbySelector";
 import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
 
+const authClient = new AuthV1Api();
 const lobbyClient = new LobbyV2Api();
 const roomClient = new RoomV1Api();
 
 function App() {
-  const appId = process.env.HATHORA_APP_ID;
   const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();
-  const token = useAuthToken(appId, googleIdToken);
+  const token = useAuthToken(googleIdToken);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata | undefined>(undefined);
   const [failedToConnect, setFailedToConnect] = useState(false);
   const [roomIdNotFound, setRoomIdNotFound] = useState<string | undefined>(undefined);
   const [isNicknameAcked, setIsNicknameAcked] = React.useState<boolean>(false);
 
-  if (appId == null || token == null) {
+  if (process.env.HATHORA_APP_ID == null || token == null) {
     return <div>Loading...</div>;
   }
   const roomIdFromUrl = getRoomIdFromUrl();
@@ -138,7 +137,6 @@ function App() {
               <>
                 {connection == null && !sessionMetadata?.isGameEnd && !roomIdFromUrl ? (
                   <LobbySelector
-                    lobbyClient={lobbyClient}
                     playerToken={token}
                     roomIdNotFound={roomIdNotFound}
                     setGoogleIdToken={setGoogleIdToken}
@@ -169,19 +167,18 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
-function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): Token | undefined {
+function useAuthToken(googleIdToken: string | undefined): Token | undefined {
   const [token, setToken] = React.useState<Token | undefined>();
   useEffect(() => {
-    if (appId != null) {
-      const authClient = new AuthClient(appId);
+    if (process.env.HATHORA_APP_ID != null) {
       getToken(authClient, googleIdToken).then(setToken);
     }
-  }, [appId, googleIdToken]);
+  }, [googleIdToken]);
   return token;
 }
 
 // The getToken function first checks sessionStorage to see if there is an existing token, and if there is returns it. If not, it logs the user into a new session and updates the sessionStorage key.
-async function getToken(client: AuthClient, googleIdToken: string | undefined): Promise<Token> {
+async function getToken(client: AuthV1Api, googleIdToken: string | undefined): Promise<Token> {
   const maybeToken = sessionStorage.getItem("bullet-mania-token");
   const maybeTokenType = sessionStorage.getItem("bullet-mania-token-type");
   if (maybeToken !== null && maybeTokenType != null) {
@@ -191,10 +188,10 @@ async function getToken(client: AuthClient, googleIdToken: string | undefined): 
     } as Token;
   }
   if (googleIdToken == null) {
-    const token = await client.loginAnonymous();
+    const { token } = await client.loginAnonymous(process.env.HATHORA_APP_ID);
     return { value: token, type: "anonymous" };
   }
-  const token = await client.loginGoogle(googleIdToken);
+  const { token } = await client.loginGoogle(process.env.HATHORA_APP_ID, { idToken: googleIdToken });
   sessionStorage.setItem("bullet-mania-token", token);
   sessionStorage.setItem("bullet-mania-token-type", "google");
   return { value: token, type: "google" };

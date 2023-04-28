@@ -8,15 +8,9 @@ import { Direction, GameState, InitialConfig, LobbyState } from "../common/types
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import map from "../common/map.json" assert { type: "json" };
 
-import { ServerLobbyClient } from "../common/lobby-service/ServerLobbyClient";
-import {LobbyV2Api} from "@hathora/hathora-cloud-sdk";
+import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
 
-/**
- * TODO: remove this lmao
- */
-process.on("unhandledRejection", (error) => {
-  console.error("unhandledRejection", error);
-});
+const lobbyClient = new LobbyV2Api();
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -156,8 +150,7 @@ const store: Application = {
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
-      const lobbyInfo = await lobbyClient.getLobbyInfo(roomId);
+      const lobbyInfo = await lobbyClient.getLobbyInfo(process.env.HATHORA_APP_ID, roomId);
 
       if (!rooms.has(roomId)) {
         rooms.set(roomId, initializeRoom(lobbyInfo.initialConfig.winningScore, lobbyInfo.state?.isGameEnd || false));
@@ -454,9 +447,9 @@ function wallBody(x: number, y: number, width: number, height: number): PhysicsB
 }
 
 function getAppToken() {
-  const token = process.env.APP_TOKEN;
+  const token = process.env.DEVELOPER_TOKEN;
   if (token == null) {
-    throw new Error("APP_TOKEN not set");
+    throw new Error("DEVELOPER_TOKEN not set");
   }
   return token;
 }
@@ -464,7 +457,6 @@ function getAppToken() {
 async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
   // Update lobby state (so new players can't join)
   game.winningPlayerId = winningPlayerId;
-  const lobbyClient = new ServerLobbyClient<LobbyState, InitialConfig>(getAppToken(), process.env.HATHORA_APP_ID!);
   await updateLobbyState(game, roomId);
 
   // boot all players and destroy room
@@ -478,8 +470,6 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
     lobbyClient.destroyRoom(roomId);
   }, 10000);
 }
-
-const lobbyClient = new LobbyV2Api();
 
 async function updateLobbyState(game: InternalState, roomId: string) {
   const lobbyState: LobbyState = {

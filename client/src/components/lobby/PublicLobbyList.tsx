@@ -6,12 +6,10 @@ import dayjs from "dayjs";
 dayjs.extend(relativeTime);
 
 import { ClockIcon, TrophyIcon, UserIcon, UsersIcon } from "@heroicons/react/24/outline";
-import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
+import { LobbyV2Api, RoomV1Api, Region, Lobby } from "@hathora/hathora-cloud-sdk";
 
 import { isReadyForConnect } from "../../utils";
 import { LobbyState } from "../../../../common/types";
-import { Region } from "../../../../common/lobby-service/Region";
-import { Lobby } from "../../../../common/lobby-service/Lobby";
 
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
@@ -148,8 +146,8 @@ export function PublicLobbyList() {
   );
 }
 
-function useLobbies<S extends object, I extends object>(): Lobby<S, I>[] {
-  const [lobbies, setLobbies] = React.useState<Lobby<S, I>[]>([]);
+function useLobbies(): Lobby[] {
+  const [lobbies, setLobbies] = React.useState<Lobby[]>([]);
   React.useEffect(() => {
     lobbyClient.listActivePublicLobbies(process.env.HATHORA_APP_ID).then(setLobbies);
   }, []);

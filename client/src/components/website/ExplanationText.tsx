@@ -389,6 +389,14 @@ const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         <li className={"mt-1"}>persist end game data (like winning player and final scores)</li>
         <li className={"mt-1"}>custom filtering for available lobbies</li>
       </ul>
+      <p style={textStyle}>
+        Note that for this API call you'll need to have your Hathora admin token, this is to authenticate as the owner
+        of the application. View our docs on{" "}
+        <Link href={"https://hathora.dev/docs/guides/generate-developer-token"}>
+          how to generate your developer token
+        </Link>
+        .
+      </p>
       <p className={"text-neutralgray-400 mt-4 mb-2 ml-1 font-hathoraBody"}>Update lobbyState</p>
       <CodeBlock>{`import {
   Configuration,
@@ -403,9 +411,9 @@ const lobby = await lobbyClient.setLobbyState(
   appId,
   roomId,
   { state: myCustomLobbyState },
-  // \`appToken\` is the auth token for your Hathora Cloud account
+  // \`developerToken\` is the auth token for your Hathora Cloud account
   //  (different than the tokens for your players)
-  { headers: { Authorization: \`Bearer \${appToken}\`, "Content-Type": "application/json" } }
+  { headers: { Authorization: \`Bearer \${adminTokendeveloperToken}\`, "Content-Type": "application/json" } }
 );`}</CodeBlock>
       <BulletManiaCodeLink
         links={[
