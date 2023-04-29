@@ -174,7 +174,7 @@ let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
           <CodeBlock>
             {`import { AuthV1Api } from "@hathora/hathora-cloud-sdk";
 const authClient = new AuthV1Api();
-const appId = process.env.HATHORA_APP_ID;
+const appId = env_variable.HATHORA_APP_ID;
 
 // Custom hook to access auth token
 function useAuthToken(appId: string, googleIdToken: string | undefined): Token | undefined {
@@ -302,7 +302,7 @@ let lobbyClient = new LobbyV2Api();
       setIsLoading(true);
       try {
         const lobby = await lobbyClient.createLobby(
-          process.env.HATHORA_APP_ID,
+          env_variable.HATHORA_APP_ID,
           playerToken.value,
           // state from create game input options
           { visibility, region, initialConfig }
@@ -384,7 +384,7 @@ function useLobbies(appId: string): Lobby[] {
 }
 
 // Usage
-const appId = process.env.HATHORA_APP_ID;
+const appId = env_variable.HATHORA_APP_ID;
 const lobbies = useLobbies(appId);`}</CodeBlock>
           <BulletManiaCodeLink
             links={[
@@ -542,7 +542,7 @@ if ( roomIdFromUrl != null ) {
           </p>
           <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
 const lobbyClient = new LobbyV2Api();
-const appId = process.env.HATHORA_APP_ID;
+const appId = env_variable.HATHORA_APP_ID;
 
 // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
 async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
@@ -639,7 +639,7 @@ const lobby = await lobbyClient.setLobbyState(
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
 const lobbyClient = new LobbyV2Api();
-const developerToken = process.env.DEVELOPER_TOKEN;
+const developerToken = env_variable.DEVELOPER_TOKEN;
 
 async function updateLobbyState(game: InternalState, roomId: string) {
   const lobbyState: LobbyState = {
@@ -649,7 +649,7 @@ async function updateLobbyState(game: InternalState, roomId: string) {
     isGameEnd: game.isGameEnd,
     winningPlayerId: game.winningPlayerId,
   };
-  return await lobbyClient.setLobbyState(process.env.HATHORA_APP_ID!,
+  return await lobbyClient.setLobbyState(env_variable.HATHORA_APP_ID!,
     roomId,
     { state:lobbyState },
     { headers: {
@@ -686,7 +686,7 @@ async function updateLobbyState(game: InternalState, roomId: string) {
           <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Update lobbyState</p>
           <CodeBlock>{`import { RoomV1Api } from "@hathora/hathora-cloud-sdk";
 let roomClient = new RoomV1Api();
-const developerToken = process.env.DEVELOPER_TOKEN;
+const developerToken = env_variable.DEVELOPER_TOKEN;
 
 // ...Disconnect players...
 
@@ -702,7 +702,7 @@ const lobby = await roomClient.destroyRoom(
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <CodeBlock>{`import { RoomV1Api } from "@hathora/hathora-cloud-sdk";
 let roomClient = new RoomV1Api();
-const developerToken = process.env.DEVELOPER_TOKEN;
+const developerToken = env_variable.DEVELOPER_TOKEN;
 
 async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
   // Update lobby state (to persist end game state and prevent new players from joining)
@@ -718,7 +718,7 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
     });
     console.log("destroying room: ", roomId);
     roomClient.destroyRoom(
-      process.env.HATHORA_APP_ID!,
+      env_variable.HATHORA_APP_ID!,
       roomId,
       { headers: {
         Authorization: \`Bearer \${developerToken}\`,
