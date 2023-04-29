@@ -1,0 +1,44 @@
+name: Deploy
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm install -g @hathora/cli
+      - run: >
+          hathora-cloud deploy --appId app-122d530a-ab60-4597-95d8-fabeecfe3c1b
+          --roomsPerProcess 1 --planName tiny --transportType tls
+          --containerPort 4000 --env '[{"name": "DEVELOPER_TOKEN", "value": "${{
+          secrets.HATHORA_TOKEN }}"}]' --token ${{ secrets.HATHORA_TOKEN }}
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+      - uses: actions/checkout@v2
+      - run: cd ../common && npm ci && npx tsc
+      - run: npm ci
+      - run: HATHORA_APP_ID=app-122d530a-ab60-4597-95d8-fabeecfe3c1b GOOGLE_AUTH_CLIENT_ID=1013004517504-frhncdej1cojfj0ple2nhtnanbjs1m2i.apps.googleusercontent.com npm run build
+      - run: cp dist/index.html dist/200.html
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v2.0
+        with:
+          publish-dir: './client/dist'
+          production-deploy: false
+          enable-commit-comment: false
+          enable-pull-request-comment: false
+          deploy-message: "PR Deploy from GitHub Actions"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          netlify-config-path: './client/netlify.toml'
+          github-deployment-environment: pr-preview-${{ github.event.number }}
+          alias: deploy-preview-${{ github.event.number }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        timeout-minutes: 1
