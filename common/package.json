@@ -1,3 +1,6 @@
 {
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@hathora/hathora-cloud-sdk": "^0.0.3"
+  }
 }
