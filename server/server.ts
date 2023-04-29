@@ -8,9 +8,10 @@ import { Direction, GameState, InitialConfig, LobbyState } from "../common/types
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import map from "../common/map.json" assert { type: "json" };
 
-import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
+import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 
 const lobbyClient = new LobbyV2Api();
+const roomClient = new RoomV1Api();
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -150,14 +151,16 @@ const store: Application = {
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyInfo = await lobbyClient.getLobbyInfo(process.env.HATHORA_APP_ID, roomId);
+      const lobbyInfo = await lobbyClient.getLobbyInfo(process.env.HATHORA_APP_ID!, roomId);
+      const lobbyState = lobbyInfo.state as LobbyState | undefined;
+      const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
 
       if (!rooms.has(roomId)) {
-        rooms.set(roomId, initializeRoom(lobbyInfo.initialConfig.winningScore, lobbyInfo.state?.isGameEnd || false));
+        rooms.set(roomId, initializeRoom(lobbyInitialConfig?.winningScore ?? 10, lobbyState?.isGameEnd || false));
       }
       const game = rooms.get(roomId)!;
 
-      if (game.players.length === lobbyInfo.initialConfig.capacity) {
+      if (game.players.length === lobbyInitialConfig?.capacity) {
         throw new Error("room is full");
       }
       if (game.isGameEnd) {
@@ -446,7 +449,7 @@ function wallBody(x: number, y: number, width: number, height: number): PhysicsB
   });
 }
 
-function getAppToken() {
+function getDeveloperToken() {
   const token = process.env.DEVELOPER_TOKEN;
   if (token == null) {
     throw new Error("DEVELOPER_TOKEN not set");
@@ -455,7 +458,7 @@ function getAppToken() {
 }
 
 async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
-  // Update lobby state (so new players can't join)
+  // Update lobby state (to persist end game state and prevent new players from joining)
   game.winningPlayerId = winningPlayerId;
   await updateLobbyState(game, roomId);
 
@@ -467,7 +470,11 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
       server.closeConnection(roomId, playerId, "game has ended, disconnecting players");
     });
     console.log("destroying room: ", roomId);
-    lobbyClient.destroyRoom(roomId);
+    roomClient.destroyRoom(
+      process.env.HATHORA_APP_ID!,
+      roomId,
+      { headers: { Authorization: `Bearer ${getDeveloperToken()}`, "Content-Type": "application/json" } }
+    );
   }, 10000);
 }
 
@@ -479,7 +486,7 @@ async function updateLobbyState(game: InternalState, roomId: string) {
   };
   return await lobbyClient.setLobbyState(process.env.HATHORA_APP_ID!,
     roomId,
-    {state:lobbyState},
-    { headers: { Authorization: `Bearer ${getAppToken()}`, "Content-Type": "application/json" } }
+    { state:lobbyState },
+    { headers: { Authorization: `Bearer ${getDeveloperToken()}`, "Content-Type": "application/json" } }
   );
 }

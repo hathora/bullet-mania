@@ -4,7 +4,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { AuthV1Api, LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { SessionMetadata, LobbyState } from "../../common/types";
+import { SessionMetadata, LobbyState, InitialConfig } from "../../common/types";
 
 import { isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
@@ -21,16 +21,23 @@ const lobbyClient = new LobbyV2Api();
 const roomClient = new RoomV1Api();
 
 function App() {
+  const appId = process.env.HATHORA_APP_ID;
   const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();
-  const token = useAuthToken(googleIdToken);
+  const token = useAuthToken(appId, googleIdToken);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata | undefined>(undefined);
   const [failedToConnect, setFailedToConnect] = useState(false);
   const [roomIdNotFound, setRoomIdNotFound] = useState<string | undefined>(undefined);
   const [isNicknameAcked, setIsNicknameAcked] = React.useState<boolean>(false);
 
-  if (process.env.HATHORA_APP_ID == null || token == null) {
-    return <div>Loading...</div>;
+  if (appId == null || token == null) {
+    return (
+      <div
+        className={"bg-neutralgray-700 text-neutralgray-400 text-xl w-full h-screen flex items-center justify-center"}
+      >
+        Loading...
+      </div>
+    );
   }
   const roomIdFromUrl = getRoomIdFromUrl();
   if (
@@ -41,7 +48,7 @@ function App() {
     !sessionMetadata?.isGameEnd
   ) {
     // Once we parse roomId from the URL, get connection details to connect player to the server
-    isReadyForConnect(roomClient, lobbyClient, roomIdFromUrl)
+    isReadyForConnect(appId, roomClient, lobbyClient, roomIdFromUrl)
       .then(async ({ connectionInfo, lobbyInfo }) => {
         setRoomIdNotFound(undefined);
         if (connection != null) {
@@ -50,19 +57,21 @@ function App() {
 
         try {
           const lobbyState = lobbyInfo.state as LobbyState | undefined;
+          const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
 
           if (!lobbyState || !lobbyState.isGameEnd) {
             const connect = new HathoraConnection(roomIdFromUrl, connectionInfo);
             connect.onClose(async () => {
               // If game has ended, we want updated lobby state
-              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(process.env.HATHORA_APP_ID, roomIdFromUrl);
+              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(appId, roomIdFromUrl);
               const updatedLobbyState = updatedLobbyInfo.state as LobbyState | undefined;
+              const updatedLobbyInitialConfig = updatedLobbyInfo.initialConfig as InitialConfig | undefined;
               setSessionMetadata({
                 serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
                 region: updatedLobbyInfo.region,
                 roomId: updatedLobbyInfo.roomId,
-                capacity: updatedLobbyInfo.initialConfig.capacity,
-                winningScore: updatedLobbyInfo.initialConfig.winningScore,
+                capacity: updatedLobbyInitialConfig?.capacity ?? 0,
+                winningScore: updatedLobbyInitialConfig?.winningScore ?? 99,
                 isGameEnd: !!updatedLobbyState?.isGameEnd,
                 winningPlayerId: updatedLobbyState?.winningPlayerId,
                 playerNicknameMap: updatedLobbyState?.playerNicknameMap || {},
@@ -76,8 +85,8 @@ function App() {
             serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
             region: lobbyInfo.region,
             roomId: lobbyInfo.roomId,
-            capacity: lobbyInfo.initialConfig.capacity,
-            winningScore: lobbyInfo.initialConfig.winningScore,
+            capacity: lobbyInitialConfig?.capacity ?? 0,
+            winningScore: lobbyInitialConfig?.winningScore ?? 99,
             isGameEnd: lobbyState?.isGameEnd ?? false,
             winningPlayerId: lobbyState?.winningPlayerId,
             playerNicknameMap: lobbyState?.playerNicknameMap || {},
@@ -120,8 +129,9 @@ function App() {
                     <div className={"text-secondary-600"}>Game has ended</div>
                     <div className={"text-secondary-600"}>
                       {`${
-                        sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId] ??
                         sessionMetadata.winningPlayerId
+                          ? sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId]
+                          : sessionMetadata.winningPlayerId
                       } won!`}
                     </div>
                   </>
@@ -137,6 +147,7 @@ function App() {
               <>
                 {connection == null && !sessionMetadata?.isGameEnd && !roomIdFromUrl ? (
                   <LobbySelector
+                    appId={appId}
                     playerToken={token}
                     roomIdNotFound={roomIdNotFound}
                     setGoogleIdToken={setGoogleIdToken}
@@ -167,18 +178,21 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
-function useAuthToken(googleIdToken: string | undefined): Token | undefined {
+// Custom hook to access auth token
+function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): Token | undefined {
   const [token, setToken] = React.useState<Token | undefined>();
   useEffect(() => {
-    if (process.env.HATHORA_APP_ID != null) {
-      getToken(authClient, googleIdToken).then(setToken);
+    if (appId != null) {
+      getToken(appId, authClient, googleIdToken).then(setToken);
     }
-  }, [googleIdToken]);
+  }, [appId, googleIdToken]);
   return token;
 }
 
-// The getToken function first checks sessionStorage to see if there is an existing token, and if there is returns it. If not, it logs the user into a new session and updates the sessionStorage key.
-async function getToken(client: AuthV1Api, googleIdToken: string | undefined): Promise<Token> {
+// 1. Check sessionStorage for existing token
+// 2. If googleIdToken passed, use it for auth and store token
+// 3. If none above, then use anonymous auth
+async function getToken(appId: string, client: AuthV1Api, googleIdToken: string | undefined): Promise<Token> {
   const maybeToken = sessionStorage.getItem("bullet-mania-token");
   const maybeTokenType = sessionStorage.getItem("bullet-mania-token-type");
   if (maybeToken !== null && maybeTokenType != null) {
@@ -188,10 +202,10 @@ async function getToken(client: AuthV1Api, googleIdToken: string | undefined): P
     } as Token;
   }
   if (googleIdToken == null) {
-    const { token } = await client.loginAnonymous(process.env.HATHORA_APP_ID);
+    const { token } = await client.loginAnonymous(appId);
     return { value: token, type: "anonymous" };
   }
-  const { token } = await client.loginGoogle(process.env.HATHORA_APP_ID, { idToken: googleIdToken });
+  const { token } = await client.loginGoogle(appId, { idToken: googleIdToken });
   sessionStorage.setItem("bullet-mania-token", token);
   sessionStorage.setItem("bullet-mania-token-type", "google");
   return { value: token, type: "google" };

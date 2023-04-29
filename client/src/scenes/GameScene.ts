@@ -517,7 +517,7 @@ export class GameScene extends Scene {
         oldSprites.set(id, sprite);
 
         // Follow this client's player-controlled sprite
-        if (this.currentUserID && id === this.currentUserID) {
+        if (this.currentUserID && typeof id === "string" && id === this.currentUserID) {
           this.cameras.main.startFollow(sprite);
           this.playerSprite = sprite;
         }

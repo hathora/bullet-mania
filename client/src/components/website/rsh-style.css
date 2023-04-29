@@ -2,9 +2,6 @@
     display: inline-block;
     position: relative;
     left: 0px;
-    width: fit-content;
-    min-width: 600px;
-    margin-left: -10px;
 }
 
 @media (max-width: 768px) {
@@ -19,7 +16,6 @@
     height: 100%;
     color: #E6E6F2;
     overflow: auto;
-    background-color: #191927 !important;
     font-family: 'ui-monospace', Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
     font-size: 12px;
     letter-spacing: 1px;

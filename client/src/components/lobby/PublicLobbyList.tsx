@@ -9,7 +9,7 @@ import { ClockIcon, TrophyIcon, UserIcon, UsersIcon } from "@heroicons/react/24/
 import { LobbyV2Api, RoomV1Api, Region, Lobby } from "@hathora/hathora-cloud-sdk";
 
 import { isReadyForConnect } from "../../utils";
-import { LobbyState } from "../../../../common/types";
+import { InitialConfig, LobbyState } from "../../../../common/types";
 
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
@@ -18,13 +18,17 @@ import { BulletButton } from "./BulletButton";
 const lobbyClient = new LobbyV2Api();
 const roomClient = new RoomV1Api();
 
-export function PublicLobbyList() {
-  const lobbies = useLobbies();
+interface PublicLobbyListProps {
+  appId: string;
+}
+export function PublicLobbyList(props: PublicLobbyListProps) {
+  const { appId } = props;
+  const lobbies = useLobbies(appId);
   const [readyRooms, setReadyRooms] = React.useState<Set<string>>(new Set());
   useEffect(() => {
     lobbies.forEach(async (l) => {
       // Ensure that lobby is ready for connections before adding to visible lobby list
-      await isReadyForConnect(roomClient, lobbyClient, l.roomId);
+      await isReadyForConnect(appId, roomClient, lobbyClient, l.roomId);
       setReadyRooms((prev) => {
         return new Set([...prev, l.roomId]);
       });
@@ -54,6 +58,7 @@ export function PublicLobbyList() {
               .sort((a, b) => (new Date(b.createdAt).getTime() || 0) - (new Date(a.createdAt).getTime() || 0))
               .map((lobby, index) => {
                 const lobbyState = lobby.state as LobbyState | undefined;
+                const lobbyInitialConfig = lobby.initialConfig as InitialConfig | undefined;
                 return (
                   <tr
                     key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
@@ -72,7 +77,7 @@ export function PublicLobbyList() {
                       <div className={"flex items-center justify-center gap-1"}>
                         <UsersIcon className="h-4 w-4 text-secondary-700" />
                         {`${lobbyState?.playerNicknameMap ? Object.keys(lobbyState.playerNicknameMap).length : 0}/${
-                          lobby.initialConfig.capacity
+                          lobbyInitialConfig?.capacity ?? "n/a"
                         }`}
                       </div>
                     </td>
@@ -101,7 +106,7 @@ export function PublicLobbyList() {
                         </div>
                         <div className={"flex items-center gap-1 text-xxs"}>
                           <TrophyIcon className="h-4 w-4 text-secondary-700" />
-                          {`${lobby.initialConfig.winningScore} kills to win`}
+                          {`${lobbyInitialConfig?.winningScore ?? "n/a"} kills to win`}
                         </div>
                       </div>
                     </td>
@@ -116,7 +121,7 @@ export function PublicLobbyList() {
                           onClick={() => {
                             if (
                               !lobbyState ||
-                              Object.keys(lobbyState.playerNicknameMap).length < lobby.initialConfig.capacity
+                              Object.keys(lobbyState.playerNicknameMap).length < (lobbyInitialConfig?.capacity ?? 0)
                             ) {
                               window.location.href = `/${lobby.roomId}`; //update url
                             }
@@ -125,7 +130,7 @@ export function PublicLobbyList() {
                           <BulletButton
                             disabled={
                               lobbyState &&
-                              Object.keys(lobbyState.playerNicknameMap).length >= lobby.initialConfig.capacity
+                              Object.keys(lobbyState.playerNicknameMap).length >= (lobbyInitialConfig?.capacity ?? 0)
                             }
                             text={"JOIN!"}
                           />
@@ -137,7 +142,9 @@ export function PublicLobbyList() {
               })
           ) : (
             <tr className={"text-secondary-800 text-sm py-2"}>
-              No active games, try <strong>creating a game</strong> and <strong>sharing the link!</strong>
+              <td>
+                No active games, try <strong>creating a game</strong> and <strong>sharing the link!</strong>
+              </td>
             </tr>
           )}
         </tbody>
@@ -146,13 +153,17 @@ export function PublicLobbyList() {
   );
 }
 
-function useLobbies(): Lobby[] {
+function useLobbies(appId: string): Lobby[] {
   const [lobbies, setLobbies] = React.useState<Lobby[]>([]);
   React.useEffect(() => {
-    lobbyClient.listActivePublicLobbies(process.env.HATHORA_APP_ID).then(setLobbies);
-  }, []);
+    if (appId) {
+      lobbyClient.listActivePublicLobbies(appId).then(setLobbies);
+    }
+  }, [appId]);
   useInterval(() => {
-    lobbyClient.listActivePublicLobbies(process.env.HATHORA_APP_ID).then(setLobbies);
+    if (appId) {
+      lobbyClient.listActivePublicLobbies(appId).then(setLobbies);
+    }
   }, 2000);
   return lobbies;
 }

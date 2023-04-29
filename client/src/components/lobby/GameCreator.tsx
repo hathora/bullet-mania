@@ -15,11 +15,12 @@ const lobbyClient = new LobbyV2Api();
 const roomClient = new RoomV1Api();
 
 interface GameCreatorProps {
+  appId: string;
   playerToken: Token;
   setGoogleIdToken: (idToken: string) => void;
 }
 export function GameCreator(props: GameCreatorProps) {
-  const { playerToken, setGoogleIdToken } = props;
+  const { appId, playerToken, setGoogleIdToken } = props;
   const [visibility, setVisibility] = React.useState<"public" | "private" | "local">("public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
@@ -77,13 +78,13 @@ export function GameCreator(props: GameCreatorProps) {
                 }
                 setIsLoading(true);
                 try {
-                  const lobby = await lobbyClient.createLobby(process.env.HATHORA_APP_ID, playerToken.value, {
+                  const lobby = await lobbyClient.createLobby(appId, playerToken.value, {
                     visibility,
                     region,
                     initialConfig,
                   });
                   // Wait until lobby connection details are ready before redirect player to match
-                  await isReadyForConnect(roomClient, lobbyClient, lobby.roomId);
+                  await isReadyForConnect(appId, roomClient, lobbyClient, lobby.roomId);
                   window.location.href = `/${lobby.roomId}`; //update url
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");

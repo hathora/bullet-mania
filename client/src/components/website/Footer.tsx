@@ -1,5 +1,5 @@
 import styled, { css, keyframes } from "styled-components";
-import React, { useState } from "react";
+import React, { ChangeEventHandler, FormEvent, useState } from "react";
 import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 
 import { HathoraLogo } from "./HathoraLogo";
@@ -165,27 +165,9 @@ function NewsletterForm() {
   const [loading, setLoading] = useState(false);
 
   /**
-   * Handles input change
-   */
-  const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-
-    setEmail(value);
-
-    if (successMessage) {
-      setSuccessMessage(undefined);
-    }
-    if (errorMessage) {
-      setErrorMessage(undefined);
-    }
-  };
-
-  /**
    * Handles form's submission
    */
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (validateEmail(email)) {
@@ -241,7 +223,20 @@ function NewsletterForm() {
           name="email"
           value={email}
           placeholder="Your email here"
-          onChange={handleChange}
+          onChange={(event) => {
+            const {
+              target: { value },
+            } = event;
+
+            setEmail(value);
+
+            if (successMessage) {
+              setSuccessMessage(undefined);
+            }
+            if (errorMessage) {
+              setErrorMessage(undefined);
+            }
+          }}
           autoComplete="off"
         />
 
