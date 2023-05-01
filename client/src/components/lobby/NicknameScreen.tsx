@@ -45,7 +45,7 @@ export function NicknameScreen(props: NicknameScreenProps) {
                 <UserIcon className="h-4 w-4 text-secondary-700 text-xxs" />
                 host:
                 {sessionMetadata && sessionMetadata.playerNicknameMap[sessionMetadata.creatorId] ? (
-                  `${sessionMetadata.playerNicknameMap[sessionMetadata.creatorId]}`
+                  ` ${sessionMetadata.playerNicknameMap[sessionMetadata.creatorId]}`
                 ) : (
                   <span className="italic">
                     {sessionMetadata?.playerNicknameMap && Object.keys(sessionMetadata.playerNicknameMap).length > 0

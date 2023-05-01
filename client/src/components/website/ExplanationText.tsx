@@ -1,7 +1,7 @@
 import ts from "react-syntax-highlighter/dist/esm/languages/prism/typescript";
 import js from "react-syntax-highlighter/dist/esm/languages/prism/javascript";
 import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ArrowLongRightIcon } from "@heroicons/react/24/solid";
 
 import "./rsh-style.css";
@@ -12,9 +12,15 @@ SyntaxHighlighter.registerLanguage("typescript", ts);
 SyntaxHighlighter.registerLanguage("javascript", js);
 
 const queryParams = Object.fromEntries(new URLSearchParams(location.search));
+const startingHash = location.hash;
 
 export function ExplanationText() {
-  const [showReactUsage, setShowReactUsage] = useState(!queryParams.basicFlow);
+  const [showReactUsage, setShowReactUsage] = useState(location.search !== "?basicFlow=true");
+  useEffect(() => {
+    if (startingHash && document.querySelector(startingHash)) {
+      document.querySelector(startingHash)?.scrollIntoView(true);
+    }
+  }, []);
 
   return (
     <div className={"mt-6 mb-24 p-4 md:p-0 w-full md:w-[800px]"}>
@@ -126,7 +132,10 @@ export function ExplanationText() {
             List Public Lobbies{" "}
             <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
           </NavButton>
-          <NavButton headingId={"connectionInfo"} className={"group top-[246px] left-[252px]"}>
+          <NavButton
+            headingId={showReactUsage ? "connectionInfo2" : "connectionInfo"}
+            className={"group top-[246px] left-[252px]"}
+          >
             Get Connection Info{" "}
             <ArrowLongRightIcon className="ml-0.5 h-5 w-5 text-hathoraBrand-500 group-hover:text-neutralgray-700 stroke-2" />
           </NavButton>
@@ -461,8 +470,8 @@ import { HathoraConnection } from "@hathora/client-sdk";
 const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
-          <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>
-            Get connection info for room id and connect
+          <p id={"connectionInfo2"} className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>
+            <a href="#connectionInfo2">Get connection info for room id and connect</a>
           </p>
           <CodeBlock>{`import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 import { HathoraConnection } from "@hathora/client-sdk";
@@ -754,6 +763,7 @@ function CodePathToggle(props: { showReactUsage: boolean; setShowReactUsage: (va
         }`}
         onClick={() => {
           props.setShowReactUsage(true);
+          window.history.replaceState(null, "", "?basicFlow=false" + location.hash);
         }}
       >
         React Usage{" "}
@@ -769,6 +779,7 @@ function CodePathToggle(props: { showReactUsage: boolean; setShowReactUsage: (va
         }`}
         onClick={() => {
           props.setShowReactUsage(false);
+          window.history.replaceState(null, "", "?basicFlow=true" + location.hash);
         }}
       >
         Basic SDK Usage
