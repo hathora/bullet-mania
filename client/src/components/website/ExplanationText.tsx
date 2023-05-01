@@ -31,16 +31,29 @@ export function ExplanationText() {
         Bullet Mania source code
       </Link>
       <p style={textStyle}>
-        Bullet Mania is an open-source multiplayer 2D top-down shooter. Try it out above by joining a public game or
-        creating a game and sharing a link with friends.
+        The quality and scope of indie games has continued to increase at an exciting pace, but building a
+        production-ready multiplayer game can still feel overwhelming for many indie game developers.
+      </p>
+      <p style={textStyle}>To build a scalable multiplayer game, you generally need to know:</p>
+      <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
+        <li className={"mt-2"}>how to spin up server instances to meet variable demand</li>
+        <li className={"mt-2"}>best practices around network protocols and client-server architecture</li>
+        <li className={"mt-2"}>strategies to optimize your network to minimize latency</li>
+      </ul>
+      <p style={textStyle}>
+        Now imagine the multiplayer game you’ve been working on suddenly gets a huge spike of players from a popular
+        streamer. You might first feel a rush of excitement followed by a cold sweat as you realize it’s only a matter
+        of time before your lonesome Digital Ocean server crumbles under the muscled hug of the internet.
       </p>
       <p style={textStyle}>
-        We built Bullet Mania to showcase how simple it is to build and scale a multiplayer game on{" "}
-        <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Hathora Cloud works well for both new and existing
-        multiplayer games. To learn more about deploying your multiplayer game on Hathora Cloud, check out our{" "}
-        <Link href={"https://hathora.dev/docs/get-started"}>10-minute Get Started guide</Link>.
+        We built Bullet Mania to showcase how simple it can be to build a scalable, production-ready game with{" "}
+        <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Bullet Mania is completely open source and is able
+        scale to thousands of matches just by{" "}
+        <Link href={"https://hathora.dev/docs/get-started"}>deploying on Hathora Cloud</Link> and integrating with{" "}
+        <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora’s SDK</Link>. Keep
+        reading to learn how to do it yourself!
       </p>
-      <h1 style={h1Style}>What is happening?</h1>
+      <h1 style={h1Style}>Scalable cloud architecture</h1>
       <p style={textStyle}>
         When a player <NavLink headingId={"createLobby"}>creates a public or private room</NavLink>, a game server is
         dynamically provisioned by Hathora Cloud in the region specified.
