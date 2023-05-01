@@ -1,11 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "@hathora/hathora-cloud-sdk": "^0.0.3",
-    "typescript-memoize": "^1.1.1"
-  },
-  "devDependencies": {
-    "@types/node": "^18.15.11",
-    "typescript": "^5.0.4"
+    "@hathora/hathora-cloud-sdk": "^0.0.3"
   }
 }

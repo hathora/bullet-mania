@@ -4,6 +4,7 @@
     "start": "npx ts-node-esm --experimental-specifier-resolution=node server.ts"
   },
   "dependencies": {
+    "@hathora/hathora-cloud-sdk": "^0.0.3",
     "@hathora/server-sdk": "^1.0.0",
     "detect-collisions": "^6.4.2",
     "dotenv": "^16.0.2"

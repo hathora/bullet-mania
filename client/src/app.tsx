@@ -1,13 +1,12 @@
 import ReactDOM from "react-dom/client";
 import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { AuthV1Api, LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { SessionMetadata, InitialConfig, LobbyState } from "../../common/types";
-import { PlayerLobbyClient } from "../../common/lobby-service/PlayerLobbyClient";
-import { AuthClient } from "../../common/lobby-service/AuthClient";
+import { SessionMetadata, LobbyState, InitialConfig } from "../../common/types";
 
-import { LOCAL_CONNECTION_DETAILS, Token } from "./utils";
+import { isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
 import { HathoraLogo } from "./components/website/HathoraLogo";
 import { Footer } from "./components/website/Footer";
@@ -16,6 +15,10 @@ import { NicknameScreen } from "./components/lobby/NicknameScreen";
 import { LobbySelector } from "./components/lobby/LobbySelector";
 import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
+
+const authClient = new AuthV1Api();
+const lobbyClient = new LobbyV2Api();
+const roomClient = new RoomV1Api();
 
 function App() {
   const appId = process.env.HATHORA_APP_ID;
@@ -28,9 +31,14 @@ function App() {
   const [isNicknameAcked, setIsNicknameAcked] = React.useState<boolean>(false);
 
   if (appId == null || token == null) {
-    return <div>Loading...</div>;
+    return (
+      <div
+        className={"bg-neutralgray-700 text-neutralgray-400 text-xl w-full h-screen flex items-center justify-center"}
+      >
+        Loading...
+      </div>
+    );
   }
-  const lobbyClient = new PlayerLobbyClient<LobbyState, InitialConfig>(appId);
   const roomIdFromUrl = getRoomIdFromUrl();
   if (
     roomIdFromUrl != null &&
@@ -40,31 +48,33 @@ function App() {
     !sessionMetadata?.isGameEnd
   ) {
     // Once we parse roomId from the URL, get connection details to connect player to the server
-    lobbyClient
-      .getConnectionDetailsForLobby(roomIdFromUrl, LOCAL_CONNECTION_DETAILS)
-      .then(async (connectionDetails) => {
+    isReadyForConnect(appId, roomClient, lobbyClient, roomIdFromUrl)
+      .then(async ({ connectionInfo, lobbyInfo }) => {
         setRoomIdNotFound(undefined);
         if (connection != null) {
           connection.disconnect(1000);
         }
 
         try {
-          const lobbyInfo = await lobbyClient.getLobbyInfo(roomIdFromUrl);
+          const lobbyState = lobbyInfo.state as LobbyState | undefined;
+          const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
 
-          if (!lobbyInfo.state?.isGameEnd) {
-            const connect = new HathoraConnection(roomIdFromUrl, connectionDetails);
+          if (!lobbyState || !lobbyState.isGameEnd) {
+            const connect = new HathoraConnection(roomIdFromUrl, connectionInfo);
             connect.onClose(async () => {
               // If game has ended, we want updated lobby state
-              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(roomIdFromUrl);
+              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(appId, roomIdFromUrl);
+              const updatedLobbyState = updatedLobbyInfo.state as LobbyState | undefined;
+              const updatedLobbyInitialConfig = updatedLobbyInfo.initialConfig as InitialConfig | undefined;
               setSessionMetadata({
-                serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+                serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
                 region: updatedLobbyInfo.region,
                 roomId: updatedLobbyInfo.roomId,
-                capacity: updatedLobbyInfo.initialConfig.capacity,
-                winningScore: updatedLobbyInfo.initialConfig.winningScore,
-                isGameEnd: !!updatedLobbyInfo.state?.isGameEnd,
-                winningPlayerId: updatedLobbyInfo.state?.winningPlayerId,
-                playerNicknameMap: updatedLobbyInfo.state?.playerNicknameMap ?? {},
+                capacity: updatedLobbyInitialConfig?.capacity ?? 0,
+                winningScore: updatedLobbyInitialConfig?.winningScore ?? 99,
+                isGameEnd: !!updatedLobbyState?.isGameEnd,
+                winningPlayerId: updatedLobbyState?.winningPlayerId,
+                playerNicknameMap: updatedLobbyState?.playerNicknameMap || {},
                 creatorId: updatedLobbyInfo.createdBy,
               });
               setFailedToConnect(true);
@@ -72,14 +82,14 @@ function App() {
             setConnection(connect);
           }
           setSessionMetadata({
-            serverUrl: `${connectionDetails.host}:${connectionDetails.port}`,
+            serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
             region: lobbyInfo.region,
             roomId: lobbyInfo.roomId,
-            capacity: lobbyInfo.initialConfig.capacity,
-            winningScore: lobbyInfo.initialConfig.winningScore,
-            isGameEnd: lobbyInfo.state?.isGameEnd ?? false,
-            winningPlayerId: lobbyInfo.state?.winningPlayerId,
-            playerNicknameMap: lobbyInfo.state?.playerNicknameMap ?? {},
+            capacity: lobbyInitialConfig?.capacity ?? 0,
+            winningScore: lobbyInitialConfig?.winningScore ?? 99,
+            isGameEnd: lobbyState?.isGameEnd ?? false,
+            winningPlayerId: lobbyState?.winningPlayerId,
+            playerNicknameMap: lobbyState?.playerNicknameMap || {},
             creatorId: lobbyInfo.createdBy,
           });
         } catch (e) {
@@ -119,8 +129,9 @@ function App() {
                     <div className={"text-secondary-600"}>Game has ended</div>
                     <div className={"text-secondary-600"}>
                       {`${
-                        sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId ?? ""] ??
                         sessionMetadata.winningPlayerId
+                          ? sessionMetadata.playerNicknameMap[sessionMetadata.winningPlayerId]
+                          : sessionMetadata.winningPlayerId
                       } won!`}
                     </div>
                   </>
@@ -136,7 +147,7 @@ function App() {
               <>
                 {connection == null && !sessionMetadata?.isGameEnd && !roomIdFromUrl ? (
                   <LobbySelector
-                    lobbyClient={lobbyClient}
+                    appId={appId}
                     playerToken={token}
                     roomIdNotFound={roomIdNotFound}
                     setGoogleIdToken={setGoogleIdToken}
@@ -167,19 +178,21 @@ function App() {
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(<App />);
 
+// Custom hook to access auth token
 function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): Token | undefined {
   const [token, setToken] = React.useState<Token | undefined>();
   useEffect(() => {
     if (appId != null) {
-      const authClient = new AuthClient(appId);
-      getToken(authClient, googleIdToken).then(setToken);
+      getToken(appId, authClient, googleIdToken).then(setToken);
     }
   }, [appId, googleIdToken]);
   return token;
 }
 
-// The getToken function first checks sessionStorage to see if there is an existing token, and if there is returns it. If not, it logs the user into a new session and updates the sessionStorage key.
-async function getToken(client: AuthClient, googleIdToken: string | undefined): Promise<Token> {
+// 1. Check sessionStorage for existing token
+// 2. If googleIdToken passed, use it for auth and store token
+// 3. If none above, then use anonymous auth
+async function getToken(appId: string, client: AuthV1Api, googleIdToken: string | undefined): Promise<Token> {
   const maybeToken = sessionStorage.getItem("bullet-mania-token");
   const maybeTokenType = sessionStorage.getItem("bullet-mania-token-type");
   if (maybeToken !== null && maybeTokenType != null) {
@@ -189,10 +202,10 @@ async function getToken(client: AuthClient, googleIdToken: string | undefined): 
     } as Token;
   }
   if (googleIdToken == null) {
-    const token = await client.loginAnonymous();
+    const { token } = await client.loginAnonymous(appId);
     return { value: token, type: "anonymous" };
   }
-  const token = await client.loginGoogle(googleIdToken);
+  const { token } = await client.loginGoogle(appId, { idToken: googleIdToken });
   sessionStorage.setItem("bullet-mania-token", token);
   sessionStorage.setItem("bullet-mania-token-type", "google");
   return { value: token, type: "google" };

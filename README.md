@@ -41,7 +41,7 @@ To run locally:
 ```
 HATHORA_APP_ID=<appId>
 HATHORA_APP_SECRET=<appSecret>
-APP_TOKEN=<appToken>
+DEVELOPER_TOKEN=<appToken>
 ```
 - Start server: inside `server` directory run `npm start` (remember to `npm install` first)
 - Start client: inside `client` directory run `npm start` (remember to `npm install` first)
