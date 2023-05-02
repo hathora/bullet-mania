@@ -11,7 +11,6 @@ import GitHubIcon from "../../assets/github.svg";
 SyntaxHighlighter.registerLanguage("typescript", ts);
 SyntaxHighlighter.registerLanguage("javascript", js);
 
-const queryParams = Object.fromEntries(new URLSearchParams(location.search));
 const startingHash = location.hash;
 
 export function ExplanationText() {
@@ -31,73 +30,62 @@ export function ExplanationText() {
         Bullet Mania source code
       </Link>
       <p style={textStyle}>
-        The quality and scope of indie games has continued to increase at an exciting pace, but building a
-        production-ready multiplayer game can still feel overwhelming for many indie game developers.
-      </p>
-      <p style={textStyle}>To build a scalable multiplayer game, you generally need to know:</p>
-      <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
-        <li className={"mt-2"}>how to spin up server instances to meet variable demand</li>
-        <li className={"mt-2"}>best practices around network protocols and client-server architecture</li>
-        <li className={"mt-2"}>strategies to optimize your network to minimize latency</li>
-      </ul>
-      <p style={textStyle}>
-        Now imagine the multiplayer game you’ve been working on suddenly gets a huge spike of players from a popular
-        streamer. You might first feel a rush of excitement followed by a cold sweat as you realize it’s only a matter
-        of time before your lonesome Digital Ocean server crumbles under the muscled hug of the internet.
+        The quality and scope of indie games has continued to increase at an exciting pace, but building a scalable
+        multiplayer game can still feel overwhelming for many indie game developers.
       </p>
       <p style={textStyle}>
-        We built Bullet Mania to showcase how simple it can be to build scalable, production-ready game with{" "}
+        For many indie developers, a convenient option might be to host their game server using a VPS like DigitalOcean.
+        but your DigitalOcean droplet has a fixed amount of resources. Now imagine if a popular streamer discovers your
+        game and then the surge of new players tramples past your limited capacity.
+      </p>
+      <p style={textStyle}>
+        We built Bullet Mania to showcase how simple it can be to build scalable multiplayer game with{" "}
         <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Bullet Mania is completely open source and is able
         to scale to thousands of matches just by{" "}
         <Link href={"https://hathora.dev/docs/get-started"}>deploying on Hathora Cloud</Link> and integrating with{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora’s SDK</Link>. Keep
         reading to learn how to do it yourself!
       </p>
-      <h1 style={h1Style}>Scalable cloud architecture</h1>
+      <h1 style={h1Style} id={"architecture"}>
+        <a href="#architecture">Scalable cloud architecture</a>
+      </h1>
       <p style={textStyle}>
-        When a player <NavLink headingId={"createLobby"}>creates a public or private room</NavLink>, a game server is
-        dynamically provisioned by Hathora Cloud in the region specified.
+        Bullet Mania is able to scale infinitely because with{" "}
+        <NavLink headingId={"createLobby"}>a sicngle API call</NavLink>, Hathora will provision a game server instance
+        for every game session/match. Each session is created on demand, as players request a match. since sessions are
+        independent of each other, you can add as many as you want.
       </p>
-      <div className={"flex justify-center"}>
+      <p style={textStyle}>
+        Behind the scenes, Hathora maintains massive Kubernetes compute clusters in datacenters all around the world, so
+        that when you request a new session via an API call, we can provision it instantaneously.
+      </p>
+      <div className={"flex justify-center mt-6"}>
         <img src={"/screenshots/hathora_lobby_flow.png"} className={"w-[680px]"} />
       </div>
       <p style={textStyle}>
-        <strong>Important notes</strong>
+        <strong>Additional benefits</strong>
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-2"}>
-          A player must be authenticated to create/provision rooms so Hathora can enforce rate limiting
+          <strong>private edge network</strong> that avoids network congestion and reduce latency for players
         </li>
         <li className={"mt-2"}>
-          Bullet Mania's servers are automatically scalable because Hathora provisions as many rooms as needed
-        </li>
-        <li className={"mt-2"}>Once your game server exits or is idle for 5 minutes, the compute resource goes away</li>
-        <li className={"mt-2"}>Hathora has no fixed costs, pricing is based on active compute usage</li>
-      </ul>
-      <p style={textStyle} className="italic text-neutralgray-400">
-        To learn more about key concepts in Hathora, check out our docs on{" "}
-        <Link href={"https://hathora.dev/docs/concepts/hathora-entities"}>Hathora Entities</Link> and{" "}
-        <Link href={"https://hathora.dev/docs/concepts/room-lifecycle"}>Room Lifecycle</Link>.
-      </p>
-      <h1 style={h1Style}>Why use Hathora for multiplayer games?</h1>
-      <p style={textStyle}>As seen in Bullet Mania your players will get good ping times because Hathora has:</p>
-      <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
-        <li className={"mt-1"}>
           <strong>multi-region server availability</strong> to get players a server closest to them
         </li>
-        <li className={"mt-1"}>
-          <strong>private edge network</strong> that avoids network congestion and ensures an optimal path to the server
+        <li className={"mt-2"}>
+          <strong>reduce complexity</strong> - we handle DDoS protection, monitoring, logs, upgrades
+        </li>
+        <li className={"mt-2"}>
+          <strong>no fixed costs</strong>, pricing is based on active compute usage - no idle server costs
         </li>
       </ul>
-      <p style={textStyle}>
-        You get improved performance while reducing operational complexity because you don’t have to worry about:
+      <p style={textStyle} className="italic text-neutralgray-400">
+        To learn more about key concepts in Hathora, check out{" "}
+        <Link href={"https://hathora.dev/docs/"}>Hathora Cloud documenation</Link>.
       </p>
-      <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
-        <li className={"mt-1"}>Patching underlying hosts for security</li>
-        <li className={"mt-1"}>Capacity planning in each region you want game servers available</li>
-        <li className={"mt-1"}>Paying for idle capacity to manage demand spikes</li>
-      </ul>
-      <h1 style={h1Style}>How to use Hathora for your game?</h1>
+      <h1 style={h1Style} id={"howToGuide"}>
+        <a href="#howToGuide">How use Hathora for your game?</a>
+      </h1>
       <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
         right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a{" "}
