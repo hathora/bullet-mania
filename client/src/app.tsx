@@ -11,6 +11,7 @@ import { Socials } from "./components/website/Socials";
 import { HathoraLogo } from "./components/website/HathoraLogo";
 import { Footer } from "./components/website/Footer";
 import { ExplanationText, NavLink } from "./components/website/ExplanationText";
+import { Arrow } from "./components/website/Arrow";
 import { NicknameScreen } from "./components/lobby/NicknameScreen";
 import { LobbySelector } from "./components/lobby/LobbySelector";
 import { BulletButton } from "./components/lobby/BulletButton";
@@ -119,7 +120,7 @@ function App() {
             Bullet Mania isn't currently playable on mobile <br />
             <NavLink headingId={"docsTop"}>Skip to documentation</NavLink>
           </p>
-          <div className={"md:mt-4"} style={{ width: GameConfig.width, height: GameConfig.height }}>
+          <div className={"md:mt-4 relative"} style={{ width: GameConfig.width, height: GameConfig.height }}>
             {failedToConnect ? (
               <div className="border text-white flex flex-wrap flex-col justify-center h-full w-full content-center text-secondary-400 text-center">
                 Connection was closed
@@ -145,6 +146,26 @@ function App() {
               </div>
             ) : (
               <>
+                <div
+                  className={
+                    "hidden lg:flex items-center gap-2 absolute font-hathora font-bold text-3xl text-neutralgray-550 -left-[220px] top-[272px]"
+                  }
+                >
+                  <div>TRY IT</div>
+                  <div>
+                    <Arrow />
+                  </div>
+                </div>
+                <div
+                  className={
+                    "hidden lg:flex items-center gap-2 absolute font-hathora font-bold text-3xl text-neutralgray-550 -left-[290px] top-[658px]"
+                  }
+                >
+                  <div>LEARN HOW</div>
+                  <div>
+                    <Arrow />
+                  </div>
+                </div>
                 {connection == null && !sessionMetadata?.isGameEnd && !roomIdFromUrl ? (
                   <LobbySelector
                     appId={appId}
