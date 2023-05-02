@@ -227,7 +227,7 @@ const token = useAuthToken(appId, googleIdToken);`}
             links={[
               {
                 linkText: "Bullet Mania app.tsx",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L176-206",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L202-L239",
               },
             ]}
           >
@@ -339,7 +339,7 @@ let lobbyClient = new LobbyV2Api();
               {
                 linkText: "Bullet Mania GameCreator.tsx",
                 linkHref:
-                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L80-L83",
+                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L72-L95",
               },
             ]}
           >
@@ -588,7 +588,7 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
             links={[
               {
                 linkText: "Connecting to a room (app.tsx)",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L41-L71",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L52-L83",
               },
               {
                 linkText: "Handle player join (server.ts)",
