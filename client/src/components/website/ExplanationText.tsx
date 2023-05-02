@@ -46,9 +46,9 @@ export function ExplanationText() {
         of time before your lonesome Digital Ocean server crumbles under the muscled hug of the internet.
       </p>
       <p style={textStyle}>
-        We built Bullet Mania to showcase how simple it can be to build a scalable, production-ready game with{" "}
+        We built Bullet Mania to showcase how simple it can be to build scalable, production-ready game with{" "}
         <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Bullet Mania is completely open source and is able
-        scale to thousands of matches just by{" "}
+        to scale to thousands of matches just by{" "}
         <Link href={"https://hathora.dev/docs/get-started"}>deploying on Hathora Cloud</Link> and integrating with{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora’s SDK</Link>. Keep
         reading to learn how to do it yourself!
