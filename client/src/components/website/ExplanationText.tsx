@@ -62,9 +62,7 @@ export function ExplanationText() {
       <div className={"flex justify-center mt-6"}>
         <img src={"/screenshots/hathora_lobby_flow.png"} className={"w-[680px]"} />
       </div>
-      <p style={textStyle}>
-        <strong>Additional benefits</strong>
-      </p>
+      <p style={textStyle}>Additional benefits</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-2"}>
           <strong>private edge network</strong> that avoids network congestion and reduce latency for players
@@ -248,7 +246,7 @@ const token = useAuthToken(appId, googleIdToken);`}
       <p style={textStyle}>There are 3 types of lobbies that a player can create:</p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-decimal ml-6"}>
         <li className={"mt-1"}>
-          <strong>Public</strong>: it will be returned the roomId in the public lobby list and any player can join
+          <strong>Public</strong>: visible in the public lobby list, anyone can join
         </li>
         <li className={"mt-1"}>
           <strong>Private</strong>: the player who created the room must share the roomId with their friends
@@ -257,6 +255,13 @@ const token = useAuthToken(appId, googleIdToken);`}
           <strong>Local</strong>: for testing with a server running locally
         </li>
       </ul>
+      <p style={textStyle}>
+        It's best to create rooms as close to your players to keep latency low. When creating a room, you need to pass
+        in the region you want your server to be in. For Bullet Mania, we let the host decide which region is best; for
+        other games, you can use our{" "}
+        <Link href={"https://api.hathora.io/ui/#/DiscoveryV1/GetPingServiceEndpoints"}>Ping Service API</Link> to
+        determine which region is best.
+      </p>
       <p style={textStyle}>
         If you have any specific user input you need to take in to initialize your game state then pass it in through
         the <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
