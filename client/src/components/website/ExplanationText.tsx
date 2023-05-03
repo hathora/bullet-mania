@@ -14,7 +14,7 @@ SyntaxHighlighter.registerLanguage("javascript", js);
 const startingHash = location.hash;
 
 export function ExplanationText() {
-  const [showReactUsage, setShowReactUsage] = useState(location.search !== "?basicFlow=true");
+  const [showReactUsage, setShowReactUsage] = useState(location.search === "?basicFlow=false");
   useEffect(() => {
     if (startingHash && document.querySelector(startingHash)) {
       document.querySelector(startingHash)?.scrollIntoView(true);
@@ -762,10 +762,10 @@ function CodePathToggle(props: { showReactUsage: boolean; setShowReactUsage: (va
   return (
     <div className={"flex gap-1 ml-4 mt-6"}>
       <button
-        className={`flex items-center gap-2 px-6 py-2 rounded-t text-neutralgray-300 border ${
+        className={`flex items-center gap-2 px-6 py-2 rounded-t border ${
           props.showReactUsage
-            ? "text-bold bg-neutralgray-650 border-secondary-500 border-b-transparent z-20"
-            : "bg-neutralgray-600 hover:underline hover:bg-neutralgray-900 hover:text-neutralgray-200 border-transparent hover:border-secondary-500 z-0"
+            ? "text-bold text-neutralgray-300 bg-neutralgray-650 border-secondary-500 border-b-transparent z-20"
+            : "bg-neutralgray-550 text-neutralgray-400 hover:underline hover:bg-neutralgray-900 hover:text-neutralgray-200 border-transparent hover:border-secondary-500 z-0"
         }`}
         onClick={() => {
           props.setShowReactUsage(true);
@@ -778,10 +778,10 @@ function CodePathToggle(props: { showReactUsage: boolean; setShowReactUsage: (va
         </div>
       </button>
       <button
-        className={`px-4 py-1 rounded-t text-neutralgray-300 border ${
+        className={`px-4 py-1 rounded-t border ${
           !props.showReactUsage
-            ? "text-bold underline bg-neutralgray-650 border-hathoraSecondary-500 border-b-transparent z-20"
-            : "bg-neutralgray-600 hover:underline hover:bg-neutralgray-900 hover:text-neutralgray-200 border-transparent hover:border-hathoraSecondary-500 z-0"
+            ? "text-bold text-neutralgray-300 underline bg-neutralgray-650 border-hathoraSecondary-500 border-b-transparent z-20"
+            : "bg-neutralgray-550 text-neutralgray-400 hover:underline hover:bg-neutralgray-900 hover:text-neutralgray-200 border-transparent hover:border-hathoraSecondary-500 z-0"
         }`}
         onClick={() => {
           props.setShowReactUsage(false);
