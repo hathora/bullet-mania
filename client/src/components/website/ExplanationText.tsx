@@ -762,6 +762,19 @@ function CodePathToggle(props: { showReactUsage: boolean; setShowReactUsage: (va
   return (
     <div className={"flex gap-1 ml-4 mt-6"}>
       <button
+        className={`px-4 py-1 rounded-t border ${
+          !props.showReactUsage
+            ? "text-bold text-neutralgray-300 underline bg-neutralgray-650 border-hathoraSecondary-500 border-b-transparent z-20"
+            : "bg-neutralgray-550 text-neutralgray-400 hover:underline hover:bg-neutralgray-900 hover:text-neutralgray-200 border-transparent hover:border-hathoraSecondary-500 z-0"
+        }`}
+        onClick={() => {
+          props.setShowReactUsage(false);
+          window.history.replaceState(null, "", "?basicFlow=true" + location.hash);
+        }}
+      >
+        Basic SDK Usage
+      </button>
+      <button
         className={`flex items-center gap-2 px-6 py-2 rounded-t border ${
           props.showReactUsage
             ? "text-bold text-neutralgray-300 bg-neutralgray-650 border-secondary-500 border-b-transparent z-20"
@@ -776,19 +789,6 @@ function CodePathToggle(props: { showReactUsage: boolean; setShowReactUsage: (va
         <div>
           <img src="bullet_mania_logo_light.png" className="h-[32px] md:h-[24px]" alt="logo" />
         </div>
-      </button>
-      <button
-        className={`px-4 py-1 rounded-t border ${
-          !props.showReactUsage
-            ? "text-bold text-neutralgray-300 underline bg-neutralgray-650 border-hathoraSecondary-500 border-b-transparent z-20"
-            : "bg-neutralgray-550 text-neutralgray-400 hover:underline hover:bg-neutralgray-900 hover:text-neutralgray-200 border-transparent hover:border-hathoraSecondary-500 z-0"
-        }`}
-        onClick={() => {
-          props.setShowReactUsage(false);
-          window.history.replaceState(null, "", "?basicFlow=true" + location.hash);
-        }}
-      >
-        Basic SDK Usage
       </button>
     </div>
   );
