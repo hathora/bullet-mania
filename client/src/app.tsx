@@ -9,6 +9,7 @@ import { SessionMetadata, LobbyState, InitialConfig } from "../../common/types";
 import { isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
 import { HathoraLogo } from "./components/website/HathoraLogo";
+import { GithubCorner } from "./components/website/GithubCorner";
 import { Footer } from "./components/website/Footer";
 import { ExplanationText, NavLink } from "./components/website/ExplanationText";
 import { Arrow } from "./components/website/Arrow";
@@ -103,6 +104,7 @@ function App() {
   }
   return (
     <GoogleOAuthProvider clientId={process.env.GOOGLE_AUTH_CLIENT_ID ?? ""}>
+      <GithubCorner />
       <div className="py-5 overflow-hidden" style={{ backgroundColor: "#0E0E1B" }}>
         <div className="md:w-fit mx-auto px-2 md:px-0">
           <div className={"flex justify-center items-center"}>
