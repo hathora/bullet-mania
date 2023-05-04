@@ -39,12 +39,12 @@ export function ExplanationText() {
         game and then a surge of new players tramples past your limited server capacity.
       </p>
       <p style={textStyle}>
-        We built Bullet Mania to showcase how simple it can be to build scalable multiplayer game with{" "}
+        We built Bullet Mania to showcase how simple it can be to build scalable multiplayer games with{" "}
         <Link href={"https://hathora.dev/docs"}>Hathora Cloud</Link>. Bullet Mania is completely open source and is able
         to scale to thousands of matches just by{" "}
         <Link href={"https://hathora.dev/docs/get-started"}>deploying on Hathora Cloud</Link> and integrating with{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/tree/main/typescript"}>Hathora’s SDK</Link>. Keep
-        reading to learn how to add it to your own multiplayer game.
+        reading to learn how to add similar scalability to your own multiplayer game.
       </p>
       <h1 style={h1Style} id={"architecture"}>
         <a href="#architecture">Scalable cloud architecture</a>
@@ -82,13 +82,13 @@ export function ExplanationText() {
         <Link href={"https://hathora.dev/docs/"}>Hathora Cloud documentation</Link>.
       </p>
       <h1 style={h1Style} id={"howToGuide"}>
-        <a href="#howToGuide">How use Hathora for your game?</a>
+        <a href="#howToGuide">How to use Hathora for your game?</a>
       </h1>
       <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
         right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a{" "}
         <Link href={"https://api.hathora.dev/ui/#/LobbyV2"}>lightweight Lobby Service API</Link> to make integration
-        even easier (spin up and route players to the correct room).
+        even easier by help you store and manage metadata for your rooms.
       </p>
       <p style={textStyle}>
         Integration is simple, you first need to install and import our{" "}

@@ -24,7 +24,7 @@ export function GameCreator(props: GameCreatorProps) {
   const [visibility, setVisibility] = React.useState<"public" | "private" | "local">("public");
   const [region, setRegion] = React.useState<Region>(Region.Chicago);
   const [capacity, setCapacity] = React.useState<number>(6);
-  const [winningScore, setWinningScore] = React.useState<number>(20);
+  const [winningScore, setWinningScore] = React.useState<number>(5);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
 
