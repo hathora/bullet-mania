@@ -114,9 +114,9 @@ function App() {
               </a>
               <div className={"mx-3 text-hathoraSecondary-400 text-xs md:text-lg text-baseline"}>PRESENTS</div>
             </div>
-            <div className={""}>
+            <a href="/" className={""}>
               <img src="bullet_mania_logo_light.png" className="h-[40px] md:h-[60px]" alt="logo" />
-            </div>
+            </a>
           </div>
           <p className={"visible md:hidden text-neutralgray-400 text-center mt-3"}>
             Bullet Mania isn't currently playable on mobile <br />
