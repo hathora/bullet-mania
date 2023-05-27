@@ -31,22 +31,6 @@ Instructions:
   - **R** to reload
   - Once you are in a game, share the URL to allow others to join
 
-## Running locally 
-
-To run locally:
-
-- Have node installed
-- Get a Hathora `appId` and `appSecret` via https://console.hathora.dev/
-- Get a Hathora developer token (see https://hathora.dev/docs/guides/generate-developer-token)
-- Create a .env file at the root with
-```
-HATHORA_APP_ID=<appId>
-HATHORA_APP_SECRET=<appSecret>
-DEVELOPER_TOKEN=<appToken>
-```
-- Start server: inside `server` directory run `npm start` (remember to `npm install` first)
-- Start client: inside `client` directory run `npm start` (remember to `npm install` first)
-
 ## Architecture
 
 Fully server authoritative game:
@@ -60,3 +44,28 @@ Room based architecture:
 - One player creates a game session and gets back a `roomId`
 - They send the `roomId` to others
 - Others can join the same session with this `roomId`
+
+## Running locally 
+
+To run locally:
+- Have node installed
+- Get a Hathora `appId` and `appSecret` via https://console.hathora.dev/
+- Get a Hathora developer token (see https://hathora.dev/docs/guides/generate-developer-token)
+- Create a .env file at the root with
+```
+HATHORA_APP_ID=<appId>
+HATHORA_APP_SECRET=<appSecret>
+DEVELOPER_TOKEN=<appToken>
+```
+- Start server: inside `server` directory run `npm start` (remember to `npm install` first)
+- Start client: inside `client` directory run `npm start` (remember to `npm install` first)
+
+## Deploying
+
+Server:
+- Run `hathora-cloud deploy --appId <appId> --roomsPerProcess 1 --planName tiny --transportType tls --containerPort 4000 --env '[{"name": "DEVELOPER_TOKEN", "value": "<appToken>"}]'`
+
+Client:
+- cd to `common` and run `npm install && npx tsc`
+- Then cd to `client` and `npm run build`
+- Now you can deploy `dist` to any CDN like Vercel or Netlify
