@@ -37,6 +37,7 @@ To run locally:
 
 - Have node installed
 - Get a Hathora `appId` and `appSecret` via https://console.hathora.dev/
+- Get a Hathora developer token (see https://hathora.dev/docs/guides/generate-developer-token)
 - Create a .env file at the root with
 ```
 HATHORA_APP_ID=<appId>
