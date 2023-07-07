@@ -17,7 +17,7 @@ Additional implementations of the game client are also available for the followi
 
 ## Try it
 
-The game is playable at https://bullet-mania.netlify.app
+The game is playable at https://bullet-mania.vercel.app
 
 Lobby            |  Gameplay
 :-------------------------:|:-------------------------:
