@@ -87,13 +87,13 @@ export function ExplanationText() {
       <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
         right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a{" "}
-        <Link href={"https://api.hathora.dev/ui/#/LobbyV2"}>lightweight Lobby Service API</Link> to make integration
+        <Link href={"https://hathora.dev/api#tag/LobbyV2"}>lightweight Lobby Service API</Link> to make integration
         even easier by help you store and manage metadata for your rooms.
       </p>
       <p style={textStyle}>
         Integration is simple, you first need to install and import our{" "}
         <Link href={"https://github.com/hathora/hathora-cloud-sdks/"}>Hathora Cloud SDK</Link> to easily interface with
-        our <Link href="https://api.hathora.dev/ui/">Hathora Cloud API</Link>.
+        our <Link href="https://hathora.dev/api">Hathora Cloud API</Link>.
       </p>
       <CodeBlock singleLine>{'import HathoraCloud from "@hathora/hathora-cloud-sdk";'}</CodeBlock>
       <p style={textStyle}>With our Lobby Service, integration just takes a few steps:</p>
@@ -259,7 +259,7 @@ const token = useAuthToken(appId, googleIdToken);`}
         It's best to create rooms as close to your players to keep latency low. When creating a room, you need to pass
         in the region you want your server to be in. For Bullet Mania, we let the host decide which region is best; for
         other games, you can use our{" "}
-        <Link href={"https://api.hathora.io/ui/#/DiscoveryV1/GetPingServiceEndpoints"}>Ping Service API</Link> to
+        <Link href={"https://hathora.dev/api#tag/DiscoveryV1/operation/GetPingServiceEndpoints"}>Ping Service API</Link> to
         determine which region is best.
       </p>
       <p style={textStyle}>
@@ -455,7 +455,7 @@ let roomClient = new RoomV1Api();`}
           </CodeBlock>
           <p id={"lobbyInfo"} className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             <a href="#lobbyInfo">Fetch lobby information, see</a>{" "}
-            <Link href={"https://api.hathora.dev/ui/#/LobbyV2/GetLobbyInfo"}>return values for getLobbyInfo()</Link>
+            <Link href={"https://hathora.dev/api#tag/LobbyV2/operation/GetLobbyInfo"}>return values for getLobbyInfo()</Link>
           </p>
           <CodeBlock>{`// This step is only needed if you want to validate lobbyState before connecting a player
 const lobbyInfo = lobbyClient.getLobbyInfo(
