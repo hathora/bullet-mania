@@ -63,7 +63,7 @@ DEVELOPER_TOKEN=<appToken>
 ## Deploying
 
 Server:
-- Run `hathora-cloud deploy --appId <appId> --roomsPerProcess 1 --planName tiny --transportType tls --containerPort 4000 --env '[{"name": "DEVELOPER_TOKEN", "value": "<appToken>"}]'`
+- Run `hathora-cloud deploy --appId <appId> --roomsPerProcess 1 --planName tiny --transportType tls --containerPort 4000 --env '[{"name": "DEVELOPER_TOKEN", "value": "<developerToken>"}]'`
 
 Client:
 - cd to `common` and run `npm install && npx tsc`
