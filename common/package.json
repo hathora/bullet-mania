@@ -2,5 +2,8 @@
   "type": "module",
   "dependencies": {
     "@hathora/hathora-cloud-sdk": "^0.0.3"
+  },
+  "devDependencies": {
+    "typescript": "^4.8.3"
   }
 }
