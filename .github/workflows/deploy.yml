@@ -2,13 +2,26 @@ name: Deploy
 on:
   push:
     branches:
-      - develop
+      - jc/gh-action-deploy
 
 jobs:
-  server:
+  deploy-server:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - run: npm install -g @hathora/cli
       - run: >
-          hathora-cloud deploy --appId app-122d530a-ab60-4597-95d8-fabeecfe3c1b --token ${{ secrets.HATHORA_TOKEN }}
+          hathora-cloud deploy --appId app-82d434e1-349f-4f50-82f7-b6bdc092f039 --token ${{ secrets.HATHORA_TOKEN }}
+    deploy-client:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: Deploy to Vercel Action
+          uses: BetaHuhn/deploy-to-vercel-action@v1
+          with:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+            VERCEL_ORG_ID: team_GPRvMqc4VnOOHT6FlvlpSHa8
+            VERCEL_PROJECT_ID: prj_xBbOOFIr9hMzP60ncqtzeK2waKGM
+            WORKING_DIRECTORY: client
+            VERCEL_SCOPE: hathora
