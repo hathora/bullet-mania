@@ -23,5 +23,4 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: team_GPRvMqc4VnOOHT6FlvlpSHa8
           VERCEL_PROJECT_ID: prj_xBbOOFIr9hMzP60ncqtzeK2waKGM
-          WORKING_DIRECTORY: client
           VERCEL_SCOPE: hathora
