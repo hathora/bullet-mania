@@ -93,7 +93,7 @@
     animation:octocat-wave 560ms ease-in-out
 }
 @keyframes octocat-wave{
-    0 %,100%{
+    0%,100%{
         transform:rotate(0)
     }
     20%,60%{
