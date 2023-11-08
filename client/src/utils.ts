@@ -1,5 +1,5 @@
-import { Lobby } from "@hathora/hathora-cloud-sdk/src/models/index";
-import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
+import { LobbyV3 } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
+import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 import { ConnectionDetails } from "@hathora/client-sdk";
 
 export const LOCAL_CONNECTION_DETAILS: ConnectionDetails = {
@@ -30,25 +30,27 @@ export const Token = {
 
 export async function isReadyForConnect(
   appId: string,
-  roomClient: RoomV1Api,
-  lobbyClient: LobbyV2Api,
-  roomId: string
-): Promise<{ lobbyInfo: Lobby; connectionInfo: ConnectionDetails }> {
+  roomId: string,
+  hathoraSdk: HathoraCloud
+): Promise<{ lobbyInfo: LobbyV3; connectionInfo: ConnectionDetails }> {
   const MAX_CONNECT_ATTEMPTS = 50;
   const TRY_CONNECT_INTERVAL_MS = 1000;
 
-  const lobbyInfo = await lobbyClient.getLobbyInfo(appId, roomId);
+  const { lobbyV3: lobbyInfo } = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(appId, roomId);
+  if (lobbyInfo === undefined) {
+    throw new Error("Lobby not found: " + roomId);
+  }
 
   if (lobbyInfo.visibility === "local") {
-    return new Promise<{ lobbyInfo: Lobby; connectionInfo: ConnectionDetails }>((resolve) =>
+    return new Promise<{ lobbyInfo: LobbyV3; connectionInfo: ConnectionDetails }>((resolve) =>
       resolve({ lobbyInfo, connectionInfo: LOCAL_CONNECTION_DETAILS })
     );
   }
 
   for (let i = 0; i < MAX_CONNECT_ATTEMPTS; i++) {
-    const res = await roomClient.getConnectionInfo(appId, roomId);
-    if (res.status === "active") {
-      return { lobbyInfo, connectionInfo: res };
+    const { connectionInfoV2 } = await hathoraSdk.roomV2.getConnectionInfo(appId, roomId);
+    if (connectionInfoV2?.exposedPort !== undefined) {
+      return { lobbyInfo, connectionInfo: connectionInfoV2.exposedPort };
     }
     await new Promise((resolve) => setTimeout(resolve, TRY_CONNECT_INTERVAL_MS));
   }

@@ -1,18 +1,16 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import { LobbyV2Api, RoomV1Api, Region } from "@hathora/hathora-cloud-sdk";
+import { LobbyVisibility, Region } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
+import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 import { isReadyForConnect, Token } from "../../utils";
-import { InitialConfig } from "../../../../common/types";
+import { RoomConfig } from "../../../../common/types";
 
 import { MultiSelect } from "./MultiSelect";
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
 import { Dropdown } from "./Dropdown";
 import { BulletButton } from "./BulletButton";
-
-const lobbyClient = new LobbyV2Api();
-const roomClient = new RoomV1Api();
 
 interface GameCreatorProps {
   appId: string;
@@ -28,7 +26,8 @@ export function GameCreator(props: GameCreatorProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
 
-  const initialConfig: InitialConfig = { capacity, winningScore };
+  const hathoraSdk = new HathoraCloud({ appId });
+
   return (
     <LobbyPageCard className={"pb-1.5"}>
       <Header className="mt-4 mb-2">Create Game</Header>
@@ -78,14 +77,29 @@ export function GameCreator(props: GameCreatorProps) {
                 }
                 setIsLoading(true);
                 try {
-                  const lobby = await lobbyClient.createLobby(appId, playerToken.value, {
-                    visibility,
-                    region,
-                    initialConfig,
-                  });
+                  const roomConfig: RoomConfig = {
+                    capacity,
+                    winningScore,
+                    playerNicknameMap: {},
+                    isGameEnd: false,
+                  };
+                  const { lobbyV3 } = await hathoraSdk.lobbyV3.createLobby(
+                    {
+                      createLobbyV3Params: {
+                        region,
+                        // TODO fix this
+                        visibility: visibility === "public" ? LobbyVisibility.Public : LobbyVisibility.Private,
+                        roomConfig: JSON.stringify(roomConfig),
+                      },
+                    },
+                    { playerAuth: playerToken.value }
+                  );
+                  if (lobbyV3 == null) {
+                    throw new Error("Failed to create lobby");
+                  }
                   // Wait until lobby connection details are ready before redirect player to match
-                  await isReadyForConnect(appId, roomClient, lobbyClient, lobby.roomId);
-                  window.location.href = `/${lobby.roomId}`; //update url
+                  await isReadyForConnect(appId, lobbyV3.roomId, hathoraSdk);
+                  window.location.href = `/${lobbyV3.roomId}`; //update url
                 } catch (e) {
                   setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
                 } finally {

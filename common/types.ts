@@ -33,15 +33,12 @@ export type GameState = {
   bullets: Bullet[];
 };
 
-export type LobbyState = {
-  playerNicknameMap: { [playerId: string]: string };
-  isGameEnd?: boolean;
-  winningPlayerId?: string;
-};
-
-export type InitialConfig = {
+export type RoomConfig = {
   capacity: number;
   winningScore: number;
+  playerNicknameMap: { [playerId: string]: string };
+  isGameEnd: boolean;
+  winningPlayerId?: string;
 };
 
 export type SessionMetadata = {

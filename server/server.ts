@@ -4,14 +4,16 @@ import { fileURLToPath } from "url";
 import { UserId, RoomId, Application, startServer, verifyJwt } from "@hathora/server-sdk";
 import dotenv from "dotenv";
 import { Box, Body, System } from "detect-collisions";
-import { Direction, GameState, InitialConfig, LobbyState } from "../common/types";
+import { Direction, GameState, RoomConfig } from "../common/types";
 import { ClientMessage, ClientMessageType, ServerMessage, ServerMessageType } from "../common/messages";
 import map from "../common/map.json" assert { type: "json" };
 
-import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
+import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const lobbyClient = new LobbyV2Api();
-const roomClient = new RoomV1Api();
+const hathoraSdk = new HathoraCloud({
+  appId: process.env.HATHORA_APP_ID!,
+  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+});
 
 // The millisecond tick rate
 const TICK_INTERVAL_MS = 50;
@@ -129,6 +131,7 @@ type InternalState = {
   physics: System;
   players: InternalPlayer[];
   bullets: InternalBullet[];
+  capacity: number;
   winningScore: number;
   isGameEnd: boolean;
   winningPlayerId?: UserId;
@@ -151,16 +154,15 @@ const store: Application = {
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyInfo = await lobbyClient.getLobbyInfo(process.env.HATHORA_APP_ID!, roomId);
-      const lobbyState = lobbyInfo.state as LobbyState | undefined;
-      const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
+      const lobbyInfo = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomId);
+      const roomConfig = JSON.parse(lobbyInfo.lobbyV3!.roomConfig) as RoomConfig;
 
       if (!rooms.has(roomId)) {
-        rooms.set(roomId, initializeRoom(lobbyInitialConfig?.winningScore ?? 10, lobbyState?.isGameEnd || false));
+        rooms.set(roomId, initializeRoom(roomConfig.capacity, roomConfig.winningScore, roomConfig.isGameEnd));
       }
       const game = rooms.get(roomId)!;
 
-      if (game.players.length === lobbyInitialConfig?.capacity) {
+      if (game.players.length === roomConfig.capacity) {
         throw new Error("room is full");
       }
       if (game.isGameEnd) {
@@ -412,7 +414,7 @@ function broadcastStateUpdate(roomId: RoomId) {
   server.broadcastMessage(roomId, Buffer.from(JSON.stringify(msg), "utf8"));
 }
 
-function initializeRoom(winningScore: number, isGameEnd: boolean) {
+function initializeRoom(capacity: number, winningScore: number, isGameEnd: boolean): InternalState {
   const physics = new System();
   const tileSize = map.tileSize;
   const top = map.top * tileSize;
@@ -434,13 +436,7 @@ function initializeRoom(winningScore: number, isGameEnd: boolean) {
   physics.insert(wallBody(left, bottom, right - left, BOUNDARY_WIDTH)); // bottom
   physics.insert(wallBody(right, top, BOUNDARY_WIDTH, bottom - top)); // right
 
-  return {
-    physics,
-    players: [],
-    bullets: [],
-    winningScore,
-    isGameEnd,
-  };
+  return { physics, players: [], bullets: [], capacity, winningScore, isGameEnd };
 }
 
 function wallBody(x: number, y: number, width: number, height: number): PhysicsBody {
@@ -470,23 +466,17 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
       server.closeConnection(roomId, playerId, "game has ended, disconnecting players");
     });
     console.log("destroying room: ", roomId);
-    roomClient.destroyRoom(
-      process.env.HATHORA_APP_ID!,
-      roomId,
-      { headers: { Authorization: `Bearer ${getDeveloperToken()}`, "Content-Type": "application/json" } }
-    );
+    hathoraSdk.roomV2.destroyRoom(roomId);
   }, 10000);
 }
 
 async function updateLobbyState(game: InternalState, roomId: string) {
-  const lobbyState: LobbyState = {
+  const roomConfig: RoomConfig = {
+    capacity: 0,
+    winningScore: game.winningScore,
     playerNicknameMap: Object.fromEntries(game.players.map((player) => [player.id, player.nickname ?? player.id])),
     isGameEnd: game.isGameEnd,
     winningPlayerId: game.winningPlayerId,
   };
-  return await lobbyClient.setLobbyState(process.env.HATHORA_APP_ID!,
-    roomId,
-    { state:lobbyState },
-    { headers: { Authorization: `Bearer ${getDeveloperToken()}`, "Content-Type": "application/json" } }
-  );
+  return await hathoraSdk.roomV2.updateRoomConfig({ roomConfig: JSON.stringify(roomConfig) }, roomId);
 }
