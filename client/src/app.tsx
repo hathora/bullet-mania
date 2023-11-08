@@ -224,7 +224,7 @@ async function getToken(googleIdToken: string | undefined): Promise<Token> {
     } as Token;
   }
   if (googleIdToken == null) {
-    const { loginResponse } = await hathoraSdk.authV1.loginAnonymous(appId);
+    const { loginResponse } = await hathoraSdk.authV1.loginAnonymous();
     if (loginResponse == null) {
       throw new Error("Failed to login anonymously");
     }

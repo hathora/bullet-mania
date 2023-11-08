@@ -36,7 +36,7 @@ export async function isReadyForConnect(
   const MAX_CONNECT_ATTEMPTS = 50;
   const TRY_CONNECT_INTERVAL_MS = 1000;
 
-  const { lobbyV3: lobbyInfo } = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(appId, roomId);
+  const { lobbyV3: lobbyInfo } = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomId);
   if (lobbyInfo === undefined) {
     throw new Error("Lobby not found: " + roomId);
   }
@@ -48,7 +48,7 @@ export async function isReadyForConnect(
   }
 
   for (let i = 0; i < MAX_CONNECT_ATTEMPTS; i++) {
-    const { connectionInfoV2 } = await hathoraSdk.roomV2.getConnectionInfo(appId, roomId);
+    const { connectionInfoV2 } = await hathoraSdk.roomV2.getConnectionInfo(roomId);
     if (connectionInfoV2?.exposedPort !== undefined) {
       return { lobbyInfo, connectionInfo: connectionInfoV2.exposedPort };
     }
