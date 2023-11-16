@@ -154,8 +154,8 @@ const store: Application = {
   async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     console.log("subscribeUser", roomId, userId);
     try {
-      const lobbyInfo = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomId);
-      const roomConfig = JSON.parse(lobbyInfo.lobbyV3!.roomConfig) as RoomConfig;
+      const roomInfo = await hathoraSdk.roomV2.getRoomInfo(roomId);
+      const roomConfig = JSON.parse(roomInfo.room!.roomConfig) as RoomConfig;
 
       if (!rooms.has(roomId)) {
         rooms.set(roomId, initializeRoom(roomConfig.capacity, roomConfig.winningScore, roomConfig.isGameEnd));

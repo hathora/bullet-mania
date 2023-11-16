@@ -87,8 +87,7 @@ export function GameCreator(props: GameCreatorProps) {
                     {
                       createLobbyV3Params: {
                         region,
-                        // TODO fix this
-                        visibility: visibility === "public" ? LobbyVisibility.Public : LobbyVisibility.Private,
+                        visibility: visibility as LobbyVisibility,
                         roomConfig: JSON.stringify(roomConfig),
                       },
                     },
