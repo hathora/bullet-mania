@@ -6,17 +6,17 @@ import dayjs from "dayjs";
 dayjs.extend(relativeTime);
 
 import { ClockIcon, TrophyIcon, UserIcon, UsersIcon } from "@heroicons/react/24/outline";
-import { LobbyV2Api, RoomV1Api, Region, Lobby } from "@hathora/hathora-cloud-sdk";
+import { LobbyV3, Region } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
+import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 import { isReadyForConnect } from "../../utils";
-import { InitialConfig, LobbyState } from "../../../../common/types";
+import { RoomConfig } from "../../../../common/types";
 
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
 import { BulletButton } from "./BulletButton";
 
-const lobbyClient = new LobbyV2Api();
-const roomClient = new RoomV1Api();
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
 
 interface PublicLobbyListProps {
   appId: string;
@@ -25,15 +25,17 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   const { appId } = props;
   const lobbies = useLobbies(appId);
   const [readyRooms, setReadyRooms] = React.useState<Set<string>>(new Set());
+
   useEffect(() => {
     lobbies.forEach(async (l) => {
       // Ensure that lobby is ready for connections before adding to visible lobby list
-      await isReadyForConnect(appId, roomClient, lobbyClient, l.roomId);
+      await isReadyForConnect(appId, l.roomId, hathoraSdk);
       setReadyRooms((prev) => {
         return new Set([...prev, l.roomId]);
       });
     });
-  }, [lobbies]);
+  }, [lobbies, appId]);
+
   return (
     <LobbyPageCard className={""}>
       <Header className="mt-4 mb-2">Join Public Game</Header>
@@ -57,8 +59,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
               .filter((l) => readyRooms.has(l.roomId))
               .sort((a, b) => (new Date(b.createdAt).getTime() || 0) - (new Date(a.createdAt).getTime() || 0))
               .map((lobby, index) => {
-                const lobbyState = lobby.state as LobbyState | undefined;
-                const lobbyInitialConfig = lobby.initialConfig as InitialConfig | undefined;
+                const roomConfig = JSON.parse(lobby.roomConfig) as RoomConfig;
                 return (
                   <tr
                     key={`lobby_${lobby.createdBy}_${lobby.createdAt}`}
@@ -76,9 +77,7 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                     >
                       <div className={"flex items-center justify-center gap-1"}>
                         <UsersIcon className="h-4 w-4 text-secondary-700" />
-                        {`${lobbyState?.playerNicknameMap ? Object.keys(lobbyState.playerNicknameMap).length : 0}/${
-                          lobbyInitialConfig?.capacity ?? "n/a"
-                        }`}
+                        {`${Object.keys(roomConfig.playerNicknameMap).length}/${roomConfig.capacity}`}
                       </div>
                     </td>
                     <td
@@ -98,20 +97,20 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                         </div>
                         <div className={"flex items-center"}>
                           <UserIcon className="h-4 w-4 text-secondary-700 text-xxs" />
-                          {lobbyState && lobbyState.playerNicknameMap[lobby.createdBy] ? (
-                            `${lobbyState.playerNicknameMap[lobby.createdBy]}`
+                          {roomConfig.playerNicknameMap[lobby.createdBy] ? (
+                            `${roomConfig.playerNicknameMap[lobby.createdBy]}`
                           ) : (
                             <span className="italic">creator left</span>
                           )}
                         </div>
                         <div className={"flex items-center gap-1 text-xxs"}>
                           <TrophyIcon className="h-4 w-4 text-secondary-700" />
-                          {`${lobbyInitialConfig?.winningScore ?? "n/a"} kills to win`}
+                          {`${roomConfig.winningScore} kills to win`}
                         </div>
                       </div>
                     </td>
                     <td className={"w-20"}>
-                      {lobbyState?.isGameEnd ? (
+                      {roomConfig.isGameEnd ? (
                         <div className={"leading-4 mt-0.5"}>
                           <span>GAME ENDED</span>
                         </div>
@@ -119,19 +118,13 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
                         <button
                           className={"mt-2"}
                           onClick={() => {
-                            if (
-                              !lobbyState ||
-                              Object.keys(lobbyState.playerNicknameMap).length < (lobbyInitialConfig?.capacity ?? 0)
-                            ) {
+                            if (Object.keys(roomConfig.playerNicknameMap).length < roomConfig.capacity) {
                               window.location.href = `/${lobby.roomId}`; //update url
                             }
                           }}
                         >
                           <BulletButton
-                            disabled={
-                              lobbyState &&
-                              Object.keys(lobbyState.playerNicknameMap).length >= (lobbyInitialConfig?.capacity ?? 0)
-                            }
+                            disabled={Object.keys(roomConfig.playerNicknameMap).length >= roomConfig.capacity}
                             text={"JOIN!"}
                           />
                         </button>
@@ -153,16 +146,24 @@ export function PublicLobbyList(props: PublicLobbyListProps) {
   );
 }
 
-function useLobbies(appId: string): Lobby[] {
-  const [lobbies, setLobbies] = React.useState<Lobby[]>([]);
+function useLobbies(appId: string): LobbyV3[] {
+  const [lobbies, setLobbies] = React.useState<LobbyV3[]>([]);
   React.useEffect(() => {
     if (appId) {
-      lobbyClient.listActivePublicLobbies(appId).then(setLobbies);
+      hathoraSdk.lobbyV3.listActivePublicLobbies().then(({ classes }) => {
+        if (classes != null) {
+          setLobbies(classes);
+        }
+      });
     }
   }, [appId]);
   useInterval(() => {
     if (appId) {
-      lobbyClient.listActivePublicLobbies(appId).then(setLobbies);
+      hathoraSdk.lobbyV3.listActivePublicLobbies().then(({ classes }) => {
+        if (classes != null) {
+          setLobbies(classes);
+        }
+      });
     }
   }, 2000);
   return lobbies;

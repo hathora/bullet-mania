@@ -1,10 +1,10 @@
 import ReactDOM from "react-dom/client";
 import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { AuthV1Api, LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
+import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 import { HathoraConnection } from "@hathora/client-sdk";
 
-import { SessionMetadata, LobbyState, InitialConfig } from "../../common/types";
+import { SessionMetadata, RoomConfig } from "../../common/types";
 
 import { isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
@@ -18,14 +18,12 @@ import { LobbySelector } from "./components/lobby/LobbySelector";
 import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
 
-const authClient = new AuthV1Api();
-const lobbyClient = new LobbyV2Api();
-const roomClient = new RoomV1Api();
+const appId = process.env.HATHORA_APP_ID;
+const hathoraSdk = new HathoraCloud({ appId });
 
 function App() {
-  const appId = process.env.HATHORA_APP_ID;
   const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();
-  const token = useAuthToken(appId, googleIdToken);
+  const token = useAuthToken(googleIdToken);
   const [connection, setConnection] = useState<HathoraConnection | undefined>();
   const [sessionMetadata, setSessionMetadata] = useState<SessionMetadata | undefined>(undefined);
   const [failedToConnect, setFailedToConnect] = useState(false);
@@ -50,7 +48,7 @@ function App() {
     !sessionMetadata?.isGameEnd
   ) {
     // Once we parse roomId from the URL, get connection details to connect player to the server
-    isReadyForConnect(appId, roomClient, lobbyClient, roomIdFromUrl)
+    isReadyForConnect(appId, roomIdFromUrl, hathoraSdk)
       .then(async ({ connectionInfo, lobbyInfo }) => {
         setRoomIdNotFound(undefined);
         if (connection != null) {
@@ -58,25 +56,26 @@ function App() {
         }
 
         try {
-          const lobbyState = lobbyInfo.state as LobbyState | undefined;
-          const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
+          const roomConfig = JSON.parse(lobbyInfo.roomConfig) as RoomConfig;
 
-          if (!lobbyState || !lobbyState.isGameEnd) {
+          if (!roomConfig.isGameEnd) {
             const connect = new HathoraConnection(roomIdFromUrl, connectionInfo);
             connect.onClose(async () => {
               // If game has ended, we want updated lobby state
-              const updatedLobbyInfo = await lobbyClient.getLobbyInfo(appId, roomIdFromUrl);
-              const updatedLobbyState = updatedLobbyInfo.state as LobbyState | undefined;
-              const updatedLobbyInitialConfig = updatedLobbyInfo.initialConfig as InitialConfig | undefined;
+              const { lobbyV3: updatedLobbyInfo } = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomIdFromUrl);
+              if (updatedLobbyInfo == null) {
+                return;
+              }
+              const updatedRoomConfig = JSON.parse(updatedLobbyInfo.roomConfig) as RoomConfig;
               setSessionMetadata({
                 serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
                 region: updatedLobbyInfo.region,
                 roomId: updatedLobbyInfo.roomId,
-                capacity: updatedLobbyInitialConfig?.capacity ?? 0,
-                winningScore: updatedLobbyInitialConfig?.winningScore ?? 99,
-                isGameEnd: !!updatedLobbyState?.isGameEnd,
-                winningPlayerId: updatedLobbyState?.winningPlayerId,
-                playerNicknameMap: updatedLobbyState?.playerNicknameMap || {},
+                capacity: updatedRoomConfig.capacity,
+                winningScore: updatedRoomConfig.winningScore,
+                isGameEnd: !!updatedRoomConfig.isGameEnd,
+                winningPlayerId: updatedRoomConfig.winningPlayerId,
+                playerNicknameMap: updatedRoomConfig.playerNicknameMap,
                 creatorId: updatedLobbyInfo.createdBy,
               });
               setFailedToConnect(true);
@@ -87,11 +86,11 @@ function App() {
             serverUrl: `${connectionInfo.host}:${connectionInfo.port}`,
             region: lobbyInfo.region,
             roomId: lobbyInfo.roomId,
-            capacity: lobbyInitialConfig?.capacity ?? 0,
-            winningScore: lobbyInitialConfig?.winningScore ?? 99,
-            isGameEnd: lobbyState?.isGameEnd ?? false,
-            winningPlayerId: lobbyState?.winningPlayerId,
-            playerNicknameMap: lobbyState?.playerNicknameMap || {},
+            capacity: roomConfig.capacity,
+            winningScore: roomConfig.winningScore,
+            isGameEnd: roomConfig.isGameEnd,
+            winningPlayerId: roomConfig.winningPlayerId,
+            playerNicknameMap: roomConfig.playerNicknameMap,
             creatorId: lobbyInfo.createdBy,
           });
         } catch (e) {
@@ -202,20 +201,20 @@ const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement)
 root.render(<App />);
 
 // Custom hook to access auth token
-function useAuthToken(appId: string | undefined, googleIdToken: string | undefined): Token | undefined {
+function useAuthToken(googleIdToken: string | undefined): Token | undefined {
   const [token, setToken] = React.useState<Token | undefined>();
   useEffect(() => {
     if (appId != null) {
-      getToken(appId, authClient, googleIdToken).then(setToken);
+      getToken(googleIdToken).then(setToken);
     }
-  }, [appId, googleIdToken]);
+  }, [googleIdToken]);
   return token;
 }
 
 // 1. Check sessionStorage for existing token
 // 2. If googleIdToken passed, use it for auth and store token
 // 3. If none above, then use anonymous auth
-async function getToken(appId: string, client: AuthV1Api, googleIdToken: string | undefined): Promise<Token> {
+async function getToken(googleIdToken: string | undefined): Promise<Token> {
   const maybeToken = sessionStorage.getItem("bullet-mania-token");
   const maybeTokenType = sessionStorage.getItem("bullet-mania-token-type");
   if (maybeToken !== null && maybeTokenType != null) {
@@ -225,13 +224,19 @@ async function getToken(appId: string, client: AuthV1Api, googleIdToken: string 
     } as Token;
   }
   if (googleIdToken == null) {
-    const { token } = await client.loginAnonymous(appId);
-    return { value: token, type: "anonymous" };
+    const { loginResponse } = await hathoraSdk.authV1.loginAnonymous();
+    if (loginResponse == null) {
+      throw new Error("Failed to login anonymously");
+    }
+    return { value: loginResponse.token, type: "anonymous" };
   }
-  const { token } = await client.loginGoogle(appId, { idToken: googleIdToken });
-  sessionStorage.setItem("bullet-mania-token", token);
+  const { loginResponse } = await hathoraSdk.authV1.loginGoogle({ idToken: googleIdToken });
+  if (loginResponse == null) {
+    throw new Error("Failed to login with google");
+  }
+  sessionStorage.setItem("bullet-mania-token", loginResponse.token);
   sessionStorage.setItem("bullet-mania-token-type", "google");
-  return { value: token, type: "google" };
+  return { value: loginResponse.token, type: "google" };
 }
 
 function getRoomIdFromUrl(): string | undefined {
