@@ -87,8 +87,8 @@ export function ExplanationText() {
       <p style={textStyle}>
         You’ll need some middleware that can request capacity on Hathora and share the connection information with the
         right players. If you don’t have an existing Lobby/Matchmaking service, Hathora offers a{" "}
-        <Link href={"https://hathora.dev/api#tag/LobbyV2"}>lightweight Lobby Service API</Link> to make integration
-        even easier by help you store and manage metadata for your rooms.
+        <Link href={"https://hathora.dev/api#tag/LobbyV2"}>lightweight Lobby Service API</Link> to make integration even
+        easier by help you store and manage metadata for your rooms.
       </p>
       <p style={textStyle}>
         Integration is simple, you first need to install and import our{" "}
@@ -113,7 +113,7 @@ export function ExplanationText() {
           <NavLink headingId={"connectToLobby"}>Connect to a public or private room</NavLink>
         </li>
         <li className={"mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
-          <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>
+          <NavLink headingId={"setRoomConfig"}>Update RoomConfig on game server</NavLink>
         </li>
       </ul>
       <div className={"ml-2 mt-1 text-neutralgray-400 hover:text-neutralgray-200 font-semibold"}>
@@ -157,39 +157,39 @@ export function ExplanationText() {
       <CodePathToggleContent showReactUsage={showReactUsage} setShowReactUsage={setShowReactUsage}>
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
           <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>
-            Import auth client from <Code>@hathora/hathora-cloud-sdk</Code>
+            Import and initialize the Hathora Cloud SDK (<Code>@hathora/cloud-sdk-typescript</Code>)
           </p>
           <CodeBlock>
-            {`import {AuthV1Api, Configuration} from "@hathora/hathora-cloud-sdk";
+            {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-let authClient = new AuthV1Api();`}
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
           </CodeBlock>
           <p className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             Use auth client to generate player tokens (needed to create rooms)
           </p>
           <CodeBlock>
             {`// arbitrary token & id
-let { token } = await authClient.loginAnonymous(appId);
+const { loginResponse } = await hathoraSdk.authV1.loginAnonymous();
 
 // integrate with Google
-let { token } = await authClient.loginGoogle(appId, googleIdToken);
+const { loginResponse } = await hathoraSdk.authV1.loginGoogle({ idToken: googleIdToken });
 
 // players can enter names
-let { token } = await authClient.loginNickname(appId,{nickname:"name"});`}
+const { loginResponse } = await hathoraSdk.authV1.loginNickname({ nickname: "name" });`}
           </CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <CodeBlock>
-            {`import { AuthV1Api } from "@hathora/hathora-cloud-sdk";
-const authClient = new AuthV1Api();
-const appId = env_variable.HATHORA_APP_ID;
+            {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+const appId = process.env.HATHORA_APP_ID;
+const hathoraSdk = new HathoraCloud({ appId });
 
 // Custom hook to access auth token
-function useAuthToken(appId: string, googleIdToken: string | undefined): Token | undefined {
+function useAuthToken(googleIdToken: string | undefined): Token | undefined {
   const [token, setToken] = React.useState<Token | undefined>();
   useEffect(() => {
     if (appId != null) {
-      getToken(appId, authClient, googleIdToken).then(setToken);
+      getToken(googleIdToken).then(setToken);
     }
   }, [googleIdToken]);
   return token;
@@ -198,7 +198,7 @@ function useAuthToken(appId: string, googleIdToken: string | undefined): Token |
 // 1. Check sessionStorage for existing token
 // 2. If googleIdToken passed, use it for auth and store token
 // 3. If none above, then use anonymous auth
-async function getToken(appId: string, client: AuthV1Api, googleIdToken: string | undefined): Promise<Token> {
+async function getToken(googleIdToken: string | undefined): Promise<Token> {
   const maybeToken = sessionStorage.getItem("bullet-mania-token");
   const maybeTokenType = sessionStorage.getItem("bullet-mania-token-type");
   if (maybeToken !== null && maybeTokenType != null) {
@@ -208,24 +208,30 @@ async function getToken(appId: string, client: AuthV1Api, googleIdToken: string 
     } as Token;
   }
   if (googleIdToken == null) {
-    const { token } = await client.loginAnonymous(appId);
-    return { value: token, type: "anonymous" };
+    const { loginResponse } = await hathoraSdk.authV1.loginAnonymous();
+    if (loginResponse == null) {
+      throw new Error("Failed to login anonymously");
+    }
+    return { value: loginResponse.token, type: "anonymous" };
   }
-  const { token } = await client.loginGoogle(appId, { idToken: googleIdToken });
-  sessionStorage.setItem("bullet-mania-token", token);
+  const { loginResponse } = await hathoraSdk.authV1.loginGoogle({ idToken: googleIdToken });
+  if (loginResponse == null) {
+    throw new Error("Failed to login with google");
+  }
+  sessionStorage.setItem("bullet-mania-token", loginResponse.token);
   sessionStorage.setItem("bullet-mania-token-type", "google");
-  return { value: token, type: "google" };
+  return { value: loginResponse.token, type: "google" };
 }
 
 // Usage (in a React component)
 const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();
-const token = useAuthToken(appId, googleIdToken);`}
+const token = useAuthToken(googleIdToken);`}
           </CodeBlock>
           <BulletManiaCodeLink
             links={[
               {
                 linkText: "Bullet Mania app.tsx",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L202-L239",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L204-L240",
               },
             ]}
           >
@@ -259,12 +265,12 @@ const token = useAuthToken(appId, googleIdToken);`}
         It's best to create rooms as close to your players to keep latency low. When creating a room, you need to pass
         in the region you want your server to be in. For Bullet Mania, we let the host decide which region is best; for
         other games, you can use our{" "}
-        <Link href={"https://hathora.dev/api#tag/DiscoveryV1/operation/GetPingServiceEndpoints"}>Ping Service API</Link> to
-        determine which region is best.
+        <Link href={"https://hathora.dev/api#tag/DiscoveryV1/operation/GetPingServiceEndpoints"}>Ping Service API</Link>{" "}
+        to determine which region is best.
       </p>
       <p style={textStyle}>
-        If you have any specific user input you need to take in to initialize your game state then pass it in through
-        the <Code>initialConfig</Code> object. In Bullet Mania, for example, <Code>initialConfig</Code> includes:
+        If you have any specific user input you need to take in to initialize your game state then pass it in via{" "}
+        <Code>RoomConfig</Code> object. In Bullet Mania, for example, <Code>RoomConfig</Code> is initialized with:
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-1"}>
@@ -277,33 +283,33 @@ const token = useAuthToken(appId, googleIdToken);`}
       <CodePathToggleContent showReactUsage={showReactUsage} setShowReactUsage={setShowReactUsage}>
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
           <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>
-            Import Lobby client from <Code>@hathora/hathora-cloud-sdk</Code>
+            Import and initialize the Hathora Cloud SDK (<Code>@hathora/cloud-sdk-typescript</Code>)
           </p>
           <CodeBlock>
-            {`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
+            {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-let lobbyClient = new LobbyV2Api();`}
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
           </CodeBlock>
           <p className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             Authenticated players (via client) can create lobbies
           </p>
-          <CodeBlock>{`const lobby = await lobbyClient.createLobby(
-  appId, // your Hathora application id
-  token, // signed player token (see "Authenticate Players" section)
+          <CodeBlock>{`const { lobbyV3 } = await hathoraSdk.lobbyV3.createLobby(
   {
-    visibility: "public", // options: ["public", "private", "local"]
-    region: "Seattle",
-    // custom object that your server code gets access to immediately
-    initialConfig: {capacity: 4, winningScore: 10},
+    createLobbyV3Params: {
+      region: Region.Seattle,
+      visibility: visibility as LobbyVisibility, // options: ["public", "private", "local"]
+      // custom object that your server code gets access to immediately
+      roomConfig: JSON.stringify(roomConfig),
+    },
   },
-  roomId // (optional) use to set custom roomIds
-)`}</CodeBlock>
+  { playerAuth: playerToken.value } // signed player token (see "Authenticate Players" section)
+);`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <p className={"text-neutralgray-300 mt-1 mb-2 ml-1 font-hathoraBody"}>Create game button</p>
           <CodeBlock>
-            {`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
-let lobbyClient = new LobbyV2Api();
+            {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
 
 // Inside create game component
 <button
@@ -316,20 +322,30 @@ let lobbyClient = new LobbyV2Api();
       }
       setIsLoading(true);
       try {
-        const lobby = await lobbyClient.createLobby(
-          env_variable.HATHORA_APP_ID,
-          playerToken.value,
-          // state from create game input options
-          { visibility, region, initialConfig }
+        const roomConfig: RoomConfig = {
+          capacity,
+          winningScore,
+          playerNicknameMap: {},
+          isGameEnd: false,
+        };
+        const { lobbyV3 } = await hathoraSdk.lobbyV3.createLobby(
+          {
+            createLobbyV3Params: {
+              region,
+              visibility: visibility as LobbyVisibility,
+              roomConfig: JSON.stringify(roomConfig),
+            },
+          },
+          { playerAuth: playerToken.value }
         );
+        if (lobbyV3 == null) {
+          throw new Error("Failed to create lobby");
+        }
         // Wait until lobby connection details are ready before redirect player to match
-        await isReadyForConnect(roomClient, lobbyClient, lobby.roomId);
-        window.location.href = lobby.roomId; //update url
+        await isReadyForConnect(appId, lobbyV3.roomId, hathoraSdk);
+        window.location.href = "/" + lobbyV3.roomId; //update url
       } catch (e) {
-        setError(e instanceof Error ?
-          e.toString() : typeof e === "string" ? e :
-          "Unknown error"
-        );
+        setError(e instanceof Error ? e.toString() : typeof e === "string" ? e : "Unknown error");
       } finally {
         setIsLoading(false);
       }
@@ -344,7 +360,7 @@ let lobbyClient = new LobbyV2Api();
               {
                 linkText: "Bullet Mania GameCreator.tsx",
                 linkHref:
-                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L72-L95",
+                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L71-L108",
               },
             ]}
           >
@@ -363,50 +379,55 @@ let lobbyClient = new LobbyV2Api();
       </p>
       <p style={textStyle}>
         In Bullet Mania, we kept it simple and display all lobbies (newest at the top) and make it easy for players to
-        join. For more advanced usage, you can set custom properties via <Code>lobbyState</Code> and use those
+        join. For more advanced usage, you can set custom properties via <Code>RoomConfig</Code> and use those
         properties for custom client-side filtering and custom matchmaking logic. For more details on using{" "}
-        <Code>lobbyState</Code>, see <NavLink headingId={"setLobbyState"}>Update lobby state on game server</NavLink>.
+        <Code>RoomConfig</Code>, see <NavLink headingId={"setRoomConfig"}>Update RoomConfig on game server</NavLink>.
       </p>
 
       <CodePathToggleContent showReactUsage={showReactUsage} setShowReactUsage={setShowReactUsage}>
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
           <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Display all active public rooms</p>
-          <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
-let lobbyClient = new LobbyV2Api();
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
 
-const publicLobbies = lobbyClient.listActivePublicLobbies(
-  appId, // your Hathora application id
-  "Seattle", // (optional) region filter
-);`}</CodeBlock>
+const publicLobbies = hathoraSdk.lobbyV3.listActivePublicLobbies();`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
-          <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
-let lobbyClient = new LobbyV2Api();
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
 
-function useLobbies(appId: string): Lobby[] {
-  const [lobbies, setLobbies] = React.useState<Lobby[]>([]);
+function useLobbies(appId: string): LobbyV3[] {
+  const [lobbies, setLobbies] = React.useState<LobbyV3[]>([]);
   React.useEffect(() => {
     if (appId) {
-      lobbyClient.listActivePublicLobbies(appId).then(setLobbies);
+      hathoraSdk.lobbyV3.listActivePublicLobbies().then(({ classes }) => {
+        if (classes != null) {
+          setLobbies(classes);
+        }
+      });
     }
   }, [appId]);
   useInterval(() => {
     if (appId) {
-      lobbyClient.listActivePublicLobbies(appId).then(setLobbies);
+      hathoraSdk.lobbyV3.listActivePublicLobbies().then(({ classes }) => {
+        if (classes != null) {
+          setLobbies(classes);
+        }
+      });
     }
   }, 2000);
   return lobbies;
 }
 
 // Usage
-const appId = env_variable.HATHORA_APP_ID;
+const appId = process.env.HATHORA_APP_ID;
 const lobbies = useLobbies(appId);`}</CodeBlock>
           <BulletManiaCodeLink
             links={[
               {
                 linkText: "Bullet Mania PublicLobbyList.tsx",
                 linkHref:
-                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/PublicLobbyList.tsx#L156-L169",
+                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/PublicLobbyList.tsx#L149-L170",
               },
             ]}
           >
@@ -425,7 +446,7 @@ const lobbies = useLobbies(appId);`}</CodeBlock>
       </p>
       <p style={textStyle}>
         In many cases, your room may need to run some custom logic before letting a player connect. You can use{" "}
-        <Code>lobbyState</Code> to store relevant data needed for this custom logic.
+        <Code>RoomConfig</Code> to store relevant data needed for this custom logic.
       </p>
       <p style={textStyle}>
         Once you've gotten your connection details, you can use the network transport of your choice to connect. Some
@@ -442,48 +463,39 @@ const lobbies = useLobbies(appId);`}</CodeBlock>
       <CodePathToggleContent showReactUsage={showReactUsage} setShowReactUsage={setShowReactUsage}>
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
           <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>
-            Import Room and Lobby clients from <Code>@hathora/hathora-cloud-sdk</Code>
+            Import and initialize the Hathora Cloud SDK (<Code>@hathora/cloud-sdk-typescript</Code>)
           </p>
           <CodeBlock>
-            {`import {
-  LobbyV2Api,
-  RoomV1Api,
-} from "@hathora/hathora-cloud-sdk";
+            {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-let lobbyClient = new LobbyV2Api();
-let roomClient = new RoomV1Api();`}
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
           </CodeBlock>
           <p id={"lobbyInfo"} className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             <a href="#lobbyInfo">Fetch lobby information, see</a>{" "}
-            <Link href={"https://hathora.dev/api#tag/LobbyV2/operation/GetLobbyInfo"}>return values for getLobbyInfo()</Link>
+            <Link href={"https://hathora.dev/api#tag/LobbyV2/operation/GetLobbyInfo"}>
+              return values for getLobbyInfo()
+            </Link>
           </p>
-          <CodeBlock>{`// This step is only needed if you want to validate lobbyState before connecting a player
-const lobbyInfo = lobbyClient.getLobbyInfo(
-  appId, // your Hathora application id
-  roomId,
-);
-// lobbyInfo will contain details like lobbyState and initialConfig`}</CodeBlock>
+          <CodeBlock>{`// This step is only needed if you want to validate RoomConfig before connecting a player
+const lobbyInfo = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomId);
+// lobbyInfo will contain details like region and roomConfig`}</CodeBlock>
           <p id={"connectionInfo"} className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             <a href="#connectionInfo">Get connection info (host and port) to route your player</a>
           </p>
-          <CodeBlock>{`const connectionInfo = roomClient.getConnectionInfo(
-  appId, // your Hathora application id
-  roomId,
-);
+          <CodeBlock>{`const { connectionInfoV2 } = await hathoraSdk.roomV2.getConnectionInfo(roomId);
 
-// Use your network transport of choice (using hathora/buildkits here)
+// Use your network transport of choice (using Hathora BuildKits here)
 import { HathoraConnection } from "@hathora/client-sdk";
-const connection = new HathoraConnection(roomId, connectionInfo);`}</CodeBlock>
+const connection = new HathoraConnection(roomId, connectionInfoV2);`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <p id={"connectionInfo2"} className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>
             <a href="#connectionInfo2">Get connection info for room id and connect</a>
           </p>
-          <CodeBlock>{`import { LobbyV2Api, RoomV1Api } from "@hathora/hathora-cloud-sdk";
-import { HathoraConnection } from "@hathora/client-sdk";
+          <CodeBlock>{`import { HathoraConnection } from "@hathora/client-sdk";
+import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const lobbyClient = new LobbyV2Api();
-const roomClient = new RoomV1Api();
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
 
 // For Bullet Mania, we grab roomId from URL
 const roomIdFromUrl = getRoomIdFromUrl();
@@ -497,17 +509,14 @@ if ( roomIdFromUrl != null ) {
       }
 
       try {
-        const lobbyState = lobbyInfo.state as LobbyState | undefined;
-        const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
+        const roomConfig = JSON.parse(lobbyInfo.roomConfig) as RoomConfig | undefined;
 
-        if (!lobbyState || !lobbyState.isGameEnd) {
+        if (!roomConfig || !roomConfig.isGameEnd) {
           const connect = new HathoraConnection(roomIdFromUrl, connectionInfo);
           connect.onClose(async () => {
-            // If game has ended, we want updated lobby state
-            const updatedLobbyInfo = await lobbyClient.getLobbyInfo(appId, roomIdFromUrl);
-            const updatedLobbyState = updatedLobbyInfo.state as LobbyState | undefined;
-            const updatedLobbyInitialConfig =
-              updatedLobbyInfo.initialConfig as InitialConfig | undefined;
+            // If game has ended, we want updated lobby info
+            const updatedLobbyInfo = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomIdFromUrl);
+            const updatedRoomConfig = JSON.parse(updatedLobbyInfo.roomConfig) as RoomConfig | undefined;
             setFailedToConnect(true);
           });
           setConnection(connect);
@@ -532,47 +541,37 @@ if ( roomIdFromUrl != null ) {
   const MAX_CONNECT_ATTEMPTS = 50;
   const TRY_CONNECT_INTERVAL_MS = 1000;
 
-  const lobbyInfo = await lobbyClient.getLobbyInfo(appId, roomId);
-
-  if (lobbyInfo.visibility === "local") {
-    return new Promise<{
-      lobbyInfo: Lobby;
-      connectionInfo: ConnectionDetails
-    }>((resolve) =>
-      resolve({ lobbyInfo, connectionInfo: LOCAL_CONNECTION_DETAILS })
-    );
-  }
+  const lobbyInfo = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomIdFromUrl);
 
   for (let i = 0; i < MAX_CONNECT_ATTEMPTS; i++) {
-    const res = await roomClient.getConnectionInfo(appId, roomId);
-    if (res.status === "active") {
-      return { lobbyInfo, connectionInfo: res };
+    const res = await hathoraSdk.roomV2.getConnectionInfo(roomId);
+    if (res.connectionInfoV2?.status === ConnectionInfoV2Status.Active) {
+      return { lobbyInfo, connectionInfo: res.connectionInfoV2 };
     }
     await new Promise((resolve) => setTimeout(resolve, TRY_CONNECT_INTERVAL_MS));
   }
   throw new Error("Polling timed out");
 }`}</CodeBlock>
           <p className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
-            Validate player joining with <Code>lobbyState</Code> and <Code>initialConfig</Code> (server)
+            Validate player joining with <Code>RoomConfig</Code> (server)
           </p>
-          <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
-const lobbyClient = new LobbyV2Api();
-const appId = env_variable.HATHORA_APP_ID;
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+
+const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
 
 // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
 async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
   console.log("subscribeUser", roomId, userId);
   try {
-    const lobbyInfo = await lobbyClient.getLobbyInfo(appId, roomId);
-    const lobbyState = lobbyInfo.state as LobbyState | undefined;
-    const lobbyInitialConfig = lobbyInfo.initialConfig as InitialConfig | undefined;
+    const lobbyInfo = await hathoraSdk.lobbyV3.getLobbyInfoByRoomId(roomId);
+    const roomConfig = JSON.parse(lobbyInfo.roomConfig) as RoomConfig | undefined;
 
     if (!rooms.has(roomId)) {
-      rooms.set(roomId, initializeRoom(lobbyInitialConfig?.winningScore ?? 10, lobbyState?.isGameEnd || false));
+      rooms.set(roomId, initializeRoom(roomConfig?.winningScore ?? 10, roomConfig?.isGameEnd || false));
     }
     const game = rooms.get(roomId)!;
 
-    if (game.players.length === lobbyInitialConfig?.capacity) {
+    if (game.players.length === roomConfig?.capacity) {
       throw new Error("room is full");
     }
     if (game.isGameEnd) {
@@ -581,8 +580,8 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
     // Make sure the player hasn't already spawned
     if (!game.players.some((player) => player.id === userId)) {
       // ...Logic to spawn player...
-      // Update lobbyState with new player
-      await updateLobbyState(game, roomId);
+      // Update roomConfig with new player
+      await updateRoomConfig(game, roomId);
     }
   } catch (err) {
     console.log("failed to connect to room: ", err);
@@ -593,11 +592,11 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
             links={[
               {
                 linkText: "Connecting to a room (app.tsx)",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L52-L83",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L51-L84",
               },
               {
                 linkText: "Handle player join (server.ts)",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L151-L171",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L154-L170",
               },
             ]}
           >
@@ -605,17 +604,17 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
           </BulletManiaCodeLink>
         </div>
       </CodePathToggleContent>
-      <h1 id={"setLobbyState"} style={h1Style}>
-        <a href="#setLobbyState">
-          <span className={"text-neutralgray-400"}>5.</span> Update lobby state on game server
+      <h1 id={"setRoomConfig"} style={h1Style}>
+        <a href="#setRoomConfig">
+          <span className={"text-neutralgray-400"}>5.</span> Update RoomConfig on game server
         </a>
       </h1>
       <p style={textStyle}>
-        <Code>lobbyState</Code> is a flexible object that is set by your server code, but is easily accessed in your
+        <Code>RoomConfig</Code> is a flexible object that is set by your server code, but is easily accessed in your
         client code. It can be thought of as a custom blob that is persisted outside of your server.
       </p>
       <p style={textStyle}>
-        Some example use cases for <Code>lobbyState</Code>:
+        Some example use cases for <Code>RoomConfig</Code>:
       </p>
       <ul className={"font-hathoraBody text-neutralgray-200 list-disc ml-6"}>
         <li className={"mt-1"}>player count (to enforce play capacity)</li>
@@ -633,45 +632,37 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
 
       <CodePathToggleContent showReactUsage={showReactUsage} setShowReactUsage={setShowReactUsage}>
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
-          <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Update lobbyState</p>
-          <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
-let lobbyClient = new LobbyV2Api();
+          <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Update RoomConfig (in server)</p>
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-// lobbyState is meant to hold custom objects
-let myCustomLobbyState = { isGameEnd: true,  winningPlayerId: myGameData.winningPlayerId,}
-const lobby = await lobbyClient.setLobbyState(
-  appId,
-  roomId,
-  { state: myCustomLobbyState },
-  // \`developerToken\` is the auth token for your Hathora Cloud account
-  //  (different than the tokens for your players)
-  { headers: {
-    Authorization: \`Bearer \${developerToken}\`,
-    "Content-Type": "application/json"
-  } }
-);`}</CodeBlock>
+const hathoraSdk = new HathoraCloud({
+  appId: process.env.HATHORA_APP_ID!,
+  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+});
+
+// RoomConfig is meant to hold custom objects
+let myCustomRoomConfig = { isGameEnd: true,  winningPlayerId: myGameData.winningPlayerId,}
+const res = await hathoraSdk.roomV2.updateRoomConfig({
+  roomConfig: JSON.stringify(myCustomRoomConfig)
+}, roomId);`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
-          <CodeBlock>{`import { LobbyV2Api } from "@hathora/hathora-cloud-sdk";
-const lobbyClient = new LobbyV2Api();
-const developerToken = env_variable.DEVELOPER_TOKEN;
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-async function updateLobbyState(game: InternalState, roomId: string) {
-  const lobbyState: LobbyState = {
-    playerNicknameMap: Object.fromEntries(game.players.map((player) =>
-      [player.id, player.nickname ?? player.id]
-    )),
+const hathoraSdk = new HathoraCloud({
+  appId: process.env.HATHORA_APP_ID!,
+  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+});
+
+async function updateRoomConfig(game: InternalState, roomId: string) {
+  const roomConfig: RoomConfig = {
+    capacity: 0,
+    winningScore: game.winningScore,
+    playerNicknameMap: Object.fromEntries(game.players.map((player) => [player.id, player.nickname ?? player.id])),
     isGameEnd: game.isGameEnd,
     winningPlayerId: game.winningPlayerId,
   };
-  return await lobbyClient.setLobbyState(env_variable.HATHORA_APP_ID!,
-    roomId,
-    { state:lobbyState },
-    { headers: {
-      Authorization: \`Bearer \${developerToken}\`,
-      "Content-Type": "application/json"
-    } }
-  );
+  return await hathoraSdk.roomV2.updateRoomConfig({ roomConfig: JSON.stringify(roomConfig) }, roomId);
 }`}</CodeBlock>
           <BulletManiaCodeLink
             links={[
@@ -698,31 +689,30 @@ async function updateLobbyState(game: InternalState, roomId: string) {
       </p>
       <CodePathToggleContent showReactUsage={showReactUsage} setShowReactUsage={setShowReactUsage}>
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
-          <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Update lobbyState</p>
-          <CodeBlock>{`import { RoomV1Api } from "@hathora/hathora-cloud-sdk";
-let roomClient = new RoomV1Api();
-const developerToken = env_variable.DEVELOPER_TOKEN;
+          <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Update RoomConfig</p>
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+
+const hathoraSdk = new HathoraCloud({
+  appId: process.env.HATHORA_APP_ID!,
+  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+});
 
 // ...Disconnect players...
 
-const lobby = await roomClient.destroyRoom(
-  appId,
-  roomId,
-  { headers: {
-    Authorization: \`Bearer \${developerToken}\`,
-    "Content-Type": "application/json"
-  } }
-);`}</CodeBlock>
+const lobby = hathoraSdk.roomV2.destroyRoom(roomId);`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
-          <CodeBlock>{`import { RoomV1Api } from "@hathora/hathora-cloud-sdk";
-let roomClient = new RoomV1Api();
-const developerToken = env_variable.DEVELOPER_TOKEN;
+          <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
+
+const hathoraSdk = new HathoraCloud({
+  appId: process.env.HATHORA_APP_ID!,
+  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+});
 
 async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
-  // Update lobby state (to persist end game state and prevent new players from joining)
+  // Update RoomConfig (to persist end game state and prevent new players from joining)
   game.winningPlayerId = winningPlayerId;
-  await updateLobbyState(game, roomId);
+  await updateRoomConfig(game, roomId);
 
   // boot all players and destroy room
   setTimeout(() => {
@@ -732,21 +722,14 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
       server.closeConnection(roomId, playerId, "game has ended, disconnecting players");
     });
     console.log("destroying room: ", roomId);
-    roomClient.destroyRoom(
-      env_variable.HATHORA_APP_ID!,
-      roomId,
-      { headers: {
-        Authorization: \`Bearer \${developerToken}\`,
-        "Content-Type": "application/json"
-      } }
-    );
+    hathoraSdk.roomV2.destroyRoom(roomId);
   }, 10000);
 }`}</CodeBlock>
           <BulletManiaCodeLink
             links={[
               {
                 linkText: "Bullet Mania server.ts",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L460-479",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L456-L471",
               },
             ]}
           >

@@ -185,7 +185,7 @@ const store: Application = {
           score: 0,
           sprite: Math.floor(Math.random() * PLAYER_SPRITES_COUNT),
         });
-        await updateLobbyState(game, roomId);
+        await updateRoomConfig(game, roomId);
       }
     } catch (err) {
       console.log("failed to connect to room: ", err);
@@ -210,7 +210,7 @@ const store: Application = {
     }
 
     try {
-      await updateLobbyState(game, roomId);
+      await updateRoomConfig(game, roomId);
     } catch (err) {
       console.log("failed to connect to room: ", err);
     }
@@ -235,7 +235,7 @@ const store: Application = {
 
     if (message.type === ClientMessageType.SetNickname) {
       player.nickname = message.nickname;
-      updateLobbyState(game, roomId);
+      updateRoomConfig(game, roomId);
     } else if (message.type === ClientMessageType.SetDirection) {
       player.direction = message.direction;
     } else if (message.type === ClientMessageType.SetAngle) {
@@ -454,9 +454,9 @@ function getDeveloperToken() {
 }
 
 async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
-  // Update lobby state (to persist end game state and prevent new players from joining)
+  // Update RoomConfig (to persist end game state and prevent new players from joining)
   game.winningPlayerId = winningPlayerId;
-  await updateLobbyState(game, roomId);
+  await updateRoomConfig(game, roomId);
 
   // boot all players and destroy room
   setTimeout(() => {
@@ -470,7 +470,7 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
   }, 10000);
 }
 
-async function updateLobbyState(game: InternalState, roomId: string) {
+async function updateRoomConfig(game: InternalState, roomId: string) {
   const roomConfig: RoomConfig = {
     capacity: 0,
     winningScore: game.winningScore,
