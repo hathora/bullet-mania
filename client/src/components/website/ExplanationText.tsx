@@ -162,7 +162,7 @@ export function ExplanationText() {
           <CodeBlock>
             {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });`}
           </CodeBlock>
           <p className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             Use auth client to generate player tokens (needed to create rooms)
@@ -181,7 +181,7 @@ const { loginResponse } = await hathoraSdk.authV1.loginNickname({ nickname: "nam
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <CodeBlock>
             {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
-const appId = process.env.HATHORA_APP_ID;
+const appId = env_variable.HATHORA_APP_ID;
 const hathoraSdk = new HathoraCloud({ appId });
 
 // Custom hook to access auth token
@@ -288,7 +288,7 @@ const token = useAuthToken(googleIdToken);`}
           <CodeBlock>
             {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });`}
           </CodeBlock>
           <p className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             Authenticated players (via client) can create lobbies
@@ -309,7 +309,7 @@ const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
           <p className={"text-neutralgray-300 mt-1 mb-2 ml-1 font-hathoraBody"}>Create game button</p>
           <CodeBlock>
             {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });
 
 // Inside create game component
 <button
@@ -388,13 +388,13 @@ const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
         <div className={`${showReactUsage ? "hidden" : "block"}`}>
           <p className={"text-neutralgray-300 mb-2 ml-1 font-hathoraBody"}>Display all active public rooms</p>
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });
 
 const publicLobbies = hathoraSdk.lobbyV3.listActivePublicLobbies();`}</CodeBlock>
         </div>
         <div className={`${showReactUsage ? "block" : "hidden"}`}>
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });
 
 function useLobbies(appId: string): LobbyV3[] {
   const [lobbies, setLobbies] = React.useState<LobbyV3[]>([]);
@@ -420,7 +420,7 @@ function useLobbies(appId: string): LobbyV3[] {
 }
 
 // Usage
-const appId = process.env.HATHORA_APP_ID;
+const appId = env_variable.HATHORA_APP_ID;
 const lobbies = useLobbies(appId);`}</CodeBlock>
           <BulletManiaCodeLink
             links={[
@@ -468,7 +468,7 @@ const lobbies = useLobbies(appId);`}</CodeBlock>
           <CodeBlock>
             {`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });`}
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });`}
           </CodeBlock>
           <p id={"lobbyInfo"} className={"text-neutralgray-300 mt-4 mb-2 ml-1 font-hathoraBody"}>
             <a href="#lobbyInfo">Fetch lobby information, see</a>{" "}
@@ -495,7 +495,7 @@ const connection = new HathoraConnection(roomId, connectionInfoV2);`}</CodeBlock
           <CodeBlock>{`import { HathoraConnection } from "@hathora/client-sdk";
 import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });
 
 // For Bullet Mania, we grab roomId from URL
 const roomIdFromUrl = getRoomIdFromUrl();
@@ -557,7 +557,7 @@ if ( roomIdFromUrl != null ) {
           </p>
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
+const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });
 
 // subscribeUser is called when a new user enters a room, it's an ideal place to do any player-specific initialization steps
 async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
@@ -636,8 +636,8 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 const hathoraSdk = new HathoraCloud({
-  appId: process.env.HATHORA_APP_ID!,
-  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+  appId: env_variable.HATHORA_APP_ID!,
+  security: { hathoraDevToken: env_variable.DEVELOPER_TOKEN! },
 });
 
 // RoomConfig is meant to hold custom objects
@@ -650,8 +650,8 @@ const res = await hathoraSdk.roomV2.updateRoomConfig({
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 const hathoraSdk = new HathoraCloud({
-  appId: process.env.HATHORA_APP_ID!,
-  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+  appId: env_variable.HATHORA_APP_ID!,
+  security: { hathoraDevToken: env_variable.DEVELOPER_TOKEN! },
 });
 
 async function updateRoomConfig(game: InternalState, roomId: string) {
@@ -693,8 +693,8 @@ async function updateRoomConfig(game: InternalState, roomId: string) {
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 const hathoraSdk = new HathoraCloud({
-  appId: process.env.HATHORA_APP_ID!,
-  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+  appId: env_variable.HATHORA_APP_ID!,
+  security: { hathoraDevToken: env_variable.DEVELOPER_TOKEN! },
 });
 
 // ...Disconnect players...
@@ -705,8 +705,8 @@ const lobby = hathoraSdk.roomV2.destroyRoom(roomId);`}</CodeBlock>
           <CodeBlock>{`import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 const hathoraSdk = new HathoraCloud({
-  appId: process.env.HATHORA_APP_ID!,
-  security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
+  appId: env_variable.HATHORA_APP_ID!,
+  security: { hathoraDevToken: env_variable.DEVELOPER_TOKEN! },
 });
 
 async function endGameCleanup(roomId: string, game: InternalState, winningPlayerId: string) {
