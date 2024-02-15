@@ -1,4 +1,4 @@
-import { LobbyV3 } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
+import { LobbyV3, Security } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
 import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 import { ConnectionDetails } from "@hathora/client-sdk";
 
@@ -55,4 +55,8 @@ export async function isReadyForConnect(
     await new Promise((resolve) => setTimeout(resolve, TRY_CONNECT_INTERVAL_MS));
   }
   throw new Error("Polling timed out");
+}
+
+export function getHathoraSdk(appId: string | undefined): HathoraCloud {
+  return new HathoraCloud({ appId });
 }

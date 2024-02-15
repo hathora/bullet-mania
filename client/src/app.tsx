@@ -1,12 +1,11 @@
 import ReactDOM from "react-dom/client";
 import React, { useEffect, useState } from "react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 import { HathoraConnection } from "@hathora/client-sdk";
 
 import { SessionMetadata, RoomConfig } from "../../common/types";
 
-import { isReadyForConnect, Token } from "./utils";
+import { getHathoraSdk, isReadyForConnect, Token } from "./utils";
 import { Socials } from "./components/website/Socials";
 import { HathoraLogo } from "./components/website/HathoraLogo";
 import { GithubCorner } from "./components/website/GithubCorner";
@@ -19,7 +18,7 @@ import { BulletButton } from "./components/lobby/BulletButton";
 import { GameComponent, GameConfig } from "./components/GameComponent";
 
 const appId = process.env.HATHORA_APP_ID;
-const hathoraSdk = new HathoraCloud({ appId });
+const hathoraSdk = getHathoraSdk(appId);
 
 function App() {
   const [googleIdToken, setGoogleIdToken] = useState<string | undefined>();

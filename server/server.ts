@@ -11,6 +11,7 @@ import map from "../common/map.json" assert { type: "json" };
 import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
 const hathoraSdk = new HathoraCloud({
+  serverURL: process.env.HATHORA_SERVER_URL ?? undefined,
   appId: process.env.HATHORA_APP_ID!,
   security: { hathoraDevToken: process.env.DEVELOPER_TOKEN! },
 });

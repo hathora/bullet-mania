@@ -7,17 +7,15 @@ dayjs.extend(relativeTime);
 
 import { ClockIcon, TrophyIcon, UserIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { LobbyV3, Region } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
-import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-import { isReadyForConnect } from "../../utils";
+import { getHathoraSdk, isReadyForConnect } from "../../utils";
 import { RoomConfig } from "../../../../common/types";
 
 import { LobbyPageCard } from "./LobbyPageCard";
 import { Header } from "./Header";
 import { BulletButton } from "./BulletButton";
 
-const hathoraSdk = new HathoraCloud({ appId: process.env.HATHORA_APP_ID });
-
+const hathoraSdk = getHathoraSdk(process.env.HATHORA_APP_ID);
 interface PublicLobbyListProps {
   appId: string;
 }
