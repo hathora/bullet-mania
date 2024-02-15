@@ -58,5 +58,5 @@ export async function isReadyForConnect(
 }
 
 export function getHathoraSdk(appId: string | undefined): HathoraCloud {
-  return new HathoraCloud({ appId });
+  return new HathoraCloud({ serverURL: "api.hathora.io", appId });
 }
