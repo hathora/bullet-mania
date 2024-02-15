@@ -1,4 +1,4 @@
-import { LobbyV3, Security } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
+import { LobbyV3 } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
 import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 import { ConnectionDetails } from "@hathora/client-sdk";
 
