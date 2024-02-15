@@ -231,7 +231,7 @@ const token = useAuthToken(googleIdToken);`}
             links={[
               {
                 linkText: "Bullet Mania app.tsx",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L204-L240",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L203-L239",
               },
             ]}
           >
@@ -360,7 +360,7 @@ const hathoraSdk = new HathoraCloud({ appId: env_variable.HATHORA_APP_ID });
               {
                 linkText: "Bullet Mania GameCreator.tsx",
                 linkHref:
-                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L71-L108",
+                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/GameCreator.tsx#L70-L107",
               },
             ]}
           >
@@ -427,7 +427,7 @@ const lobbies = useLobbies(appId);`}</CodeBlock>
               {
                 linkText: "Bullet Mania PublicLobbyList.tsx",
                 linkHref:
-                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/PublicLobbyList.tsx#L149-L170",
+                  "https://github.com/hathora/bullet-mania/blob/develop/client/src/components/lobby/PublicLobbyList.tsx#L147-L168",
               },
             ]}
           >
@@ -592,11 +592,11 @@ async subscribeUser(roomId: RoomId, userId: string): Promise<void> {
             links={[
               {
                 linkText: "Connecting to a room (app.tsx)",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L51-L84",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/client/src/app.tsx#L50-L83",
               },
               {
                 linkText: "Handle player join (server.ts)",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L154-L170",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L155-L171",
               },
             ]}
           >
@@ -668,7 +668,7 @@ async function updateRoomConfig(game: InternalState, roomId: string) {
             links={[
               {
                 linkText: "Bullet Mania server.ts",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L481",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L482",
               },
             ]}
           >
@@ -729,7 +729,7 @@ async function endGameCleanup(roomId: string, game: InternalState, winningPlayer
             links={[
               {
                 linkText: "Bullet Mania server.ts",
-                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L456-L471",
+                linkHref: "https://github.com/hathora/bullet-mania/blob/develop/server/server.ts#L457-L472",
               },
             ]}
           >
