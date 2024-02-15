@@ -1,9 +1,8 @@
 import React from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { LobbyVisibility, Region } from "@hathora/cloud-sdk-typescript/dist/sdk/models/shared";
-import { HathoraCloud } from "@hathora/cloud-sdk-typescript";
 
-import { isReadyForConnect, Token } from "../../utils";
+import { getHathoraSdk, isReadyForConnect, Token } from "../../utils";
 import { RoomConfig } from "../../../../common/types";
 
 import { MultiSelect } from "./MultiSelect";
@@ -26,7 +25,7 @@ export function GameCreator(props: GameCreatorProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string>("");
 
-  const hathoraSdk = new HathoraCloud({ appId });
+  const hathoraSdk = getHathoraSdk(appId);
 
   return (
     <LobbyPageCard className={"pb-1.5"}>

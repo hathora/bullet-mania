@@ -56,3 +56,7 @@ export async function isReadyForConnect(
   }
   throw new Error("Polling timed out");
 }
+
+export function getHathoraSdk(appId: string | undefined): HathoraCloud {
+  return new HathoraCloud({ appId });
+}
